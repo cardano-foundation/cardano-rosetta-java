@@ -1,0 +1,136 @@
+{
+  "status_code": 200,
+  "body": {
+    "block": {
+      "block_identifier": {
+        "index": 2442275,
+        "hash": "b2725371d9c418212e03d8aa21b02620993aa31411a361396ef7f2a759bea028"
+      },
+      "parent_block_identifier": {
+        "index": 2442274,
+        "hash": "076df722662cbbe00642d60640e030222f673f4ef1249fa38dadd06369357d6c"
+      },
+      "timestamp": 1720312828000,
+      "transactions": [
+        {
+          "transaction_identifier": {
+            "hash": "d5365f0f35dbffa7607c6282bbe37f05e8b503a0f04ebf9d3ef13d1839e6c2ad"
+          },
+          "operations": [
+            {
+              "operation_identifier": {
+                "index": 0
+              },
+              "type": "input",
+              "status": "success",
+              "account": {
+                "address": "addr_test1vqespxy78328uprac8f6kcusm67tqggn29qkrkqdvv6gmfcgeq4vc"
+              },
+              "amount": {
+                "value": "-8086314674",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "0dff0a45fa8725665b83ce8a4eb76dbcb0bc79217c6b7967f10c62614f7f9ab2:1"
+                },
+                "coin_action": "coin_spent"
+              }
+            },
+            {
+              "operation_identifier": {
+                "index": 1,
+                "network_index": 0
+              },
+              "related_operations": [
+                {
+                  "index": 0
+                }
+              ],
+              "type": "output",
+              "status": "success",
+              "account": {
+                "address": "addr_test1vzswptc2h3z6e0rp4leu6d0zumy5pfnrpcxs0ewkdyw57pqkr68dn"
+              },
+              "amount": {
+                "value": "1304150",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "d5365f0f35dbffa7607c6282bbe37f05e8b503a0f04ebf9d3ef13d1839e6c2ad:0"
+                },
+                "coin_action": "coin_created"
+              },
+              "metadata": {
+                "tokenBundle": [
+                  {
+                    "policyId": "317f833d4922f90360e50f69f01852f161a403d87e7a654fe42ad9f6",
+                    "tokens": [
+                      {
+                        "value": "1",
+                        "currency": {
+                          "symbol": "323032342d30372d30365431393a34303a30362e383231363736",
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "317f833d4922f90360e50f69f01852f161a403d87e7a654fe42ad9f6"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "operation_identifier": {
+                "index": 2,
+                "network_index": 1
+              },
+              "related_operations": [
+                {
+                  "index": 0
+                }
+              ],
+              "type": "output",
+              "status": "success",
+              "account": {
+                "address": "addr_test1vqespxy78328uprac8f6kcusm67tqggn29qkrkqdvv6gmfcgeq4vc"
+              },
+              "amount": {
+                "value": "8084817259",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "d5365f0f35dbffa7607c6282bbe37f05e8b503a0f04ebf9d3ef13d1839e6c2ad:1"
+                },
+                "coin_action": "coin_created"
+              }
+            }
+          ],
+          "metadata": {
+            "size": 619,
+            "scriptSize": 0
+          }
+        }
+      ],
+      "metadata": {
+        "transactionsCount": 1,
+        "createdBy": "d657d513bd59f01d63e266b3472e2fc16b57294535a1f33d60a63356",
+        "size": 865,
+        "epochNo": 153,
+        "slotNo": 64629628
+      }
+    }
+  }
+}
