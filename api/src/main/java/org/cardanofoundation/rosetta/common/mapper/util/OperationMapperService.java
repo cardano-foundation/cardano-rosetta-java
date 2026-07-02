@@ -10,6 +10,7 @@ import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants;
 import org.mapstruct.Context;
 import org.mapstruct.Named;
+import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationIdentifier;
 import org.openapitools.client.model.OperationStatus;
@@ -109,7 +110,20 @@ public class OperationMapperService {
       operations.addAll(outOps);
     }
 
+    // The Rosetta schema requires AccountIdentifier.address whenever an account object is present.
+    // Some operations (e.g. inputs referencing a UTXO that is missing from the index, such as on
+    // pruned instances) can end up with an account object whose address was never populated. Drop
+    // the empty account object in that case so the response stays schema-valid.
+    operations.forEach(OperationMapperService::removeEmptyAccount);
+
     return operations;
+  }
+
+  private static void removeEmptyAccount(Operation operation) {
+    AccountIdentifier account = operation.getAccount();
+    if (account != null && (account.getAddress() == null || account.getAddress().isBlank())) {
+      operation.setAccount(null);
+    }
   }
 
   public List<OperationIdentifier> getOperationIndexes(List<Operation> operations) {
