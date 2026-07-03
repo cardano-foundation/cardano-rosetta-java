@@ -143,8 +143,8 @@ class SyncStatusHealthIndicatorTest {
     }
 
     @Nested
-    @DisplayName("When sync status Optional is empty or throws exception")
-    class WhenSyncStatusEmptyOrError {
+    @DisplayName("When sync status Optional is empty")
+    class WhenSyncStatusEmpty {
 
         @Test
         @DisplayName("health() returns OUT_OF_SERVICE status when empty")
@@ -155,18 +155,6 @@ class SyncStatusHealthIndicatorTest {
 
             assertThat(health.getStatus()).isEqualTo(Status.OUT_OF_SERVICE);
             assertThat(health.getDetails()).containsKey("reason");
-        }
-
-        @Test
-        @DisplayName("health() returns OUT_OF_SERVICE status when service throws exception")
-        void returnsHealthOutOfServiceWhenThrows() {
-            when(syncStatusService.getSyncStatus()).thenThrow(new RuntimeException("DB offline"));
-
-            Health health = indicator.health();
-
-            assertThat(health.getStatus()).isEqualTo(Status.OUT_OF_SERVICE);
-            assertThat(health.getDetails().get("reason"))
-                    .isEqualTo("Sync status cannot be determined — DB offline");
         }
     }
 }

@@ -42,14 +42,7 @@ public class SyncStatusHealthIndicator implements HealthIndicator {
     @Override
     @Nullable
     public Health health() {
-        Optional<SyncStatus> syncStatusOpt;
-        try {
-            syncStatusOpt = syncStatusService.getSyncStatus();
-        } catch (Exception e) {
-            return Health.outOfService()
-                    .withDetail("reason", "Sync status cannot be determined — " + e.getMessage())
-                    .build();
-        }
+        Optional<SyncStatus> syncStatusOpt = syncStatusService.getSyncStatus();
 
         if (syncStatusOpt == null || syncStatusOpt.isEmpty()) {
             return Health.outOfService()
