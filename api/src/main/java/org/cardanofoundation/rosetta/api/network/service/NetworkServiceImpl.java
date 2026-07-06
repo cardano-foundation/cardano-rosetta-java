@@ -168,7 +168,7 @@ public class NetworkServiceImpl implements NetworkService {
       networkStatusBuilder.oldestBlock(oldestBlockIdentifier);
     }
 
-    syncStatusService.calculateSyncStatus(latestBlock).ifPresent(networkStatusBuilder::syncStatus);
+    syncStatusService.getSyncStatus().ifPresent(networkStatusBuilder::syncStatus);
 
     return networkStatusBuilder.build();
   }
@@ -187,8 +187,7 @@ public class NetworkServiceImpl implements NetworkService {
 
   @Override
   public void verifySyncStatus() {
-    BlockIdentifierExtended latestBlock = ledgerBlockService.findLatestBlockIdentifier();
-    SyncStatus syncStatus = syncStatusService.calculateSyncStatus(latestBlock)
+    SyncStatus syncStatus = syncStatusService.getSyncStatus()
         .orElseThrow(ExceptionFactory::indexerNotReady);
     if (!SyncStage.LIVE.getValue().equals(syncStatus.getStage())) {
       throw ExceptionFactory.indexerNotReady();

@@ -43,47 +43,40 @@ class NetworkServiceSyncStatusTest {
 
     @Test
     void verifySyncStatus_Live_DoesNotThrow() {
-        when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(latestBlock);
-        
         SyncStatus syncStatus = SyncStatus.builder()
                 .stage("LIVE")
                 .synced(true)
                 .build();
-        when(syncStatusService.calculateSyncStatus(latestBlock)).thenReturn(Optional.of(syncStatus));
+        when(syncStatusService.getSyncStatus()).thenReturn(Optional.of(syncStatus));
 
         assertDoesNotThrow(() -> networkService.verifySyncStatus());
     }
 
     @Test
     void verifySyncStatus_Syncing_ThrowsIndexerNotReady() {
-        when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(latestBlock);
-        
         SyncStatus syncStatus = SyncStatus.builder()
                 .stage("SYNCING")
                 .synced(false)
                 .build();
-        when(syncStatusService.calculateSyncStatus(latestBlock)).thenReturn(Optional.of(syncStatus));
+        when(syncStatusService.getSyncStatus()).thenReturn(Optional.of(syncStatus));
 
         assertThrows(ApiException.class, () -> networkService.verifySyncStatus());
     }
 
     @Test
     void verifySyncStatus_ApplyingIndexes_ThrowsIndexerNotReady() {
-        when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(latestBlock);
-        
         SyncStatus syncStatus = SyncStatus.builder()
                 .stage("APPLYING_INDEXES")
                 .synced(false)
                 .build();
-        when(syncStatusService.calculateSyncStatus(latestBlock)).thenReturn(Optional.of(syncStatus));
+        when(syncStatusService.getSyncStatus()).thenReturn(Optional.of(syncStatus));
 
         assertThrows(ApiException.class, () -> networkService.verifySyncStatus());
     }
 
     @Test
     void verifySyncStatus_EmptySyncStatus_ThrowsIndexerNotReady() {
-        when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(latestBlock);
-        when(syncStatusService.calculateSyncStatus(latestBlock)).thenReturn(Optional.empty());
+        when(syncStatusService.getSyncStatus()).thenReturn(Optional.empty());
 
         assertThrows(ApiException.class, () -> networkService.verifySyncStatus());
     }

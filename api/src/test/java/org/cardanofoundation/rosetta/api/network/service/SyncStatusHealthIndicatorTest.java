@@ -1,8 +1,5 @@
 package org.cardanofoundation.rosetta.api.network.service;
 
-import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
-import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,23 +22,8 @@ class SyncStatusHealthIndicatorTest {
     @Mock
     private SyncStatusService syncStatusService;
 
-    @Mock
-    private LedgerBlockService ledgerBlockService;
-
     @InjectMocks
     private SyncStatusHealthIndicator indicator;
-
-    private BlockIdentifierExtended latestBlock;
-
-    @BeforeEach
-    void setUp() {
-        latestBlock = BlockIdentifierExtended.builder()
-                .slot(100_000_000L)
-                .number(10_000_000L)
-                .hash("abc123")
-                .build();
-        when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(latestBlock);
-    }
 
     @Nested
     @DisplayName("When sync stage is LIVE")
@@ -56,7 +38,7 @@ class SyncStatusHealthIndicatorTest {
                     .currentIndex(100_000_000L)
                     .targetIndex(100_000_050L)
                     .build();
-            when(syncStatusService.calculateSyncStatus(latestBlock)).thenReturn(Optional.of(syncStatus));
+            when(syncStatusService.getSyncStatus()).thenReturn(Optional.of(syncStatus));
 
             Health health = indicator.health();
 
@@ -72,7 +54,7 @@ class SyncStatusHealthIndicatorTest {
                     .currentIndex(100_000_000L)
                     .targetIndex(100_000_050L)
                     .build();
-            when(syncStatusService.calculateSyncStatus(latestBlock)).thenReturn(Optional.of(syncStatus));
+            when(syncStatusService.getSyncStatus()).thenReturn(Optional.of(syncStatus));
 
             Health health = indicator.health();
 
@@ -97,7 +79,7 @@ class SyncStatusHealthIndicatorTest {
                     .currentIndex(50_000_000L)
                     .targetIndex(100_000_000L)
                     .build();
-            when(syncStatusService.calculateSyncStatus(latestBlock)).thenReturn(Optional.of(syncStatus));
+            when(syncStatusService.getSyncStatus()).thenReturn(Optional.of(syncStatus));
 
             Health health = indicator.health();
 
@@ -113,7 +95,7 @@ class SyncStatusHealthIndicatorTest {
                     .currentIndex(50_000_000L)
                     .targetIndex(100_000_000L)
                     .build();
-            when(syncStatusService.calculateSyncStatus(latestBlock)).thenReturn(Optional.of(syncStatus));
+            when(syncStatusService.getSyncStatus()).thenReturn(Optional.of(syncStatus));
 
             Health health = indicator.health();
 
@@ -136,7 +118,7 @@ class SyncStatusHealthIndicatorTest {
                     .currentIndex(100_000_000L)
                     .targetIndex(100_000_000L)
                     .build();
-            when(syncStatusService.calculateSyncStatus(latestBlock)).thenReturn(Optional.of(syncStatus));
+            when(syncStatusService.getSyncStatus()).thenReturn(Optional.of(syncStatus));
 
             Health health = indicator.health();
 
@@ -152,7 +134,7 @@ class SyncStatusHealthIndicatorTest {
                     .currentIndex(100_000_000L)
                     .targetIndex(100_000_000L)
                     .build();
-            when(syncStatusService.calculateSyncStatus(latestBlock)).thenReturn(Optional.of(syncStatus));
+            when(syncStatusService.getSyncStatus()).thenReturn(Optional.of(syncStatus));
 
             Health health = indicator.health();
 
@@ -165,22 +147,13 @@ class SyncStatusHealthIndicatorTest {
     class WhenSyncStatusEmpty {
 
         @Test
-        @DisplayName("health() returns OUT_OF_SERVICE status")
-        void returnsHealthOutOfService() {
-            when(syncStatusService.calculateSyncStatus(latestBlock)).thenReturn(Optional.empty());
+        @DisplayName("health() returns OUT_OF_SERVICE status when empty")
+        void returnsHealthOutOfServiceWhenEmpty() {
+            when(syncStatusService.getSyncStatus()).thenReturn(Optional.empty());
 
             Health health = indicator.health();
 
             assertThat(health.getStatus()).isEqualTo(Status.OUT_OF_SERVICE);
-        }
-
-        @Test
-        @DisplayName("health() includes a 'reason' detail explaining unavailability")
-        void includesReasonDetail() {
-            when(syncStatusService.calculateSyncStatus(latestBlock)).thenReturn(Optional.empty());
-
-            Health health = indicator.health();
-
             assertThat(health.getDetails()).containsKey("reason");
         }
     }
