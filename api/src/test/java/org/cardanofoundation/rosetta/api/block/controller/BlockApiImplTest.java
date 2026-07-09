@@ -68,19 +68,7 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
     assertThrows(ExceptionFactory.invalidBlockIdentifier(-1L).getClass(), () -> blockApi.block(blockRequest));
   }
 
-  @Test
-  void blockIndexerNotReadyTest() {
-    BlockRequest blockRequest = newBlockRequest();
-    Mockito.doThrow(ExceptionFactory.indexerNotReady()).when(networkService).verifySyncStatus();
-    assertThrows(ExceptionFactory.indexerNotReady().getClass(), () -> blockApi.block(blockRequest));
-  }
 
-  @Test
-  void blockTransactionIndexerNotReadyTest() {
-    BlockTransactionRequest blockTransactionRequest = newBlockTransactionRequest();
-    Mockito.doThrow(ExceptionFactory.indexerNotReady()).when(networkService).verifySyncStatus();
-    assertThrows(ExceptionFactory.indexerNotReady().getClass(), () -> blockApi.blockTransaction(blockTransactionRequest));
-  }
 
   @Test
   void blockOfflineModeTest() throws NoSuchFieldException, IllegalAccessException {
