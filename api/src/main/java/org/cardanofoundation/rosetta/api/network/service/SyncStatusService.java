@@ -148,10 +148,15 @@ public class SyncStatusService {
     /**
      * Gets the sync status of the indexer. This is cached for 5 seconds to prevent
      * redundant database checks on every request.
+     * <p>
+     * {@code sync = true} ensures that when multiple concurrent requests miss the cache
+     * at the same time (e.g. right after eviction, or under load-test level concurrency),
+     * only one thread computes the value and queries the DB while the others block and then
+     * read the cached result, instead of every thread independently querying the DB.
      *
      * @return an Optional containing the SyncStatus of the indexer if available, empty otherwise
      */
-    @Cacheable(value = "syncStatusCache", unless = "#result == null")
+    @Cacheable(value = "syncStatusCache", sync = true)
     public Optional<SyncStatus> getSyncStatus() {
         log.info("[SyncStatusService] Cache miss - querying sync status from DB");
         BlockIdentifierExtended latestBlock = ledgerBlockService.findLatestBlockIdentifier();
