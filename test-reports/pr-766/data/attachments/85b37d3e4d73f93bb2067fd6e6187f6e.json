@@ -1,0 +1,77 @@
+{
+  "status_code": 200,
+  "body": {
+    "transactions": [
+      {
+        "block_identifier": {
+          "index": 4915926,
+          "hash": "b740991ef8796a2c24154a27c882371247edd12703c14e54ff02b2591413d76f"
+        },
+        "transaction": {
+          "transaction_identifier": {
+            "hash": "e127fee78a2bd77db6340780fbb482ab4582f62acb75f6cef48aaaac79fca1cc"
+          },
+          "operations": [
+            {
+              "operation_identifier": {
+                "index": 0
+              },
+              "type": "input",
+              "status": "success",
+              "account": {
+                "address": "addr_test1vzpwq95z3xyum8vqndgdd9mdnmafh3djcxnc6jemlgdmswcve6tkw"
+              },
+              "amount": {
+                "value": "-10000200000",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "95586917db7ab5ded2bfde48e215f47d660f6d4baa9c8391ae33ed76d49bf79c:3"
+                },
+                "coin_action": "coin_spent"
+              }
+            },
+            {
+              "operation_identifier": {
+                "index": 1,
+                "network_index": 0
+              },
+              "related_operations": [
+                {
+                  "index": 0
+                }
+              ],
+              "type": "output",
+              "status": "success",
+              "account": {
+                "address": "addr_test1qr438mr8pqg95z2d5lq5usjstygwvgnlpctevlw92mr4hxzdfecytgm77x666zuy0dzs3cxcxhem5xk3degsw0saar5sv35geq"
+              },
+              "amount": {
+                "value": "10000000000",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "e127fee78a2bd77db6340780fbb482ab4582f62acb75f6cef48aaaac79fca1cc:0"
+                },
+                "coin_action": "coin_created"
+              }
+            }
+          ],
+          "metadata": {
+            "size": 123,
+            "scriptSize": 0
+          }
+        }
+      }
+    ],
+    "total_count": 1
+  }
+}

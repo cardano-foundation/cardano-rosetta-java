@@ -1,0 +1,222 @@
+{
+  "status_code": 200,
+  "body": {
+    "block": {
+      "block_identifier": {
+        "index": 4915921,
+        "hash": "dabeae8476b9fe335e674a1bc7188c1e8c5283506e5d78fab07e627e39470a45"
+      },
+      "parent_block_identifier": {
+        "index": 4915920,
+        "hash": "28a35da1bfa9d0d489962ff7292ea05ec5c5fcae13c38e39258b0562b861c5b6"
+      },
+      "timestamp": 1783592724000,
+      "transactions": [
+        {
+          "transaction_identifier": {
+            "hash": "e07f9e2946696b4336c3c14e028a27b7a9e5e320d1ad2071dfc9e3429cd5cf36"
+          },
+          "operations": [
+            {
+              "operation_identifier": {
+                "index": 0
+              },
+              "type": "input",
+              "status": "success",
+              "account": {
+                "address": "addr_test1wq27jw6ryeeyhr3d827r564w72wwd4580n7gzh4c7w7ndxglk92kt"
+              },
+              "amount": {
+                "value": "-5000000",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "5489f1cde6aee706717fcdf6e15da971b12a0e7fbcab8db86baa83cd0ce348d4:0"
+                },
+                "coin_action": "coin_spent"
+              },
+              "metadata": {
+                "tokenBundle": [
+                  {
+                    "policyId": "7848c16e4a1e5964931e97e303bc45aa41b8803c98e9d720810934f3",
+                    "tokens": [
+                      {
+                        "value": "-1",
+                        "currency": {
+                          "symbol": "6f7261636c65",
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "7848c16e4a1e5964931e97e303bc45aa41b8803c98e9d720810934f3"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "operation_identifier": {
+                "index": 1
+              },
+              "type": "input",
+              "status": "success",
+              "account": {
+                "address": "addr_test1qp77m2c97pl05yynuua3022r8j302v23q90fkv8p0e4p0vtx0gj9tkmqktz2fhwjxskzz33a2kjxthwugz0e5czdmuzsjyk5u3"
+              },
+              "amount": {
+                "value": "-9970893581",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "5489f1cde6aee706717fcdf6e15da971b12a0e7fbcab8db86baa83cd0ce348d4:1"
+                },
+                "coin_action": "coin_spent"
+              },
+              "metadata": {
+                "tokenBundle": [
+                  {
+                    "policyId": "7848c16e4a1e5964931e97e303bc45aa41b8803c98e9d720810934f3",
+                    "tokens": [
+                      {
+                        "value": "-1",
+                        "currency": {
+                          "symbol": "6f7261636c655f6f70",
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "7848c16e4a1e5964931e97e303bc45aa41b8803c98e9d720810934f3"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "operation_identifier": {
+                "index": 2,
+                "network_index": 0
+              },
+              "related_operations": [
+                {
+                  "index": 0
+                },
+                {
+                  "index": 1
+                }
+              ],
+              "type": "output",
+              "status": "success",
+              "account": {
+                "address": "addr_test1wq27jw6ryeeyhr3d827r564w72wwd4580n7gzh4c7w7ndxglk92kt"
+              },
+              "amount": {
+                "value": "5000000",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "e07f9e2946696b4336c3c14e028a27b7a9e5e320d1ad2071dfc9e3429cd5cf36:0"
+                },
+                "coin_action": "coin_created"
+              },
+              "metadata": {
+                "tokenBundle": [
+                  {
+                    "policyId": "7848c16e4a1e5964931e97e303bc45aa41b8803c98e9d720810934f3",
+                    "tokens": [
+                      {
+                        "value": "1",
+                        "currency": {
+                          "symbol": "6f7261636c65",
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "7848c16e4a1e5964931e97e303bc45aa41b8803c98e9d720810934f3"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "operation_identifier": {
+                "index": 3,
+                "network_index": 1
+              },
+              "related_operations": [
+                {
+                  "index": 0
+                },
+                {
+                  "index": 1
+                }
+              ],
+              "type": "output",
+              "status": "success",
+              "account": {
+                "address": "addr_test1qp77m2c97pl05yynuua3022r8j302v23q90fkv8p0e4p0vtx0gj9tkmqktz2fhwjxskzz33a2kjxthwugz0e5czdmuzsjyk5u3"
+              },
+              "amount": {
+                "value": "9970651178",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "e07f9e2946696b4336c3c14e028a27b7a9e5e320d1ad2071dfc9e3429cd5cf36:1"
+                },
+                "coin_action": "coin_created"
+              },
+              "metadata": {
+                "tokenBundle": [
+                  {
+                    "policyId": "7848c16e4a1e5964931e97e303bc45aa41b8803c98e9d720810934f3",
+                    "tokens": [
+                      {
+                        "value": "1",
+                        "currency": {
+                          "symbol": "6f7261636c655f6f70",
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "7848c16e4a1e5964931e97e303bc45aa41b8803c98e9d720810934f3"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "metadata": {
+            "size": 528,
+            "scriptSize": 1008
+          }
+        }
+      ],
+      "metadata": {
+        "transactionsCount": 1,
+        "createdBy": "85eb86b47f9f8e736e729c0176ba45cf9778e238b4452b7a6428a6e9",
+        "size": 1667,
+        "epochNo": 299,
+        "slotNo": 127909524
+      }
+    }
+  }
+}
