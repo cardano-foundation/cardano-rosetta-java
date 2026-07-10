@@ -19,6 +19,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
+import org.cardanofoundation.rosetta.api.network.service.SyncStatusService;
 import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
@@ -49,6 +50,9 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
   @MockitoBean
   private NetworkService networkService;
 
+  @MockitoBean
+  private SyncStatusService syncStatusService;
+
   @Mock
   private ProtocolParams protocolParams;
 
@@ -66,20 +70,6 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
 
     blockRequest.setBlockIdentifier(partialBlockIdentifier);
     assertThrows(ExceptionFactory.invalidBlockIdentifier(-1L).getClass(), () -> blockApi.block(blockRequest));
-  }
-
-  @Test
-  void blockIndexerNotReadyTest() {
-    BlockRequest blockRequest = newBlockRequest();
-    Mockito.doThrow(ExceptionFactory.indexerNotReady()).when(networkService).verifySyncStatus();
-    assertThrows(ExceptionFactory.indexerNotReady().getClass(), () -> blockApi.block(blockRequest));
-  }
-
-  @Test
-  void blockTransactionIndexerNotReadyTest() {
-    BlockTransactionRequest blockTransactionRequest = newBlockTransactionRequest();
-    Mockito.doThrow(ExceptionFactory.indexerNotReady()).when(networkService).verifySyncStatus();
-    assertThrows(ExceptionFactory.indexerNotReady().getClass(), () -> blockApi.blockTransaction(blockTransactionRequest));
   }
 
   @Test

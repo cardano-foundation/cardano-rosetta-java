@@ -40,7 +40,6 @@ public class BlockApiImpl implements BlockApi {
       throw ExceptionFactory.notSupportedInOfflineMode();
     }
     networkService.verifyNetworkRequest(blockRequest.getNetworkIdentifier());
-    networkService.verifySyncStatus();
 
     if (blockRequest.getBlockIdentifier().getIndex() != null && blockRequest.getBlockIdentifier().getIndex() < 0) {
       throw ExceptionFactory.invalidBlockIdentifier(blockRequest.getBlockIdentifier().getIndex());
@@ -66,7 +65,6 @@ public class BlockApiImpl implements BlockApi {
       throw ExceptionFactory.notSupportedInOfflineMode();
     }
     networkService.verifyNetworkRequest(blockReq.getNetworkIdentifier());
-    networkService.verifySyncStatus();
     if (blockReq.getBlockIdentifier().getIndex() != null && blockReq.getBlockIdentifier().getIndex() < 0) {
       throw ExceptionFactory.invalidBlockIdentifier(blockReq.getBlockIdentifier().getIndex());
     }
