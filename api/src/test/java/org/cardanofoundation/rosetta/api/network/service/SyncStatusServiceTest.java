@@ -200,8 +200,56 @@ class SyncStatusServiceTest {
     class GetSyncStatusTests {
 
         @Test
-        @DisplayName("Should query latest block and calculate sync status successfully")
-        void shouldQueryLatestBlockAndCalculateSyncStatus() {
+        @DisplayName("Should return empty when no background refresh has occurred yet")
+        void shouldReturnEmptyBeforeAnyRefresh() {
+            // When
+            Optional<SyncStatus> resultOpt = syncStatusService.getSyncStatus();
+
+            // Then
+            assertThat(resultOpt).isEmpty();
+            verify(ledgerBlockService, times(0)).findLatestBlockIdentifier();
+        }
+
+        @Test
+        @DisplayName("Should return the value last stored by refreshSyncStatus without querying the DB again")
+        void shouldReturnLastRefreshedValueWithoutQueryingDbAgain() {
+            // Given
+            long currentSlot = 1000L;
+            long latestBlockSlot = 990L;
+            BlockIdentifierExtended latestBlock = BlockIdentifierExtended.builder()
+                .slot(latestBlockSlot)
+                .build();
+
+            when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(latestBlock);
+            when(offlineSlotService.getCurrentSlotBasedOnTime()).thenReturn(Optional.of(currentSlot));
+            when(slotRangeChecker.isSlotWithinEpsilon(currentSlot, latestBlockSlot, ALLOWED_SLOTS_DELTA))
+                .thenReturn(true);
+            when(indexCreationMonitor.isCreatingIndexes()).thenReturn(false);
+
+            syncStatusService.refreshSyncStatus();
+
+            // When
+            Optional<SyncStatus> resultOpt = syncStatusService.getSyncStatus();
+            Optional<SyncStatus> resultOpt2 = syncStatusService.getSyncStatus();
+
+            // Then
+            assertThat(resultOpt).isPresent();
+            SyncStatus result = resultOpt.get();
+            assertThat(result.getSynced()).isTrue();
+            assertThat(result.getStage()).isEqualTo(SyncStage.LIVE.getValue());
+            assertThat(resultOpt2).isEqualTo(resultOpt);
+            // getSyncStatus() must never itself trigger a DB query - only refreshSyncStatus() does.
+            verify(ledgerBlockService, times(1)).findLatestBlockIdentifier();
+        }
+    }
+
+    @Nested
+    @DisplayName("refreshSyncStatus tests")
+    class RefreshSyncStatusTests {
+
+        @Test
+        @DisplayName("Should query latest block, recalculate sync status, and store it for getSyncStatus")
+        void shouldQueryLatestBlockAndStoreCalculatedSyncStatus() {
             // Given
             long currentSlot = 1000L;
             long latestBlockSlot = 990L;
@@ -216,14 +264,41 @@ class SyncStatusServiceTest {
             when(indexCreationMonitor.isCreatingIndexes()).thenReturn(false);
 
             // When
-            Optional<SyncStatus> resultOpt = syncStatusService.getSyncStatus();
+            syncStatusService.refreshSyncStatus();
 
             // Then
-            assertThat(resultOpt).isPresent();
-            SyncStatus result = resultOpt.get();
-            assertThat(result.getSynced()).isTrue();
-            assertThat(result.getStage()).isEqualTo(SyncStage.LIVE.getValue());
             verify(ledgerBlockService, times(1)).findLatestBlockIdentifier();
+            Optional<SyncStatus> resultOpt = syncStatusService.getSyncStatus();
+            assertThat(resultOpt).isPresent();
+            assertThat(resultOpt.get().getSynced()).isTrue();
+            assertThat(resultOpt.get().getStage()).isEqualTo(SyncStage.LIVE.getValue());
+        }
+
+        @Test
+        @DisplayName("Should overwrite the previously stored sync status on each call")
+        void shouldOverwritePreviouslyStoredSyncStatus() {
+            // Given: first refresh reports SYNCING
+            BlockIdentifierExtended firstBlock = BlockIdentifierExtended.builder().slot(800L).build();
+            when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(firstBlock);
+            when(offlineSlotService.getCurrentSlotBasedOnTime()).thenReturn(Optional.of(1000L));
+            when(slotRangeChecker.isSlotWithinEpsilon(1000L, 800L, ALLOWED_SLOTS_DELTA)).thenReturn(false);
+            when(indexCreationMonitor.isCreatingIndexes()).thenReturn(false);
+
+            syncStatusService.refreshSyncStatus();
+            assertThat(syncStatusService.getSyncStatus().orElseThrow().getStage())
+                .isEqualTo(SyncStage.SYNCING.getValue());
+
+            // When: second refresh reports LIVE
+            BlockIdentifierExtended secondBlock = BlockIdentifierExtended.builder().slot(1000L).build();
+            when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(secondBlock);
+            when(slotRangeChecker.isSlotWithinEpsilon(1000L, 1000L, ALLOWED_SLOTS_DELTA)).thenReturn(true);
+
+            syncStatusService.refreshSyncStatus();
+
+            // Then
+            assertThat(syncStatusService.getSyncStatus().orElseThrow().getStage())
+                .isEqualTo(SyncStage.LIVE.getValue());
+            verify(ledgerBlockService, times(2)).findLatestBlockIdentifier();
         }
     }
 }

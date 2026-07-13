@@ -17,7 +17,7 @@ public class CacheConfig {
 
   @Bean
   public ConcurrentMapCacheManager cacheManager() {
-    return new ConcurrentMapCacheManager("protocolParamsCache", "syncStatusCache");
+    return new ConcurrentMapCacheManager("protocolParamsCache");
   }
 
   //a cache for token metadata from token registry
