@@ -1,0 +1,4 @@
+        assert logo is not None, f"Logo metadata missing for {token['ticker']}"
+        assert logo.get("format") == "base64"
+        assert value, f"Logo value is empty for {token['ticker']}"
+            assert decoded.startswith(b"\x89PNG\r\n\x1a\n"), (
