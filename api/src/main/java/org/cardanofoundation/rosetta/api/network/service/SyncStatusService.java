@@ -9,14 +9,10 @@ import org.openapitools.client.model.SyncStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
-import org.springframework.scheduling.annotation.Scheduled;
-
 import javax.annotation.Nullable;
 import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Service responsible for calculating sync status based on blockchain tip
@@ -30,23 +26,13 @@ public class SyncStatusService {
     private final OfflineSlotService offlineSlotService;
     private final SlotRangeChecker slotRangeChecker;
     private final IndexCreationMonitor indexCreationMonitor;
-    private final LedgerBlockService ledgerBlockService;
 
     @Value("${cardano.rosetta.SYNC_GRACE_SLOTS_COUNT:200}")
     private int allowedSlotsDelta;
 
-    /**
-     * Holds the most recently computed sync status. Populated on startup and refreshed
-     * periodically by {@link #refreshSyncStatus()}, so request-time reads via
-     * {@link #getSyncStatus()} never block on DB access or clock/index computation.
-     */
-    private final AtomicReference<Optional<SyncStatus>> cachedSyncStatus =
-        new AtomicReference<>(Optional.empty());
-
     @PostConstruct
     public void init() {
         log.info("[SyncStatusService] Initializing with allowedSlotsDelta: {}", allowedSlotsDelta);
-        refreshSyncStatus();
     }
 
     /**
@@ -150,30 +136,5 @@ public class SyncStatusService {
                 .stage(stage.getValue())
                 .build();
         });
-    }
-
-    /**
-     * Gets the most recently computed sync status of the indexer. This never performs DB
-     * access or computation itself - it simply reads the value last stored by the periodic
-     * background refresh ({@link #refreshSyncStatus()}), so request-time callers get an
-     * instant response.
-     *
-     * @return an Optional containing the SyncStatus of the indexer if available, empty otherwise
-     */
-    public Optional<SyncStatus> getSyncStatus() {
-        return cachedSyncStatus.get();
-    }
-
-    /**
-     * Periodically recomputes the sync status from the DB and current time, and stores the
-     * result for {@link #getSyncStatus()} to serve. The rate is configurable via properties,
-     * defaulting to 10 seconds. Also invoked once on startup via {@link #init()} so the first
-     * requests don't see an empty status while waiting for the first scheduled tick.
-     */
-    @Scheduled(fixedRateString = "${cardano.rosetta.sync-status-refresh-rate-ms:10000}")
-    public void refreshSyncStatus() {
-        log.debug("[SyncStatusService] Refreshing sync status from DB");
-        BlockIdentifierExtended latestBlock = ledgerBlockService.findLatestBlockIdentifier();
-        cachedSyncStatus.set(calculateSyncStatus(latestBlock));
     }
 }

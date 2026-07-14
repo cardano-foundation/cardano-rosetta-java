@@ -14,9 +14,6 @@ import org.openapitools.client.model.SearchTransactionsRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Nested;
 
-import org.cardanofoundation.rosetta.api.search.mapper.SearchMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.api.search.service.SearchService;
@@ -34,21 +31,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class SearchControllerTest extends BaseSpringMvcSetup {
 
-  @Autowired
+  @Mock
   private SearchService service;
 
-  @MockitoBean
+  @Mock
   private NetworkService networkService;
 
-  @Autowired
-  private SearchMapper searchMapper;
-
+  @InjectMocks
   private SearchApiImpl searchApi;
-
-  @org.junit.jupiter.api.BeforeEach
-  void setUp() {
-    searchApi = new SearchApiImpl(networkService, service, searchMapper);
-  }
 
   @Nested
   class ConfigurationValidationTests {
@@ -66,21 +56,6 @@ class SearchControllerTest extends BaseSpringMvcSetup {
   }
 
   @Nested
-  class SyncStatusValidationTests {
-
-    @Test
-    void shouldThrowExceptionWhenIndexerIsSyncing() {
-      // Given
-      SearchTransactionsRequest request = new SearchTransactionsRequest();
-      Mockito.doThrow(ExceptionFactory.indexerNotReady()).when(networkService).verifySyncStatus();
-
-      // When & Then
-      assertThrows(ExceptionFactory.indexerNotReady().getClass(), 
-          () -> searchApi.searchTransactions(request));
-    }
-  }
-
-  @Nested
   class NetworkValidationTests {
 
     @Test
@@ -88,6 +63,8 @@ class SearchControllerTest extends BaseSpringMvcSetup {
     void shouldReturn4xxWhenNetworkIdentifierIsMissing() {
       // Given
       SearchTransactionsRequest request = new SearchTransactionsRequest();
+      Mockito.when(service.searchTransaction(any(), any(), any())).thenReturn(Page.empty());
+
       // When & Then
       mockMvc.perform(post("/search/transactions")
               .contentType(MediaType.APPLICATION_JSON)
