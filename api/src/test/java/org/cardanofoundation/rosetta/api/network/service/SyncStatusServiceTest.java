@@ -224,7 +224,7 @@ class SyncStatusServiceTest {
             when(offlineSlotService.getCurrentSlotBasedOnTime()).thenReturn(Optional.of(currentSlot));
             when(slotRangeChecker.isSlotWithinEpsilon(currentSlot, latestBlockSlot, ALLOWED_SLOTS_DELTA))
                 .thenReturn(true);
-            when(indexCreationMonitor.isCreatingIndexes()).thenReturn(false);
+            when(indexCreationMonitor.isCreatingIndexesOrThrow()).thenReturn(false);
 
             syncStatusService.refreshSyncStatus();
 
@@ -261,7 +261,7 @@ class SyncStatusServiceTest {
             when(offlineSlotService.getCurrentSlotBasedOnTime()).thenReturn(Optional.of(currentSlot));
             when(slotRangeChecker.isSlotWithinEpsilon(currentSlot, latestBlockSlot, ALLOWED_SLOTS_DELTA))
                 .thenReturn(true);
-            when(indexCreationMonitor.isCreatingIndexes()).thenReturn(false);
+            when(indexCreationMonitor.isCreatingIndexesOrThrow()).thenReturn(false);
 
             // When
             syncStatusService.refreshSyncStatus();
@@ -282,7 +282,7 @@ class SyncStatusServiceTest {
             when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(firstBlock);
             when(offlineSlotService.getCurrentSlotBasedOnTime()).thenReturn(Optional.of(1000L));
             when(slotRangeChecker.isSlotWithinEpsilon(1000L, 800L, ALLOWED_SLOTS_DELTA)).thenReturn(false);
-            when(indexCreationMonitor.isCreatingIndexes()).thenReturn(false);
+            when(indexCreationMonitor.isCreatingIndexesOrThrow()).thenReturn(false);
 
             syncStatusService.refreshSyncStatus();
             assertThat(syncStatusService.getSyncStatus().orElseThrow().getStage())
@@ -299,6 +299,74 @@ class SyncStatusServiceTest {
             assertThat(syncStatusService.getSyncStatus().orElseThrow().getStage())
                 .isEqualTo(SyncStage.LIVE.getValue());
             verify(ledgerBlockService, times(2)).findLatestBlockIdentifier();
+        }
+
+        @Test
+        @DisplayName("Should use isCreatingIndexesOrThrow (not isCreatingIndexes) so transient errors are not swallowed into a false default")
+        void shouldUseThrowingVariantOfIndexCheck() {
+            // Given
+            BlockIdentifierExtended latestBlock = BlockIdentifierExtended.builder().slot(1000L).build();
+            when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(latestBlock);
+            when(offlineSlotService.getCurrentSlotBasedOnTime()).thenReturn(Optional.of(1000L));
+            when(slotRangeChecker.isSlotWithinEpsilon(1000L, 1000L, ALLOWED_SLOTS_DELTA)).thenReturn(true);
+            when(indexCreationMonitor.isCreatingIndexesOrThrow()).thenReturn(false);
+
+            // When
+            syncStatusService.refreshSyncStatus();
+
+            // Then
+            verify(indexCreationMonitor, times(1)).isCreatingIndexesOrThrow();
+            verify(indexCreationMonitor, org.mockito.Mockito.never()).isCreatingIndexes();
+        }
+
+        @Test
+        @DisplayName("Should keep the last known-good cached status when the index check throws (e.g. connection-pool contention under load), instead of overwriting it with a false negative")
+        void shouldKeepLastKnownGoodStatusWhenIndexCheckThrows() {
+            // Given: a healthy first refresh establishes a known-good LIVE status
+            BlockIdentifierExtended latestBlock = BlockIdentifierExtended.builder().slot(1000L).build();
+            when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(latestBlock);
+            when(offlineSlotService.getCurrentSlotBasedOnTime()).thenReturn(Optional.of(1000L));
+            when(slotRangeChecker.isSlotWithinEpsilon(1000L, 1000L, ALLOWED_SLOTS_DELTA)).thenReturn(true);
+            when(indexCreationMonitor.isCreatingIndexesOrThrow()).thenReturn(false);
+
+            syncStatusService.refreshSyncStatus();
+            assertThat(syncStatusService.getSyncStatus().orElseThrow().getStage())
+                .isEqualTo(SyncStage.LIVE.getValue());
+
+            // When: the next tick hits a transient failure (e.g. Hikari pool exhausted under load)
+            when(indexCreationMonitor.isCreatingIndexesOrThrow())
+                .thenThrow(new RuntimeException("connection is not available, request timed out"));
+
+            syncStatusService.refreshSyncStatus();
+
+            // Then - the previously cached LIVE status must still be served, not overwritten
+            assertThat(syncStatusService.getSyncStatus().orElseThrow().getStage())
+                .isEqualTo(SyncStage.LIVE.getValue());
+        }
+
+        @Test
+        @DisplayName("Should keep the last known-good cached status when findLatestBlockIdentifier throws")
+        void shouldKeepLastKnownGoodStatusWhenLatestBlockLookupThrows() {
+            // Given: a healthy first refresh establishes a known-good LIVE status
+            BlockIdentifierExtended latestBlock = BlockIdentifierExtended.builder().slot(1000L).build();
+            when(ledgerBlockService.findLatestBlockIdentifier()).thenReturn(latestBlock);
+            when(offlineSlotService.getCurrentSlotBasedOnTime()).thenReturn(Optional.of(1000L));
+            when(slotRangeChecker.isSlotWithinEpsilon(1000L, 1000L, ALLOWED_SLOTS_DELTA)).thenReturn(true);
+            when(indexCreationMonitor.isCreatingIndexesOrThrow()).thenReturn(false);
+
+            syncStatusService.refreshSyncStatus();
+            assertThat(syncStatusService.getSyncStatus().orElseThrow().getStage())
+                .isEqualTo(SyncStage.LIVE.getValue());
+
+            // When: the next tick's block lookup fails (e.g. pool exhausted)
+            when(ledgerBlockService.findLatestBlockIdentifier())
+                .thenThrow(new RuntimeException("connection is not available, request timed out"));
+
+            syncStatusService.refreshSyncStatus();
+
+            // Then - the previously cached LIVE status must still be served, not cleared/overwritten
+            assertThat(syncStatusService.getSyncStatus().orElseThrow().getStage())
+                .isEqualTo(SyncStage.LIVE.getValue());
         }
     }
 }

@@ -41,6 +41,28 @@ public class PostgreSQLIndexCreationMonitor implements IndexCreationMonitor {
 
     @Override
     public boolean isCreatingIndexes() {
+        try {
+            return checkCreatingIndexes();
+        } catch (Exception e) {
+            log.error("[IndexMonitor] Error checking index status", e);
+            // In case of error, assume indexes are being created to stay in APPLYING_INDEXES state
+            // This is safer than assuming LIVE state when we can't verify
+            return true;
+        }
+    }
+
+    @Override
+    public boolean isCreatingIndexesOrThrow() {
+        return checkCreatingIndexes();
+    }
+
+    /**
+     * Runs the actual pg_index/pg_class check. Does not catch anything - callers decide
+     * whether to swallow the exception (safe default of "not ready") or propagate it
+     * (e.g. so a caller with a last known-good value can choose to keep it instead of
+     * overwriting it with a false negative computed from a transient error).
+     */
+    private boolean checkCreatingIndexes() {
         List<String> requiredIndexes = rosettaIndexConfig.getIndexNames();
 
         if (requiredIndexes == null || requiredIndexes.isEmpty()) {
@@ -48,73 +70,66 @@ public class PostgreSQLIndexCreationMonitor implements IndexCreationMonitor {
             return false;
         }
 
-        try {
-            // Query pg_index system catalog to check index validity and readiness
-            // We join with pg_class to get the index name
-            Result<Record3<String, Boolean, Boolean>> result = dslContext
-                .select(
-                    org.jooq.impl.DSL.field("c.relname", String.class),
-                    org.jooq.impl.DSL.field("i.indisvalid", Boolean.class),
-                    org.jooq.impl.DSL.field("i.indisready", Boolean.class)
-                )
-                .from("pg_index i")
-                .join("pg_class c").on("i.indexrelid = c.oid")
-                .where(org.jooq.impl.DSL.field("c.relname").in(requiredIndexes))
-                .fetch();
+        // Query pg_index system catalog to check index validity and readiness
+        // We join with pg_class to get the index name
+        Result<Record3<String, Boolean, Boolean>> result = dslContext
+            .select(
+                org.jooq.impl.DSL.field("c.relname", String.class),
+                org.jooq.impl.DSL.field("i.indisvalid", Boolean.class),
+                org.jooq.impl.DSL.field("i.indisready", Boolean.class)
+            )
+            .from("pg_index i")
+            .join("pg_class c").on("i.indexrelid = c.oid")
+            .where(org.jooq.impl.DSL.field("c.relname").in(requiredIndexes))
+            .fetch();
 
-            // Build a map of index name -> status
-            Map<String, IndexStatus> indexStatusMap = result.stream()
-                .collect(Collectors.toMap(
-                    record -> record.value1(),
-                    record -> new IndexStatus(record.value2(), record.value3())
-                ));
+        // Build a map of index name -> status
+        Map<String, IndexStatus> indexStatusMap = result.stream()
+            .collect(Collectors.toMap(
+                record -> record.value1(),
+                record -> new IndexStatus(record.value2(), record.value3())
+            ));
 
-            // Check if all required indexes exist and are valid + ready
-            boolean allIndexesReady = true;
-            List<String> missingIndexes = requiredIndexes.stream()
-                .filter(indexName -> !indexStatusMap.containsKey(indexName))
-                .toList();
+        // Check if all required indexes exist and are valid + ready
+        boolean allIndexesReady = true;
+        List<String> missingIndexes = requiredIndexes.stream()
+            .filter(indexName -> !indexStatusMap.containsKey(indexName))
+            .toList();
 
-            List<String> notReadyIndexes = requiredIndexes.stream()
-                .filter(indexName -> {
-                    IndexStatus status = indexStatusMap.get(indexName);
-                    return status != null && (!status.isValid || !status.isReady);
-                })
-                .toList();
+        List<String> notReadyIndexes = requiredIndexes.stream()
+            .filter(indexName -> {
+                IndexStatus status = indexStatusMap.get(indexName);
+                return status != null && (!status.isValid || !status.isReady);
+            })
+            .toList();
 
-            if (!missingIndexes.isEmpty()) {
-                log.info("[IndexMonitor] Missing indices ({}): {}", missingIndexes.size(), missingIndexes);
-                allIndexesReady = false;
-            }
-
-            if (!notReadyIndexes.isEmpty()) {
-                log.info("[IndexMonitor] Indices not ready or not valid ({}): {}",
-                    notReadyIndexes.size(), notReadyIndexes);
-                notReadyIndexes.forEach(indexName -> {
-                    IndexStatus status = indexStatusMap.get(indexName);
-                    log.debug("[IndexMonitor] Index '{}' status: valid={}, ready={}",
-                        indexName, status.isValid, status.isReady);
-                });
-                allIndexesReady = false;
-            }
-
-            // isCreatingIndexes returns true if NOT all indexes are ready
-            // (meaning we're still in APPLYING_INDEXES state)
-            boolean creating = !allIndexesReady;
-
-            if (creating) {
-                log.info("[IndexMonitor] Indices are still being applied or not ready");
-            } else {
-                log.debug("[IndexMonitor] All required indices are valid and ready");
-            }
-
-            return creating;
-        } catch (Exception e) {
-            log.error("[IndexMonitor] Error checking index status", e);
-            // In case of error, assume indexes are being created to stay in APPLYING_INDEXES state
-            // This is safer than assuming LIVE state when we can't verify
-            return true;
+        if (!missingIndexes.isEmpty()) {
+            log.info("[IndexMonitor] Missing indices ({}): {}", missingIndexes.size(), missingIndexes);
+            allIndexesReady = false;
         }
+
+        if (!notReadyIndexes.isEmpty()) {
+            log.info("[IndexMonitor] Indices not ready or not valid ({}): {}",
+                notReadyIndexes.size(), notReadyIndexes);
+            notReadyIndexes.forEach(indexName -> {
+                IndexStatus status = indexStatusMap.get(indexName);
+                log.debug("[IndexMonitor] Index '{}' status: valid={}, ready={}",
+                    indexName, status.isValid, status.isReady);
+            });
+            allIndexesReady = false;
+        }
+
+        // isCreatingIndexes returns true if NOT all indexes are ready
+        // (meaning we're still in APPLYING_INDEXES state)
+        boolean creating = !allIndexesReady;
+
+        if (creating) {
+            log.info("[IndexMonitor] Indices are still being applied or not ready");
+        } else {
+            log.debug("[IndexMonitor] All required indices are valid and ready");
+        }
+
+        return creating;
     }
 
     @Override

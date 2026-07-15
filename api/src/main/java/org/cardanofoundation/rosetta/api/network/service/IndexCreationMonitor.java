@@ -13,10 +13,30 @@ public interface IndexCreationMonitor {
     /**
      * Checks if required indexes are missing, not valid, or not ready in the database.
      * Returns true if any required index is missing or not fully ready (indisvalid=false or indisready=false).
+     * <p>
+     * Implementations are expected to swallow any underlying error (e.g. a transient DB
+     * connectivity/pool issue) and fall back to {@code true} ("not ready"), since callers of
+     * this method have no previous value to fall back on and treating an unknown state as
+     * LIVE would be unsafe.
      *
      * @return true if indexes are not ready (missing, not valid, or not ready), false if all are ready
      */
     boolean isCreatingIndexes();
+
+    /**
+     * Same check as {@link #isCreatingIndexes()}, but propagates the underlying exception
+     * instead of swallowing it and returning a safe default.
+     * <p>
+     * Intended for callers that already hold a last known-good value to fall back on (e.g. a
+     * periodic background refresh) and would rather skip the update on failure than commit a
+     * false "not ready" verdict computed from a transient error (such as connection-pool
+     * contention under load) as if it were a real, current reading.
+     *
+     * @return true if indexes are not ready, false if all are ready
+     */
+    default boolean isCreatingIndexesOrThrow() {
+        return isCreatingIndexes();
+    }
 
     /**
      * Retrieves detailed information about required indexes and their status.

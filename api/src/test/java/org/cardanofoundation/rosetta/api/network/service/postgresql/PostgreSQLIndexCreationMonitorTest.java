@@ -94,6 +94,37 @@ class PostgreSQLIndexCreationMonitorTest {
     }
 
     @Nested
+    @DisplayName("isCreatingIndexesOrThrow tests")
+    class IsCreatingIndexesOrThrowTests {
+
+        @Test
+        @DisplayName("Should propagate the exception instead of swallowing it")
+        void shouldPropagateExceptionOnDatabaseError() {
+            // Given
+            when(rosettaIndexConfig.getIndexNames()).thenReturn(REQUIRED_INDEX_NAMES);
+            when(dslContext.select(any(), any(), any())).thenThrow(new RuntimeException("Database error"));
+
+            // When/Then - unlike isCreatingIndexes(), this must not swallow the error
+            org.junit.jupiter.api.Assertions.assertThrows(RuntimeException.class,
+                () -> monitor.isCreatingIndexesOrThrow());
+        }
+
+        @Test
+        @DisplayName("Should return false when no indexes are configured, without querying")
+        void shouldReturnFalseWhenNoIndexesConfigured() {
+            // Given
+            when(rosettaIndexConfig.getIndexNames()).thenReturn(Collections.emptyList());
+
+            // When
+            boolean creating = monitor.isCreatingIndexesOrThrow();
+
+            // Then
+            assertThat(creating).isFalse();
+            verify(dslContext, never()).select(any(), any(), any());
+        }
+    }
+
+    @Nested
     @DisplayName("getIndexCreationProgress - configuration tests")
     class GetIndexCreationProgressConfigTests {
 

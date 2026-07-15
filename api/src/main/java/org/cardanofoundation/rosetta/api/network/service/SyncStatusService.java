@@ -68,12 +68,31 @@ public class SyncStatusService {
      */
     @Nullable
     public Optional<SyncStatus> calculateSyncStatus(BlockIdentifierExtended latestBlock) {
+        return calculateSyncStatus(latestBlock, indexCreationMonitor.isCreatingIndexes());
+    }
+
+    /**
+     * Same calculation as {@link #calculateSyncStatus(BlockIdentifierExtended)}, but takes the
+     * index-readiness check as a precomputed value instead of calling
+     * {@link IndexCreationMonitor#isCreatingIndexes()} itself.
+     * <p>
+     * This lets {@link #refreshSyncStatus()} compute index readiness via
+     * {@link IndexCreationMonitor#isCreatingIndexesOrThrow()} up front, so a transient failure
+     * (e.g. connection-pool contention under load) can be handled by keeping the last known-good
+     * cached status instead of silently falling back to a "not ready" verdict and overwriting
+     * the value shared by every concurrent request.
+     *
+     * @param latestBlock the latest block from the blockchain
+     * @param indexesNotReady whether required database indexes are missing, not valid, or not ready
+     * @return Optional containing SyncStatus if it can be calculated, empty otherwise
+     */
+    @Nullable
+    private Optional<SyncStatus> calculateSyncStatus(BlockIdentifierExtended latestBlock, boolean indexesNotReady) {
         Optional<Long> currentSlotBasedOnTimeOpt = offlineSlotService.getCurrentSlotBasedOnTime();
 
         if (currentSlotBasedOnTimeOpt.isEmpty()) {
             // When current slot cannot be determined based on time (e.g. on DevKit where slot converters are null),
             // we assume the tip is reached and we check if the required database indexes are ready.
-            boolean indexesNotReady = indexCreationMonitor.isCreatingIndexes();
             SyncStage stage = indexesNotReady ? SyncStage.APPLYING_INDEXES : SyncStage.LIVE;
             boolean isSynced = !indexesNotReady;
 
@@ -96,9 +115,6 @@ public class SyncStatusService {
                 slotBasedOnLatestBlock,
                 allowedSlotsDelta
             );
-
-            // Check if required indexes are missing, not valid, or not ready
-            boolean indexesNotReady = indexCreationMonitor.isCreatingIndexes();
 
             // Determine sync stage and synced status
             SyncStage stage;
@@ -169,11 +185,28 @@ public class SyncStatusService {
      * result for {@link #getSyncStatus()} to serve. The rate is configurable via properties,
      * defaulting to 10 seconds. Also invoked once on startup via {@link #init()} so the first
      * requests don't see an empty status while waiting for the first scheduled tick.
+     * <p>
+     * This background thread shares the same connection pool as request-serving threads. Under
+     * heavy request load the pool can be momentarily exhausted, which would previously surface
+     * here as an {@link IndexCreationMonitor#isCreatingIndexes()} error, silently swallowed into
+     * a "not ready" default and written into {@link #cachedSyncStatus} - poisoning every
+     * concurrent request's view of sync status for up to a full refresh interval, even though
+     * the indexer itself was fine. To avoid that, this method uses
+     * {@link IndexCreationMonitor#isCreatingIndexesOrThrow()} and, on any failure (index check or
+     * the block lookup itself), logs a warning and leaves the last known-good cached value in
+     * place instead of overwriting it with a false negative.
      */
     @Scheduled(fixedRateString = "${cardano.rosetta.sync-status-refresh-rate-ms:10000}")
     public void refreshSyncStatus() {
         log.debug("[SyncStatusService] Refreshing sync status from DB");
-        BlockIdentifierExtended latestBlock = ledgerBlockService.findLatestBlockIdentifier();
-        cachedSyncStatus.set(calculateSyncStatus(latestBlock));
+        try {
+            BlockIdentifierExtended latestBlock = ledgerBlockService.findLatestBlockIdentifier();
+            boolean indexesNotReady = indexCreationMonitor.isCreatingIndexesOrThrow();
+            cachedSyncStatus.set(calculateSyncStatus(latestBlock, indexesNotReady));
+        } catch (Exception e) {
+            log.warn("[SyncStatusService] Failed to refresh sync status (e.g. transient DB or "
+                + "connection-pool contention under load) - keeping the last known-good cached "
+                + "value instead of overwriting it with a false negative.", e);
+        }
     }
 }
