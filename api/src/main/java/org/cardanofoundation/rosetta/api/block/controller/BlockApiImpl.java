@@ -39,11 +39,12 @@ public class BlockApiImpl implements BlockApi {
     if (offlineMode) {
       throw ExceptionFactory.notSupportedInOfflineMode();
     }
-    networkService.verifyNetworkRequest(blockRequest.getNetworkIdentifier());
 
     if (blockRequest.getBlockIdentifier().getIndex() != null && blockRequest.getBlockIdentifier().getIndex() < 0) {
       throw ExceptionFactory.invalidBlockIdentifier(blockRequest.getBlockIdentifier().getIndex());
     }
+
+    networkService.verifyNetworkRequest(blockRequest.getNetworkIdentifier());
 
     PartialBlockIdentifier bid = blockRequest.getBlockIdentifier();
     String hash = bid.getHash();
@@ -64,10 +65,11 @@ public class BlockApiImpl implements BlockApi {
     if (offlineMode) {
       throw ExceptionFactory.notSupportedInOfflineMode();
     }
-    networkService.verifyNetworkRequest(blockReq.getNetworkIdentifier());
     if (blockReq.getBlockIdentifier().getIndex() != null && blockReq.getBlockIdentifier().getIndex() < 0) {
       throw ExceptionFactory.invalidBlockIdentifier(blockReq.getBlockIdentifier().getIndex());
     }
+
+    networkService.verifyNetworkRequest(blockReq.getNetworkIdentifier());
 
     Long blockId = blockReq.getBlockIdentifier().getIndex();
     String blockHash = blockReq.getBlockIdentifier().getHash();

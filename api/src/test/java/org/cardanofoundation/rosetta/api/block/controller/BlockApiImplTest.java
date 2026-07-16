@@ -8,7 +8,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.openapitools.client.model.*;
 
 import org.junit.jupiter.api.Test;
@@ -19,9 +18,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 import org.cardanofoundation.rosetta.api.block.service.BlockService;
-import org.cardanofoundation.rosetta.api.network.service.SyncStatusService;
 import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
-import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 
@@ -47,21 +44,11 @@ class BlockApiImplTest extends BaseSpringMvcSetup {
   @MockitoBean
   BlockMapper blockMapper;
 
-  @MockitoBean
-  private NetworkService networkService;
-
-  @MockitoBean
-  private SyncStatusService syncStatusService;
-
   @Mock
   private ProtocolParams protocolParams;
 
+  @InjectMocks
   private BlockApiImpl blockApi;
-
-  @org.junit.jupiter.api.BeforeEach
-  void setUp() {
-    blockApi = new BlockApiImpl(blockService, networkService, tokenRegistryService, blockMapper);
-  }
 
   @Test
   void blockInvalidIndex() {

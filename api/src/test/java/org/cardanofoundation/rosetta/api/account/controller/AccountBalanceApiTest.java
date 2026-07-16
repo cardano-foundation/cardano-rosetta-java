@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
-import org.cardanofoundation.rosetta.api.network.service.NetworkService;
 import org.cardanofoundation.rosetta.client.YaciHttpGateway;
 import org.cardanofoundation.rosetta.client.model.domain.StakeAccountInfo;
 import org.cardanofoundation.rosetta.common.util.Constants;
@@ -41,9 +40,6 @@ class AccountBalanceApiTest extends BaseSpringMvcSetup {
   @MockitoBean
   // we want to replace the real implementation with a mock bean since we do not actually want to test full http layer here but only business logic
   private YaciHttpGateway yaciHttpGateway;
-
-  @MockitoBean
-  private NetworkService networkService;
 
   @BeforeEach
   public void beforeEachSetup() {

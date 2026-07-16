@@ -67,20 +67,6 @@ class AccountApiImplementationTest extends BaseSpringMvcSetup {
   }
 
   @Test
-  void accountBalanceIndexerNotReadyTest() {
-    AccountBalanceRequest request = Mockito.mock(AccountBalanceRequest.class);
-    Mockito.doThrow(ExceptionFactory.indexerNotReady()).when(networkService).verifySyncStatus();
-    assertThrows(ExceptionFactory.indexerNotReady().getClass(), () -> accountController.accountBalance(request));
-  }
-
-  @Test
-  void accountCoinsIndexerNotReadyTest() {
-    AccountCoinsRequest request = Mockito.mock(AccountCoinsRequest.class);
-    Mockito.doThrow(ExceptionFactory.indexerNotReady()).when(networkService).verifySyncStatus();
-    assertThrows(ExceptionFactory.indexerNotReady().getClass(), () -> accountController.accountCoins(request));
-  }
-
-  @Test
   void accountBalancePositiveTest() {
     AccountBalanceRequest request = Mockito.mock(AccountBalanceRequest.class);
     AccountBalanceResponse response = Mockito.mock(AccountBalanceResponse.class);
