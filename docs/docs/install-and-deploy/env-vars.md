@@ -63,7 +63,7 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `AGGREGATOR_ENDPOINT`                         | Mithril aggregator endpoint (uses default if not set)                 | (empty)                                | added in release 1.0.0  |
 | `GENESIS_VERIFICATION_KEY`                    | Mithril genesis verification key (uses default if not set)            | (empty)                                | added in release 1.0.0  |
 | `ANCILLARY_VERIFICATION_KEY`                  | Mithril ancillary verification key (uses default if not set)          | (empty)                                | added in release 1.2.9  |
-| `RELEASE_VERSION`                             | Docker image tag for API and Indexer images                           | 2.2.0                                  | added in release 2.0.0  |
+| `RELEASE_VERSION`                             | Docker image tag for API and Indexer images                           | 2.3.0                                  | added in release 2.0.0  |
 | `API_SPRING_PROFILES_ACTIVE`                  | API spring profile                                                    | staging                                | added in release 1.0.0  |
 | `API_PORT`                                    | Rosetta API exposed port                                              | 8082                                   | added in release 1.0.0  |
 | `PRINT_EXCEPTION`                             | Print stack traces in error responses                                 | true                                   | added in release 1.0.0  |
@@ -77,6 +77,10 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT`  | Number of safe blocks to keep in the store (~30 days)                 | 129600                                 | added in release 1.2.4  |
 | `REMOVE_SPENT_UTXOS_BATCH_SIZE`               | Batch size for UTXO removal operations                                | 3000                                   | added in release 1.4.0  |
 | `BLOCK_TRANSACTION_API_TIMEOUT_SECS`          | Timeout for fetching blocks in seconds                                | 5                                      | added in release 1.2.11 |
+| `INDEX_STALL_TIMEOUT_MINUTES`                 | Liveness stall timeout while an index build is `APPLYING`             | 360                                    | added in release 2.3.0  |
+| `INDEX_FAILED_RETRY_MAX_ATTEMPTS`             | Maximum retry attempts after an index build enters `FAILED`           | 3                                      | added in release 2.3.0  |
+| `INDEX_FAILED_RETRY_DELAY_MINUTES`            | Delay before retrying `FAILED -> APPLYING`                            | 5                                      | added in release 2.3.0  |
+| `INDEX_QUERY_TIMEOUT_SECONDS`                 | JDBC statement timeout per `CREATE/DROP INDEX CONCURRENTLY`           | 21600                                  | added in release 2.3.0  |
 | `YACI_SPRING_PROFILES`                        | Yaci indexer spring profile (postgres, n2c-socket)                    | postgres,n2c-socket                    | added in release 1.0.0  |
 | `MEMPOOL_ENABLED`                             | Enable mempool functionality                                          | false                                  | added in release 1.0.0  |
 | `DEVKIT_ENABLED`                              | Devkit enabled                                                        | false                                  | added in release 1.0.0  |

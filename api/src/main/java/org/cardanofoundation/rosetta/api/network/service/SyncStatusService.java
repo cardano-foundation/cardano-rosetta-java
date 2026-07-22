@@ -54,7 +54,26 @@ public class SyncStatusService {
      */
     @Nullable
     public Optional<SyncStatus> calculateSyncStatus(BlockIdentifierExtended latestBlock) {
-        return offlineSlotService.getCurrentSlotBasedOnTime().map(slotBasedOnTime -> {
+        Optional<Long> currentSlotBasedOnTimeOpt = offlineSlotService.getCurrentSlotBasedOnTime();
+
+        if (currentSlotBasedOnTimeOpt.isEmpty()) {
+            // When current slot cannot be determined based on time (e.g. on DevKit where slot converters are null),
+            // we assume the tip is reached and we check if the required database indexes are ready.
+            boolean indexesNotReady = indexCreationMonitor.isCreatingIndexes();
+            SyncStage stage = indexesNotReady ? SyncStage.APPLYING_INDEXES : SyncStage.LIVE;
+            boolean isSynced = !indexesNotReady;
+
+            log.info("[SyncStatus] Converters unavailable (devkit). Returning status based on index readiness. Stage: {}, Synced: {}", stage, isSynced);
+
+            return Optional.of(SyncStatus.builder()
+                .targetIndex(latestBlock.getSlot())
+                .currentIndex(latestBlock.getSlot())
+                .synced(isSynced)
+                .stage(stage.getValue())
+                .build());
+        }
+
+        return currentSlotBasedOnTimeOpt.map(slotBasedOnTime -> {
             long slotBasedOnLatestBlock = latestBlock.getSlot();
 
             // Check if node has reached the tip

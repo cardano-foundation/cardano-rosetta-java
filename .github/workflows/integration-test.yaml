@@ -54,6 +54,26 @@ jobs:
             --network-id devkit \
             --openapi ../../api/src/main/resources/rosetta-specifications-1.4.15/api.yaml
 
+      - name: "Wait for indexer data to be ready (stage: LIVE)"
+        run: |
+          echo "Waiting for Rosetta API network status stage to be LIVE..."
+          for i in {1..60}; do
+            STAGE=$(curl -s -X POST http://localhost:8082/network/status \
+              -H 'Content-Type: application/json' \
+              -d '{"network_identifier": {"blockchain": "cardano", "network": "devkit"}}' | \
+              jq -r '.sync_status.stage' 2>/dev/null || echo "UNKNOWN")
+            
+            if [ "$STAGE" = "LIVE" ]; then
+              echo "✓ Indexer is ready and stage is LIVE!"
+              exit 0
+            fi
+            
+            echo "Waiting for stage to be LIVE... Current stage: $STAGE ($i/60)"
+            sleep 5
+          done
+          echo "❌ Indexer failed to reach LIVE stage within 5 minutes"
+          exit 1
+
       - name: "Run rosetta check:data tests"
         run: ./bin/rosetta-cli check:data --configuration-file ./rosetta-cli-tests/data/byron_sample.json
 

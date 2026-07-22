@@ -458,7 +458,7 @@ class SearchServiceImplTest {
     class CurrencySearchTests {
 
         @Test
-        void shouldSupportCurrencySearch_withLovelace() {
+        void shouldSupportCurrencySearch_withAdaSymbol() {
             // Given
             CurrencyRequest currency = CurrencyRequest.builder().symbol("ADA").build();
 
@@ -494,6 +494,66 @@ class SearchServiceImplTest {
             verify(ledgerSearchService).searchTransaction(
                     any(), any(), any(), any(), any(), any(), any(), any(), any(), anyLong(), anyLong()
             );
+        }
+
+        @Test
+        void shouldRejectLovelaceCurrencySymbol() {
+            // Given
+            CurrencyRequest currency = CurrencyRequest.builder().symbol("lovelace").build();
+
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .currency(currency)
+                    .build();
+
+            // When & Then
+            assertThatThrownBy(() -> searchService.searchTransaction(request, 0L, 10L))
+                    .isInstanceOf(ApiException.class)
+                    .hasMessage("Invalid token name")
+                    .extracting("error.details.message")
+                    .isEqualTo("lovelace");
+
+            verifyNoInteractions(ledgerSearchService);
+        }
+
+        @Test
+        void shouldRejectLovelaceCurrencySymbol_uppercase() {
+            // Given
+            CurrencyRequest currency = CurrencyRequest.builder().symbol("LOVELACE").build();
+
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .currency(currency)
+                    .build();
+
+            // When & Then
+            assertThatThrownBy(() -> searchService.searchTransaction(request, 0L, 10L))
+                    .isInstanceOf(ApiException.class)
+                    .hasMessage("Invalid token name")
+                    .extracting("error.details.message")
+                    .isEqualTo("LOVELACE");
+
+            verifyNoInteractions(ledgerSearchService);
+        }
+
+        @Test
+        void shouldRejectLovelaceCurrencySymbol_mixedCase() {
+            // Given
+            CurrencyRequest currency = CurrencyRequest.builder().symbol("Lovelace").build();
+
+            SearchTransactionsRequest request = SearchTransactionsRequest.builder()
+                    .networkIdentifier(networkIdentifier)
+                    .currency(currency)
+                    .build();
+
+            // When & Then
+            assertThatThrownBy(() -> searchService.searchTransaction(request, 0L, 10L))
+                    .isInstanceOf(ApiException.class)
+                    .hasMessage("Invalid token name")
+                    .extracting("error.details.message")
+                    .isEqualTo("Lovelace");
+
+            verifyNoInteractions(ledgerSearchService);
         }
 
         @Test

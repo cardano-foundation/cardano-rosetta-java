@@ -431,6 +431,27 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     return depositsSumMap;
   }
 
+  @Override
+  public void validateOutputsValueSize(List<TransactionOutput> outputs, long maxValSize) {
+    if (maxValSize <= 0) {
+      log.debug("[validateOutputsValueSize] maxValSize is {}, skipping validation", maxValSize);
+      return;
+    }
+    for (TransactionOutput output : outputs) {
+      try {
+        byte[] serializedValue = CborSerializationUtil.serialize(output.getValue().serialize());
+        if (serializedValue.length > maxValSize) {
+          log.error("[validateOutputsValueSize] Output value byte size {} exceeds maxValSize {}",
+                  serializedValue.length, maxValSize);
+          throw ExceptionFactory.utxoValueSizeExceedsMax(serializedValue.length, maxValSize);
+        }
+      } catch (CborException e) {
+        log.error("[validateOutputsValueSize] Error serializing output value: {}", e.getMessage());
+        throw ExceptionFactory.generalSerializationError(e.getMessage());
+      }
+    }
+  }
+
   @NotNull
   private ProcessOperationsReturn fillProcessOperationsReturnObject(ProcessOperations result, long calculatedFee) {
     ProcessOperationsReturn processOperationsDto = new ProcessOperationsReturn();

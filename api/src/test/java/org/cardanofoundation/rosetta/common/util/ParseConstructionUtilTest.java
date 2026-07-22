@@ -3,18 +3,24 @@ package org.cardanofoundation.rosetta.common.util;
 import co.nstant.in.cbor.CborException;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
 import com.bloxbean.cardano.client.spec.UnitInterval;
+import com.bloxbean.cardano.client.transaction.spec.Asset;
 import com.bloxbean.cardano.client.transaction.spec.MultiAsset;
 import com.bloxbean.cardano.client.transaction.spec.TransactionInput;
+import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
+import com.bloxbean.cardano.client.transaction.spec.Value;
 import com.bloxbean.cardano.client.transaction.spec.cert.*;
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.openapitools.client.model.Operation;
+import org.openapitools.client.model.OperationMetadata;
 import org.openapitools.client.model.PoolMetadata;
 import org.openapitools.client.model.PoolRegistrationParams;
 import org.openapitools.client.model.Relay;
+import org.openapitools.client.model.TokenBundleItem;
 
 import java.math.BigInteger;
 import java.net.Inet4Address;
@@ -22,6 +28,7 @@ import java.net.Inet6Address;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -336,6 +343,107 @@ class ParseConstructionUtilTest {
         assertEquals(1, operation.getMetadata().getPoolRegistrationParams().getPoolOwners().size());
         assertEquals("1", operation.getMetadata().getPoolRegistrationParams().getMargin().getNumerator());
         assertEquals("1", operation.getMetadata().getPoolRegistrationParams().getMargin().getDenominator());
+    }
+
+    @Nested
+    class ParseTokenBundleTests {
+
+        private static TransactionOutput outputWithAssets(List<MultiAsset> multiAssets) {
+            Value value = Value.builder().coin(BigInteger.valueOf(2_000_000)).build();
+            value.setMultiAssets(multiAssets);
+            return new TransactionOutput("addr_test1", value);
+        }
+
+        @Test
+        void returnsNullWhenNoNativeAssets() {
+            // given
+            Value value = Value.builder().coin(BigInteger.valueOf(1_000_000)).build();
+            TransactionOutput output = new TransactionOutput("addr_test1", value);
+            // when
+            OperationMetadata result = parseTokenBundle(output);
+            // then
+            assertNull(result);
+        }
+
+        @Test
+        void returnsSingleBundleItemForSinglePolicyId() {
+            // given
+            List<Asset> assets = List.of(new Asset("token01", BigInteger.valueOf(500)));
+            MultiAsset ma = new MultiAsset("policyA", assets);
+            TransactionOutput output = outputWithAssets(List.of(ma));
+            // when
+            OperationMetadata result = parseTokenBundle(output);
+            // then
+            assertThat(result).isNotNull();
+            assertThat(result.getTokenBundle())
+                    .hasSize(1)
+                    .element(0)
+                    .satisfies(item -> {
+                        assertThat(item.getPolicyId()).isEqualTo("policyA");
+                        assertThat(item.getTokens()).hasSize(1);
+                        assertThat(item.getTokens().getFirst().getValue()).isEqualTo("500");
+                    });
+        }
+
+        @Test
+        void returnsOneItemPerDistinctPolicyId_fixForIssue582() {
+            // given – three MultiAsset entries each with a different policy ID
+            List<Asset> assetsA = List.of(new Asset("tokenA1", BigInteger.valueOf(750)));
+            List<Asset> assetsB = List.of(new Asset("tokenB1", BigInteger.valueOf(2000)));
+            List<Asset> assetsC = List.of(new Asset("tokenC1", BigInteger.valueOf(300)));
+            List<MultiAsset> multiAssets = List.of(
+                    new MultiAsset("policyC", assetsC),
+                    new MultiAsset("policyA", assetsA),
+                    new MultiAsset("policyB", assetsB)
+            );
+            TransactionOutput output = outputWithAssets(multiAssets);
+            // when
+            OperationMetadata result = parseTokenBundle(output);
+            // then
+            assertThat(result).isNotNull();
+            List<TokenBundleItem> bundle = result.getTokenBundle();
+            assertThat(bundle).hasSize(3);
+            // must be sorted by policyId
+            List<String> policyIds = bundle.stream().map(TokenBundleItem::getPolicyId).toList();
+            assertThat(policyIds).isSortedAccordingTo(Comparator.naturalOrder());
+            assertThat(policyIds).containsExactly("policyA", "policyB", "policyC");
+        }
+
+        @Test
+        void returnsSingleBundleItemForPolicyWithMultipleAssets() {
+            // given – one MultiAsset entry with two different assets under the same policy ID
+            // (the standard Cardano CBOR format: one MultiAsset per policy, multiple assets inside)
+            List<Asset> assets = List.of(
+                    new Asset("tokenX", BigInteger.valueOf(500)),
+                    new Asset("tokenY", BigInteger.valueOf(1500))
+            );
+            MultiAsset ma = new MultiAsset("policyA", assets);
+            TransactionOutput output = outputWithAssets(List.of(ma));
+            // when
+            OperationMetadata result = parseTokenBundle(output);
+            // then
+            assertThat(result).isNotNull();
+            assertThat(result.getTokenBundle()).hasSize(1);
+            TokenBundleItem item = result.getTokenBundle().getFirst();
+            assertThat(item.getPolicyId()).isEqualTo("policyA");
+            // both tokens should be present, sorted by symbol
+            assertThat(item.getTokens()).hasSize(2);
+            List<String> symbols = item.getTokens().stream()
+                    .map(a -> a.getCurrency().getSymbol()).toList();
+            assertThat(symbols).isSortedAccordingTo(Comparator.naturalOrder());
+        }
+
+        @Test
+        void throwsWhenPolicyHasNoAssets() {
+            // given
+            MultiAsset emptyMa = new MultiAsset("policyA", new ArrayList<>());
+            TransactionOutput output = outputWithAssets(List.of(emptyMa));
+            // when / then
+            ApiException exception = assertThrows(ApiException.class,
+                    () -> parseTokenBundle(output));
+            assertEquals("Assets are required for output operation token bundle", exception.getError().getMessage());
+            assertEquals(4021, exception.getError().getCode());
+        }
     }
 
 }

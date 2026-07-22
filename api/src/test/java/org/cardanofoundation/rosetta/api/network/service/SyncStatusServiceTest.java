@@ -128,20 +128,36 @@ class SyncStatusServiceTest {
         }
 
         @Test
-        @DisplayName("Should return empty when current slot cannot be determined")
-        void shouldReturnEmptyWhenCurrentSlotUnavailable() {
+        @DisplayName("Should return status based on index readiness when current slot cannot be determined (e.g. devkit)")
+        void shouldReturnStatusBasedOnIndexesWhenCurrentSlotUnavailable() {
             // Given
             BlockIdentifierExtended latestBlock = BlockIdentifierExtended.builder()
                 .slot(1000L)
                 .build();
 
             when(offlineSlotService.getCurrentSlotBasedOnTime()).thenReturn(Optional.empty());
+            when(indexCreationMonitor.isCreatingIndexes()).thenReturn(false);
 
             // When
             Optional<SyncStatus> result = syncStatusService.calculateSyncStatus(latestBlock);
 
             // Then
-            assertThat(result).isEmpty();
+            assertThat(result).isPresent();
+            assertThat(result.get().getSynced()).isTrue();
+            assertThat(result.get().getStage()).isEqualTo(SyncStage.LIVE.getValue());
+            assertThat(result.get().getTargetIndex()).isEqualTo(1000L);
+            assertThat(result.get().getCurrentIndex()).isEqualTo(1000L);
+
+            // And given indexes are not ready
+            when(indexCreationMonitor.isCreatingIndexes()).thenReturn(true);
+
+            // When
+            result = syncStatusService.calculateSyncStatus(latestBlock);
+
+            // Then
+            assertThat(result).isPresent();
+            assertThat(result.get().getSynced()).isFalse();
+            assertThat(result.get().getStage()).isEqualTo(SyncStage.APPLYING_INDEXES.getValue());
         }
 
         @Test
