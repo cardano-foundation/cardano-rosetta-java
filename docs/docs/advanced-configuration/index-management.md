@@ -10,6 +10,15 @@ description: Understanding and customizing database index creation
 
 Starting from v2.3.0, Rosetta manages the required database indexes natively inside `yaci-indexer`. After blockchain sync reaches tip, the indexer automatically creates all required indexes without any external sidecar container.
 
+:::info Upgrading from v2.2.x or earlier
+Older releases applied indexes through a separate `index-applier` container (a shell
+script looping over `psql`). That container, its `docker-compose-index-applier.yaml`
+file, and the Helm `indexApplier` job no longer exist. No action is needed on upgrade —
+`yaci-indexer` detects the already-existing indexes on startup and reports `LIVE`
+immediately. If your own tooling referenced the `index-applier` container or its compose
+file, remove those references.
+:::
+
 ## Sync Stages
 
 The `/network/status` endpoint reports three distinct stages:
@@ -29,7 +38,26 @@ The `yaci-indexer` manages indexes through the following states:
 3. Continues building remaining indexes even when individual ones fail
 4. Gates readiness probe on index completion — the API stays ready once indexes are `READY`
 
+**Crash recovery:** if `yaci-indexer` is restarted mid-build, any index left behind in an
+`INVALID` or half-built `BUILDING` state is detected on the next run, dropped
+(schema-qualified `DROP INDEX CONCURRENTLY`), and rebuilt automatically. No manual
+cleanup is required.
+
 **Performance:** Index creation takes approximately 6 hours on mainnet.
+
+## Health Probes
+
+While indexes are being created, the indexer's Spring Actuator health groups behave as follows:
+
+| Probe | Endpoint | Behavior |
+|-------|----------|----------|
+| Readiness | `/actuator/health/readiness` | `DOWN` until blockchain sync reaches tip **and** all required indexes are `READY` |
+| Liveness | `/actuator/health/liveness` | `DOWN` only when a build stalls — no per-index progress for `INDEX_STALL_TIMEOUT_MINUTES` while in `APPLYING` |
+
+A `FAILED` index build keeps readiness `DOWN` but liveness `UP`. This is intentional: a
+stalled build warrants a container restart, while a permanently failed index (for example
+a permissions or disk-space problem) does not — restarting would not fix it. Diagnose the
+per-index `errorMessage` via `/actuator/rosetta-indexes` and see the retry settings below.
 
 ## Failure Retries and Timeouts
 
@@ -39,7 +67,7 @@ If an index build fails, the per-index state is reported as `FAILED` at `/actuat
 | Environment Variable | Default | Description |
 |----------------------|---------|-------------|
 | `INDEX_FAILED_RETRY_MAX_ATTEMPTS` | `3` | Maximum retry attempts after an index build enters `FAILED` |
-| `INDEX_FAILED_RETRY_DELAY_MINUTES` | `30` | Delay before retrying `FAILED -> APPLYING` |
+| `INDEX_FAILED_RETRY_DELAY_MINUTES` | `5` | Delay before retrying `FAILED -> APPLYING` |
 | `INDEX_QUERY_TIMEOUT_SECONDS` | `21600` | JDBC statement timeout for each `CREATE/DROP INDEX CONCURRENTLY` statement |
 | `INDEX_STALL_TIMEOUT_MINUTES` | `360` | Liveness stall timeout while an index build is `APPLYING` |
 

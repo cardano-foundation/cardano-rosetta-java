@@ -14,7 +14,7 @@ env:
   logLevel: error                               # matches Docker Compose default (LOG=ERROR)
   indexStallTimeoutMinutes: 360                 # 6 hours in minutes to prevent restarts during long builds
   indexFailedRetryMaxAttempts: 3                # cap retries after a FAILED index build
-  indexFailedRetryDelayMinutes: 30              # wait between FAILED -> APPLYING retry attempts
+  indexFailedRetryDelayMinutes: 5               # wait between FAILED -> APPLYING retry attempts
   indexQueryTimeoutSeconds: 21600               # 6 hours for long-running CREATE/DROP INDEX CONCURRENTLY statements
   # HikariCP connection pool tuning — matches Docker Compose INDEXER_DB_* variables.
   # Jar default pool size is 20, which is too small during heavy sync.

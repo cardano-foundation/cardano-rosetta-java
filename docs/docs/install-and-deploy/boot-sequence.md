@@ -190,6 +190,7 @@ Use these methods to verify each service is running and responsive.
 | api | HTTP POST | `curl -X POST .../network/options` |
 | api | Sync status | `curl -X POST .../network/status` → check `stage` |
 | yaci-indexer | Spring actuator | `curl .../actuator/health` |
+| yaci-indexer | Index progress | `curl .../actuator/rosetta-indexes` |
 | cardano-node | CLI query | `cardano-cli query tip --mainnet` or `--testnet-magic <N>` |
 | cardano-submit-api | TCP port | `nc -zv localhost 8090` |
 | prometheus | HTTP GET | `curl .../-/healthy` |

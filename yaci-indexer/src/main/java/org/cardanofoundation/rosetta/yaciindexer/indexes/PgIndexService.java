@@ -64,8 +64,8 @@ public class PgIndexService implements IndexService {
     @Value("${cardano.rosetta.index.failed-retry-max-attempts:3}")
     private int failedRetryMaxAttempts = 3;
 
-    @Value("${cardano.rosetta.index.failed-retry-delay-minutes:30}")
-    private int failedRetryDelayMinutes = 30;
+    @Value("${cardano.rosetta.index.failed-retry-delay-minutes:5}")
+    private int failedRetryDelayMinutes = 5;
 
     @Value("${cardano.rosetta.index.query-timeout-seconds:21600}")
     private int queryTimeoutSeconds = 21600;
