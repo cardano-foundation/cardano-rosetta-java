@@ -12,8 +12,8 @@
   "expected_response": {
     "version": {
       "rosetta_version": "1.4.13",
-      "node_version": "10.5.4",
-      "middleware_version": "2.1.2",
+      "node_version": "11.0.1",
+      "middleware_version": "2.3.0",
       "metadata": {}
     },
     "allow": {
@@ -504,6 +504,16 @@
         {
           "code": 5059,
           "message": "Currency symbol must be hex-encoded",
+          "retriable": false
+        },
+        {
+          "code": 5060,
+          "message": "Output ADA value is below the minimum UTxO requirement",
+          "retriable": false
+        },
+        {
+          "code": 5061,
+          "message": "UTxO value byte size exceeds the allowed max_val_size protocol parameter",
           "retriable": false
         }
       ],

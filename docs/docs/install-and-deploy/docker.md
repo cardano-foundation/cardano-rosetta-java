@@ -81,14 +81,11 @@ Mithril provides cryptographically certified blockchain snapshots for multiple C
 
 #### Index Application
 
-After initial blockchain synchronization, the `index-applier` container creates required database indexes. This process:
-- Runs automatically after yaci-indexer readiness is `UP` (`/actuator/health/readiness`)
-- Takes approximately 6 hours on mainnet
-- Uses `CREATE INDEX CONCURRENTLY` to avoid blocking the indexer
+After blockchain synchronization reaches tip, `yaci-indexer` automatically creates the required database indexes using `CREATE INDEX CONCURRENTLY`. This takes approximately 6 hours on mainnet.
 
-Monitor yaci-indexer readiness:
+Monitor progress:
 ```bash
-curl -s http://localhost:9095/actuator/health/readiness | jq
+curl -s http://localhost:9095/actuator/rosetta-indexes | jq
 ```
 
 For details on customizing indexes, see [Index Management](../advanced-configuration/index-management).

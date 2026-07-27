@@ -22,9 +22,9 @@ import java.util.stream.Collectors;
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
 import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class TokenRegistryServiceImpl implements TokenRegistryService {
 
     private final TokenQueryServiceImpl tokenQueryService;

@@ -2,14 +2,19 @@ package org.cardanofoundation.rosetta.api.construction.service;
 
 import co.nstant.in.cbor.CborException;
 import com.bloxbean.cardano.client.common.model.Network;
+import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
+import com.bloxbean.cardano.client.transaction.spec.Value;
 import lombok.SneakyThrows;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.time.OfflineSlotService;
+import org.cardanofoundation.rosetta.api.construction.service.ProtocolParamsConverter;
 import org.cardanofoundation.rosetta.common.util.CborEncodeUtil;
+import org.cardanofoundation.rosetta.common.util.MinAdaCalculator;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,7 +25,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.openapitools.client.model.*;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.Collections;
+import java.util.List;
 
 import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionPayloadsRequest;
 import static org.cardanofoundation.rosetta.EntityGenerator.givenSigningPayload;
@@ -41,6 +48,9 @@ class ConstructionApiServiceImplTest {
 
   @Mock
   private ProtocolParamService protocolParamService;
+
+  @Mock
+  private ProtocolParamsConverter protocolParamsConverter;
 
   @InjectMocks
   private ConstructionApiServiceImpl underTest;
@@ -63,7 +73,6 @@ class ConstructionApiServiceImplTest {
               .thenReturn(Collections.singletonList(expectedSigningPayload));
 
       when(cardanoConstructionService.convertRosettaOperations(any(Network.class), anyList())).thenReturn(new ProcessOperations());
-      when(cardanoConstructionService.getDepositParameters()).thenReturn(new DepositParameters("1", "1"));
 
       ConstructionPayloadsResponse result = underTest.constructionPayloadsService(
               constructionPayloadsRequest);
@@ -175,7 +184,6 @@ class ConstructionApiServiceImplTest {
   @SneakyThrows
   void constructionPayloadsService_whenCannotCreateUnsignedTransaction_thenShouldThrowError() {
     when(cardanoConstructionService.convertRosettaOperations(any(Network.class), anyList())).thenReturn(new ProcessOperations());
-    when(cardanoConstructionService.getDepositParameters()).thenReturn(new DepositParameters("1", "1"));
 
     when(cardanoConstructionService.createUnsignedTransaction(any(), anyList(), anyLong(), anyLong()))
             .thenThrow(new IOException());
@@ -194,7 +202,6 @@ class ConstructionApiServiceImplTest {
   @SneakyThrows
   void constructionPayloadsService_whenCannotEncodeUnsignedTransaction_thenShouldThrowError() {
     when(cardanoConstructionService.convertRosettaOperations(any(Network.class), anyList())).thenReturn(new ProcessOperations());
-    when(cardanoConstructionService.getDepositParameters()).thenReturn(new DepositParameters("1", "1"));
 
     try (MockedStatic<CborEncodeUtil> mocked = Mockito.mockStatic(CborEncodeUtil.class)) {
       mocked.when(() -> CborEncodeUtil.encodeExtraData(anyString(), anyList()))
@@ -213,6 +220,64 @@ class ConstructionApiServiceImplTest {
       assertEquals(RosettaErrorType.CANT_ENCODE_EXTRA_DATA.getCode(),
               result.getError().getCode());
       assertFalse(result.getError().isRetriable());
+    }
+  }
+
+  @Nested
+  class MinAdaValidation {
+
+    private static final String TEST_ADDRESS = "addr_test1vpqgspvmh6m2m5pwangvdg499srfzre2dd96qq57nlnw6yctpasy4";
+
+    @Test
+    void whenOutputAdaBelowMinimum_thenThrowOutputMinAdaValueNotMet() {
+      ProcessOperations processOperations = new ProcessOperations();
+      TransactionOutput output = new TransactionOutput(
+              TEST_ADDRESS,
+              Value.builder().coin(BigInteger.ONE).build());
+      processOperations.setTransactionOutputs(List.of(output));
+
+      when(cardanoConstructionService.convertRosettaOperations(any(Network.class), anyList()))
+              .thenReturn(processOperations);
+
+      ApiException result = assertThrows(ApiException.class,
+              () -> underTest.constructionPayloadsService(constructionPayloadsRequest));
+
+      assertEquals(RosettaErrorType.OUTPUT_MIN_ADA_VALUE_NOT_MET.getCode(), result.getError().getCode());
+      assertEquals(RosettaErrorType.OUTPUT_MIN_ADA_VALUE_NOT_MET.getMessage(), result.getError().getMessage());
+      assertFalse(result.getError().isRetriable());
+    }
+
+    @Test
+    @SneakyThrows
+    void whenOutputAdaAtMinimum_thenProceedWithoutError() {
+      TransactionOutput output = new TransactionOutput(
+              TEST_ADDRESS,
+              Value.builder().coin(BigInteger.valueOf(2_000_000)).build());
+
+      BigInteger coinsPerUtxoSize = new BigInteger(
+              constructionPayloadsRequest.getMetadata().getProtocolParameters().getCoinsPerUtxoSize());
+      BigInteger minAda = MinAdaCalculator.calculateMinAda(output, coinsPerUtxoSize);
+
+      TransactionOutput sufficientOutput = new TransactionOutput(
+              TEST_ADDRESS,
+              Value.builder().coin(minAda).build());
+
+      ProcessOperations processOperations = new ProcessOperations();
+      processOperations.setTransactionOutputs(List.of(sufficientOutput));
+
+      try (MockedStatic<CborEncodeUtil> mocked = Mockito.mockStatic(CborEncodeUtil.class)) {
+        mocked.when(() -> CborEncodeUtil.encodeExtraData(anyString(), anyList()))
+                .thenReturn("encodedHash");
+
+        when(cardanoConstructionService.convertRosettaOperations(any(Network.class), anyList()))
+                .thenReturn(processOperations);
+        when(cardanoConstructionService.createUnsignedTransaction(any(), anyList(), anyLong(), anyLong()))
+                .thenReturn(createUnsignedTransaction());
+        when(cardanoConstructionService.constructPayloadsForTransactionBody(any(), any()))
+                .thenReturn(Collections.emptyList());
+
+        assertDoesNotThrow(() -> underTest.constructionPayloadsService(constructionPayloadsRequest));
+      }
     }
   }
 

@@ -17,10 +17,10 @@ These values are shared across all subcharts via `global.*`.
 |-------|---------|--------------------------|-------------|
 | `global.network` | `mainnet` | `NETWORK` | Blockchain network: `mainnet`, `preprod`, `preview` |
 | `global.protocolMagic` | `"764824073"` | `PROTOCOL_MAGIC` | Cardano protocol magic number (always a quoted string to prevent scientific notation) |
-| `global.releaseVersion` | `"2.1.2"` | `RELEASE_VERSION` | Docker image tag for API and indexer |
-| `global.cardanoNodeVersion` | `"10.5.4"` | `CARDANO_NODE_VERSION` | Cardano node image tag |
+| `global.releaseVersion` | `"2.3.0"` | `RELEASE_VERSION` | Docker image tag for API and indexer |
+| `global.cardanoNodeVersion` | `"11.0.1"` | `CARDANO_NODE_VERSION` | Cardano node image tag |
 | `global.pgVersionTag` | `REL_18_0` | `PG_VERSION_TAG` | PostgreSQL image tag |
-| `global.mithrilVersion` | `2543.1-hotfix` | `MITHRIL_VERSION` | Mithril client image tag |
+| `global.mithrilVersion` | `2617.0` | `MITHRIL_VERSION` | Mithril client image tag |
 | `global.profile` | `mid` | — | Hardware profile: `entry`, `mid`, `advanced` |
 | `global.sync` | `true` | `SYNC` | Set `false` for offline (API-only) mode |
 
@@ -127,21 +127,6 @@ rosetta-api:
         hosts:
           - rosetta.example.com
 ```
-
----
-
-## Index Applier
-
-| Value | Default | Description |
-|-------|---------|-------------|
-| `indexApplier.enabled` | `true` | Deploy the index-applier Job |
-| `indexApplier.mode` | `automatic` | `automatic`: plain Job (GitOps-friendly, no hooks). `hook`: legacy Helm post-install/post-upgrade hook. |
-
-In `automatic` mode the Job runs as part of the release (compatible with ArgoCD and `--no-hooks`). The Job is
-cleaned up 24 hours after completion via `ttlSecondsAfterFinished`.
-
-In `hook` mode the Job is a Helm post-install/post-upgrade hook. Monitor it independently and never use
-`--wait-for-jobs` as it can run for up to 18 hours on mainnet.
 
 ---
 
