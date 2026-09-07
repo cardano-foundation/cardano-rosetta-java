@@ -295,7 +295,7 @@ kubectl delete pvc --all -n cardano
 - [ ] **Disable debug endpoints** — ensure `PRINT_EXCEPTION=false` in production.
 - [ ] **Secrets management** — use Sealed Secrets or Vault instead of `--set global.db.password`.
 - [ ] **Network Policy** — restrict pod-to-pod traffic.
-- [ ] **Token Registry** — review `rosetta-api.env.tokenRegistryEnabled`; requires outbound internet.
+- [ ] **Token Registry** — review `rosetta-api.env.tokenRegistryEnabled`. Metadata enrichment is served from the indexer's DB (no API-side outbound needed); the indexer itself does periodic outbound CIP-26 sync from the GitHub registry.
 
 ---
 
@@ -353,8 +353,7 @@ global:
 rosetta-api:
   env:
     tokenRegistryEnabled: true
-    tokenRegistryBaseUrl: "https://tokens.cardano.org/api"
-    tokenRegistryCacheTtlHours: 12
+    tokenRegistryLogoFetch: false
     removeSpentUtxos: true
     removeSpentUtxosLastBlocksGraceCount: 129600
 
