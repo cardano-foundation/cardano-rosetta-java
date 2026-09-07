@@ -9,27 +9,31 @@ import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
 
+import org.cardanofoundation.rosetta.yaciindexer.indexes.IndexService;
+import org.cardanofoundation.rosetta.yaciindexer.indexes.IndexLifecycleState;
+
 /**
- * Liveness and readiness health indicator for the Yaci Indexer.
+ * Readiness health indicator for the Yaci Indexer.
  *
- * <p>The indicator is named {@code "yaciSync"} and is included in both liveness and readiness
- * groups via {@code application.properties}:
+ * <p>The indicator is named {@code "yaciSync"} and is included in the readiness
+ * group via {@code application.properties}:
  * <pre>
- *   management.endpoint.health.group.liveness.include=livenessState,yaciSync
+ *   management.endpoint.health.group.startup.include=db,yaciConnection
+ *   management.endpoint.health.group.liveness.include=livenessState,yaciConnection,indexStall
  *   management.endpoint.health.group.readiness.include=readinessState,db,yaciSync
  * </pre>
  *
- * <p>Both probes check the same condition — the indexer is healthy only when synced to tip.
- * The difference is in the Kubernetes probe timeout:
- * <ul>
- *   <li><b>Readiness</b> — long failure threshold (5 days) to accommodate initial sync</li>
- *   <li><b>Liveness</b> — short failure threshold (15 minutes) to detect a stuck/dead process</li>
- * </ul>
+ * <p>The readiness probe uses a long failure threshold (5 days) to accommodate initial sync
+ * and index creation. Liveness stall detection is handled by {@link IndexStallIndicator}.
  *
  * <p>Health states:
  * <ul>
- *   <li><b>UP</b> — connection alive, no error, and {@link SyncStatus#synced()} is true</li>
- *   <li><b>DOWN</b> — connection lost, sync error, or still catching up to tip</li>
+ *   <li><b>UP</b> — connection alive, synced to tip, and all Rosetta indexes are READY</li>
+ *   <li><b>DOWN (Syncing)</b> — connection alive but still catching up to tip</li>
+ *   <li><b>DOWN (Awaiting index creation)</b> — synced to tip but index lifecycle is PENDING</li>
+ *   <li><b>DOWN (Applying Indexes)</b> — synced to tip but index lifecycle is APPLYING</li>
+ *   <li><b>DOWN (Index creation failed)</b> — synced to tip but index lifecycle is FAILED</li>
+ *   <li><b>DOWN (Connection)</b> — connection lost or sync error</li>
  *   <li><b>OUT_OF_SERVICE</b> — scheduled to stop</li>
  * </ul>
  */
@@ -39,10 +43,20 @@ public class YaciSyncHealthIndicator implements HealthIndicator {
 
     private final HealthService healthService;
     private final SyncStatusService syncStatusService;
+    private final IndexService indexService;
 
     @Override
     public Health health() {
-        HealthStatus status = healthService.getHealthStatus();
+        HealthStatus status;
+        try {
+            status = healthService.getHealthStatus();
+        } catch (NullPointerException e) {
+            return new Health.Builder()
+                    .down()
+                    .withDetail("syncStatus", "Initializing")
+                    .withDetail("error", "Block fetcher is not initialized yet")
+                    .build();
+        }
 
         Health.Builder builder = new Health.Builder()
                 .withDetail("connectionAlive", status.isConnectionAlive())
@@ -71,6 +85,22 @@ public class YaciSyncHealthIndicator implements HealthIndicator {
         if (!syncStatus.synced()) {
             return builder.down()
                     .withDetail("syncStatus", "Syncing")
+                    .build();
+        }
+
+        IndexLifecycleState indexState = indexService.getState();
+        builder.withDetail("indexLifecycleState", indexState.name());
+
+        if (indexState != IndexLifecycleState.READY) {
+            String indexSyncStatus = switch (indexState) {
+                case PENDING -> "Awaiting index creation";
+                case APPLYING -> "Applying Indexes";
+                case FAILED -> "Index creation failed - see /actuator/rosetta-indexes";
+                case READY -> "Synced";
+            };
+
+            return builder.down()
+                    .withDetail("syncStatus", indexSyncStatus)
                     .build();
         }
 

@@ -20,6 +20,30 @@ from client import RosettaClient
 load_dotenv(find_dotenv(), override=True)
 
 
+MAX_ATTACHMENT_SIZE_BYTES = 5 * 1024 * 1024
+
+
+def _truncate_logos(obj):
+    if isinstance(obj, dict):
+        result = {}
+        for k, v in obj.items():
+            if k == "logo" and isinstance(v, dict) and isinstance(v.get("value"), str):
+                result[k] = {**v, "value": f"<truncated {len(v['value'])} chars>"}
+            else:
+                result[k] = _truncate_logos(v)
+        return result
+    if isinstance(obj, list):
+        return [_truncate_logos(v) for v in obj]
+    return obj
+
+
+def _serialize_for_attach(data: dict) -> str:
+    full = json.dumps(data, indent=2, default=str)
+    if len(full.encode("utf-8")) <= MAX_ATTACHMENT_SIZE_BYTES:
+        return full
+    return json.dumps(_truncate_logos(data), indent=2, default=str)
+
+
 def pytest_sessionstart(session):
     """Write Allure environment.properties at the start of the test session."""
     allure_dir = session.config.option.allure_report_dir
@@ -65,12 +89,12 @@ def pytest_runtest_makereport(item, call):
     if report.when == "call":
         for i, (req, resp) in enumerate(getattr(item, "_recorded_responses", [])):
             allure.attach(
-                body=json.dumps(req, indent=2, default=str),
+                body=_serialize_for_attach(req),
                 name=f"Request #{i + 1} - {req.get('url', '')}",
                 attachment_type=allure.attachment_type.JSON,
             )
             allure.attach(
-                body=json.dumps(resp, indent=2, default=str),
+                body=_serialize_for_attach(resp),
                 name=f"Response #{i + 1} - HTTP {resp.get('status_code', '?')}",
                 attachment_type=allure.attachment_type.JSON,
             )

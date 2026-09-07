@@ -1,0 +1,35 @@
+cardano:
+  rosetta:
+    db_indexes:
+      - name: idx_address_utxo_amounts_gin
+        command: "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_address_utxo_amounts_gin ON address_utxo USING gin (amounts)"
+      - name: idx_address_utxo_epoch
+        command: "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_address_utxo_epoch ON address_utxo USING btree (epoch)"
+      - name: idx_address_utxo_owner_addr
+        command: "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_address_utxo_owner_addr ON address_utxo USING btree (owner_addr)"
+      - name: idx_address_utxo_owner_addr_tx_hash
+        command: "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_address_utxo_owner_addr_tx_hash ON address_utxo USING btree (owner_addr, tx_hash)"
+      - name: idx_address_utxo_owner_paykey_hash
+        command: "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_address_utxo_owner_paykey_hash ON address_utxo USING btree (owner_payment_credential)"
+      - name: idx_address_utxo_owner_stake_addr
+        command: "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_address_utxo_owner_stake_addr ON address_utxo USING btree (owner_stake_addr)"
+      - name: idx_address_utxo_owner_stakekey_hash
+        command: "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_address_utxo_owner_stakekey_hash ON address_utxo USING btree (owner_stake_credential)"
+      - name: idx_address_utxo_tx_hash
+        command: "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_address_utxo_tx_hash ON address_utxo USING btree (tx_hash)"
+      - name: idx_block_hash_covering
+        command: "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_block_hash_covering ON block USING btree (hash) INCLUDE (number, slot)"
+      - name: idx_invalid_transaction_hash_slot
+        command: "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_invalid_transaction_hash_slot ON invalid_transaction USING btree (tx_hash, slot)"
+      - name: idx_transaction_block
+        command: "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_transaction_block ON transaction USING btree (block)"
+      - name: idx_transaction_block_hash
+        command: "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_transaction_block_hash ON transaction USING btree (block_hash)"
+      - name: idx_transaction_hash_values_join
+        command: "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_transaction_hash_values_join ON transaction USING btree (tx_hash)"
+      - name: idx_transaction_slot_desc_tx_index_desc
+        command: "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_transaction_slot_desc_tx_index_desc ON transaction USING btree (slot DESC, tx_index DESC)"
+      - name: idx_withdrawal_address
+        command: "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_withdrawal_address ON withdrawal USING btree (address)"
+      - name: idx_withdrawal_tx_hash
+        command: "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_withdrawal_tx_hash ON withdrawal USING btree (tx_hash)"

@@ -19,7 +19,7 @@ The boot sequence solves three problems:
 
 2. **Ingesting data into a moving target is wasteful**: `yaci-indexer` parses blocks and ingests them into PostgreSQL. If it starts while the node is still syncing, it processes incomplete data. `cardano-sync-waiter` blocks until the node catches up.
 
-3. **Indexes slow initial sync**: Maintaining PostgreSQL indexes while ingesting data is expensive. `index-applier` creates them after ingestion completes.
+3. **Indexes slow initial sync**: Maintaining PostgreSQL indexes while ingesting data is expensive. `yaci-indexer` creates them automatically after ingestion completes.
 
 ## Components
 
@@ -34,9 +34,8 @@ These services are required to run Rosetta Java. One-shot services run once duri
 | cardano-submit-api | Transaction submission endpoint | 8090 | Persistent |
 | cardano-sync-waiter | Blocks until node is synced | - | One-shot: exits when synced |
 | db | PostgreSQL database for blockchain data | 5432 | Persistent |
-| yaci-indexer | Parses blocks into database tables | 9095 | Persistent |
+| yaci-indexer | Parses blocks into database tables and creates indexes | 9095 | Persistent |
 | api | Rosetta/Mesh API endpoints | 8082 | Persistent |
-| index-applier | Adds query optimization after data ingestion | - | One-shot **(New in v2.0)** |
 
 ### Monitoring (optional)
 
@@ -72,7 +71,6 @@ flowchart TD
 
     subgraph s4[API Layer]
         R["api"]
-        IA(["index-applier"])
     end
 
     subgraph s5[System Ready]
@@ -85,8 +83,7 @@ flowchart TD
     DB -->|"db healthy"| Y
     DB -->|"db healthy"| R
     Y -->|"service started"| R
-    R -->|"ingestion complete"| IA
-    IA -->|"indexes applied"| LIVE
+    Y -->|"indexes applied"| LIVE
 ```
 
 #### Monitoring Stack
@@ -127,7 +124,7 @@ stateDiagram-v2
 ```
 
 - **SYNCING**: Data in PostgreSQL is behind the blockchain tip. This occurs during initial sync, or when the node or indexer falls behind. Queries may return incomplete data.
-- **APPLYING_INDEXES**: Data ingestion is complete. `index-applier` is creating database indexes using `CREATE INDEX CONCURRENTLY`. The API responds but queries may be slow until indexes are ready (~6 hours on mainnet).
+- **APPLYING_INDEXES**: Data ingestion is complete. `yaci-indexer` is creating database indexes using `CREATE INDEX CONCURRENTLY`. The API responds but queries may be slow until indexes are ready (~6 hours on mainnet). Monitor progress at `/actuator/rosetta-indexes`.
 - **LIVE**: All data is ingested and all indexes are valid and ready. The system is fully operational for production queries.
 
 <Tabs>
@@ -167,7 +164,6 @@ These volumes must be persisted across container restarts to avoid re-syncing fr
 | `CARDANO_NODE_DB` | `${CARDANO_NODE_DIR}/db` | same as host | Blockchain ledger |
 | `CARDANO_CONFIG` | `./config/node/mainnet` | `/config` | Genesis files, topology |
 | `DB_PATH` | `/opt/rosetta-java-mainnet/sql_data` | `/var/lib/postgresql/data` | PostgreSQL data files |
-| - | `./api/src/main/resources/config/db-indexes.yaml` | `/config/db-indexes.yaml` | Index definitions for `index-applier` |
 
   </TabItem>
   <TabItem value="preprod" label="Preprod">
@@ -179,7 +175,6 @@ These volumes must be persisted across container restarts to avoid re-syncing fr
 | `CARDANO_NODE_DB` | `${CARDANO_NODE_DIR}/db` | same as host | Blockchain ledger |
 | `CARDANO_CONFIG` | `./config/node/preprod` | `/config` | Genesis files, topology |
 | `DB_PATH` | `/opt/rosetta-java-preprod/sql_data` | `/var/lib/postgresql/data` | PostgreSQL data files |
-| - | `./api/src/main/resources/config/db-indexes.yaml` | `/config/db-indexes.yaml` | Index definitions for `index-applier` |
 
   </TabItem>
 </Tabs>
@@ -195,6 +190,7 @@ Use these methods to verify each service is running and responsive.
 | api | HTTP POST | `curl -X POST .../network/options` |
 | api | Sync status | `curl -X POST .../network/status` → check `stage` |
 | yaci-indexer | Spring actuator | `curl .../actuator/health` |
+| yaci-indexer | Index progress | `curl .../actuator/rosetta-indexes` |
 | cardano-node | CLI query | `cardano-cli query tip --mainnet` or `--testnet-magic <N>` |
 | cardano-submit-api | TCP port | `nc -zv localhost 8090` |
 | prometheus | HTTP GET | `curl .../-/healthy` |

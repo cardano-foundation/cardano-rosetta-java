@@ -74,9 +74,7 @@ kubectl create namespace cardano
 > **Never use `--wait` or `--wait-for-jobs`** — the deployment takes hours (Mithril
 > download + node sync + indexer sync). Helm would time out and roll back.
 
-The `index-applier` Job runs automatically as part of the release (default
-`indexApplier.mode: automatic`). It waits for yaci-indexer readiness, then
-builds DB indexes in the background. No second `helm upgrade` is needed.
+Index creation runs automatically inside `yaci-indexer` after sync reaches tip. No separate job or second `helm upgrade` is needed.
 
 **Preprod (K3s, entry profile):**
 ```bash
@@ -128,7 +126,7 @@ helm upgrade --install rosetta helm/cardano-rosetta-java \
 | Cardano node to tip | ~30 min | 15–60 min |
 | PostgreSQL startup | ~1 min | ~1 min |
 | yaci-indexer SYNCING | ~30 min | 2–8 hours |
-| APPLYING_INDEXES (index-applier Job) | ~1–2 hours | ~6 hours |
+| APPLYING_INDEXES (yaci-indexer native) | ~1–2 hours | ~6 hours |
 | **Total to LIVE** | **~2–3 hours** | **~12–18 hours** |
 
 ---
@@ -199,26 +197,18 @@ curl -s -X POST http://localhost:8082/network/status \
 
 Stages:
 - `SYNCING` — yaci-indexer still catching up
-- `APPLYING_INDEXES` — indexer reached tip; index-applier Job should now be triggered
+- `APPLYING_INDEXES` — indexer reached tip; yaci-indexer is building indexes natively
 - `LIVE` — fully operational
 
-### Phase 6 — Index Applier
+### Phase 6 — Index Creation
 
-The index-applier Job is deployed automatically as part of the release
-(`indexApplier.mode: automatic` default). It waits for yaci-indexer readiness, then
-builds optimised database indexes. This Job takes **1–2 hours on preprod** and **~6 hours
-on mainnet**. The Job is auto-cleaned up 24 hours after completion.
+After `yaci-indexer` reaches sync tip, it automatically creates all required database indexes using `CREATE INDEX CONCURRENTLY`. This takes **1–2 hours on preprod** and **~6 hours on mainnet**.
 
 ```bash
-# Monitor progress
-kubectl logs -f job/rosetta-index-applier -n cardano
+# Monitor per-index progress
+kubectl exec deployment/rosetta-yaci-indexer -n cardano -- \
+  curl -s http://localhost:9095/actuator/rosetta-indexes | jq
 ```
-
-:::note
-Operators who prefer explicit, operator-triggered indexing can use `indexApplier.mode: hook`
-and trigger with a standard `helm upgrade` (without additional flags). See
-[Helm Values Reference](./helm-values#index-applier) for details.
-:::
 
 ---
 
@@ -268,7 +258,7 @@ helm upgrade rosetta helm/cardano-rosetta-java \
   -f helm/cardano-rosetta-java/values.yaml \
   -f helm/cardano-rosetta-java/values-k3s.yaml \
   "--set=global.db.password=${DB_PASSWORD}" \
-  --set global.releaseVersion="2.1.2" \
+  --set global.releaseVersion="2.3.0" \
   -n cardano 2>&1 | grep -v "walk.go"
 ```
 

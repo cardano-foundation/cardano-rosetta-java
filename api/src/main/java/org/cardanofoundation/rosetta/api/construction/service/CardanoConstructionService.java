@@ -5,6 +5,7 @@ import co.nstant.in.cbor.model.Array;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.exception.AddressExcepion;
 import com.bloxbean.cardano.client.exception.CborSerializationException;
+import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
 import com.bloxbean.cardano.client.transaction.spec.TransactionWitnessSet;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
@@ -79,5 +80,13 @@ public interface CardanoConstructionService {
                            NetworkEnum networkEnum);
 
   Map<String, Double> getDepositsSumMap(DepositParameters depositParameters, ProcessOperations result, double refundsSum);
+
+  /**
+   * Validates that each transaction output's Value byte size does not exceed maxValSize.
+   *
+   * @param outputs    the list of transaction outputs to validate
+   * @param maxValSize the maximum allowed value size in bytes (from protocol parameters)
+   */
+  void validateOutputsValueSize(List<TransactionOutput> outputs, long maxValSize);
 
 }

@@ -11,6 +11,7 @@ import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.api.search.model.Operator;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.validation.PolicyIdValidator;
 import org.cardanofoundation.rosetta.common.validation.SymbolValidator;
 import org.openapitools.client.model.*;
@@ -61,6 +62,9 @@ public class SearchServiceImpl implements SearchService {
         // Extract currency for filtering (policy ID or asset identifier)
         @Nullable org.cardanofoundation.rosetta.api.search.model.Currency currency = Optional.ofNullable(searchTransactionsRequest.getCurrency())
                 .map(c -> {
+                    if (Constants.LOVELACE.equalsIgnoreCase(c.getSymbol())) {
+                        throw ExceptionFactory.invalidTokenNameError(c.getSymbol());
+                    }
                     SymbolValidator.validate(c.getSymbol());
 
                     @Nullable String policyId = Optional.ofNullable(c.getMetadata())

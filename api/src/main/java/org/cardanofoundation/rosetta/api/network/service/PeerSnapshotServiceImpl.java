@@ -94,20 +94,33 @@ public class PeerSnapshotServiceImpl implements PeerSnapshotService {
 
   @NotNull
   private Peer mapRelayToPeer(@NotNull Relay relay) {
-    String address;
-    String type;
+    // Since cardano-node 10.7.x the peer-snapshot uses "address" for both domain names and IPs.
+    // The legacy "domain" field is kept for backwards compatibility with older snapshot formats.
+    String rawAddress = relay.getDomain() != null ? relay.getDomain() : relay.getAddress();
+    int port = relay.getPort() != null ? relay.getPort() : 3001;
 
+    String type;
     if (relay.getDomain() != null) {
-      address = relay.getDomain();
       type = "domain";
+    } else if (isIpAddress(rawAddress)) {
+      type = isIpv6(rawAddress) ? "IPv6" : "IPv4";
     } else {
-      address = relay.getAddress();
-      type = isIpv6(address) ? "IPv6" : "IPv4";
+      type = "domain";
     }
 
-    address = "%s:%d".formatted(address, relay.getPort());
+    String peerId = "%s:%d".formatted(rawAddress, port);
+    return new Peer(peerId, Map.of("type", type));
+  }
 
-    return new Peer(address, Map.of("type", type));
+  private boolean isIpAddress(String address) {
+    if (address == null) return false;
+    // IPv4: all dot-separated segments are digits
+    String[] parts = address.split("\\.");
+    if (parts.length == 4 && java.util.Arrays.stream(parts).allMatch(p -> p.matches("\\d+"))) {
+      return true;
+    }
+    // IPv6: contains colons
+    return address.contains(":");
   }
 
   private boolean isIpv6(String address) {
