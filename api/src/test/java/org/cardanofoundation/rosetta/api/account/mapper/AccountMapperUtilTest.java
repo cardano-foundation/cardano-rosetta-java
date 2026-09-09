@@ -43,6 +43,8 @@ class AccountMapperUtilTest {
         org.cardanofoundation.rosetta.api.common.mapper.TokenRegistryMapper tokenRegistryMapper =
             new org.cardanofoundation.rosetta.api.common.mapper.TokenRegistryMapperImpl();
         dataMapper = new DataMapper(tokenRegistryMapper);
+        // These tests assert on token-registry enrichment fields, so turn the flag on
+        org.springframework.test.util.ReflectionTestUtils.setField(dataMapper, "tokenRegistryEnabled", true);
 
         accountMapperUtil = new AccountMapperUtil(dataMapper);
 
