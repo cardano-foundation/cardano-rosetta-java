@@ -63,8 +63,7 @@ logging:
   level:
     root: ${LOG:INFO}
   file:
-    name: ${LOG_FILE_NAME:rosetta-api.log}
-    path: ${LOG_FILE_PATH:/var/log/rosetta-java}
+    name: ${LOG_FILE_NAME:/var/log/rosetta-java/rosetta-api.log}
   logback:
     rollingpolicy:
       max-file-size: ${LOG_FILE_MAX_SIZE:10MB}
