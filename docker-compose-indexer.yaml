@@ -4,6 +4,8 @@ services:
     build:
       context: ./
       dockerfile: ./yaci-indexer/Dockerfile
+      additional_contexts:
+        host-m2: ${HOST_M2:-${HOME}/.m2/repository}
     environment:
       NETWORK: ${NETWORK}
       YACI_SPRING_PROFILES: ${YACI_SPRING_PROFILES}

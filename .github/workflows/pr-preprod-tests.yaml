@@ -73,10 +73,7 @@ jobs:
             ensure_var REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT 129600
             ensure_var DB_PORT 5433
             ensure_var TOKEN_REGISTRY_ENABLED true
-            ensure_var TOKEN_REGISTRY_BASE_URL https://preprod.tokens.cardano.org/api
-            ensure_var TOKEN_REGISTRY_CACHE_TTL_HOURS 1
             ensure_var TOKEN_REGISTRY_LOGO_FETCH true
-            ensure_var TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS 2
             ensure_var PEER_DISCOVERY true
             ensure_var BLOCK_TRANSACTION_API_TIMEOUT_SECS 10
           }
@@ -338,10 +335,7 @@ jobs:
             ensure_var REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT 129600
             ensure_var DB_PORT 5433
             ensure_var TOKEN_REGISTRY_ENABLED true
-            ensure_var TOKEN_REGISTRY_BASE_URL https://preprod.tokens.cardano.org/api
-            ensure_var TOKEN_REGISTRY_CACHE_TTL_HOURS 1
             ensure_var TOKEN_REGISTRY_LOGO_FETCH true
-            ensure_var TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS 2
             ensure_var PEER_DISCOVERY true
             ensure_var BLOCK_TRANSACTION_API_TIMEOUT_SECS 10
           }
