@@ -71,6 +71,10 @@ import static org.cardanofoundation.rosetta.common.util.Constants.*;
 @RequiredArgsConstructor
 public class CardanoConstructionServiceImpl implements CardanoConstructionService {
 
+  private static final int SCRIPT_HASH_HEX_LENGTH = 56;
+  private static final String SCRIPT_HASH_HEX_PATTERN = "^[0-9a-fA-F]{" + SCRIPT_HASH_HEX_LENGTH + "}$";
+  private static final byte BASE_SCRIPT_PAYMENT_KEY_STAKE_HEADER_KIND = 0x10;
+
   private final LedgerBlockService ledgerBlockService;
   private final ProtocolParamService protocolParamService;
   private final TransactionOperationParser transactionOperationParser;
@@ -85,6 +89,9 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
 
   @Value("${cardano.rosetta.OFFLINE_MODE}")
   private boolean offlineMode;
+
+  @Value("${cardano.rosetta.PROGRAMMABLE_LOGIC_BASE_SCRIPT_HASH:}")
+  private String programmableLogicBaseScriptHash;
 
   @Override
   public TransactionParsed parseTransaction(Network network, String transaction, boolean signed) {
@@ -597,11 +604,42 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
         address = AddressProvider
                 .getEntAddress(getHdPublicKeyFromRosettaKey(publicKey), networkEnum.getNetwork()).getAddress();
         break;
+      case CIP_113:
+        log.debug("Deriving CIP-113 address");
+        address = getCip113Address(publicKey, networkEnum);
+        break;
       default:
         log.error("Invalid address type: {}", addressType);
         throw ExceptionFactory.invalidAddressTypeError();
     }
     return address;
+  }
+
+  private String getCip113Address(PublicKey publicKey, NetworkEnum networkEnum) {
+    byte[] paymentScriptHash = getConfiguredProgrammableLogicBaseScriptHash();
+    byte[] stakingKeyHash = getHdPublicKeyFromRosettaKey(publicKey).getKeyHash();
+
+    return CardanoAddressUtils.getAddress(
+            paymentScriptHash,
+            stakingKeyHash,
+            BASE_SCRIPT_PAYMENT_KEY_STAKE_HEADER_KIND,
+            networkEnum.getNetwork(),
+            com.bloxbean.cardano.client.address.AddressType.Base).toBech32();
+  }
+
+  private byte[] getConfiguredProgrammableLogicBaseScriptHash() {
+    String scriptHash = Optional.ofNullable(programmableLogicBaseScriptHash)
+            .map(String::trim)
+            .orElse("");
+
+    if (scriptHash.isEmpty()) {
+      throw ExceptionFactory.cip113PlbScriptHashNotConfigured();
+    }
+    if (!scriptHash.matches(SCRIPT_HASH_HEX_PATTERN)) {
+      throw ExceptionFactory.cip113PlbScriptHashInvalid();
+    }
+
+    return decodeHexString(scriptHash);
   }
 
   public HdPublicKey getHdPublicKeyFromRosettaKey(PublicKey publicKey) {
