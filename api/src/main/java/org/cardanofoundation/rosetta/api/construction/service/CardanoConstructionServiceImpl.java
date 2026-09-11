@@ -606,6 +606,9 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
         break;
       case CIP_113:
         log.debug("Deriving CIP-113 address");
+        if (stakingCredential != null) {
+          throw ExceptionFactory.cip113StakingCredentialNotAllowed();
+        }
         address = getCip113Address(publicKey, networkEnum);
         break;
       default:

@@ -397,7 +397,7 @@ class CardanoConstructionServiceImplTest {
 
   @Test
   void getCardanoCip113AddressTest() {
-    setProgrammableLogicBaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
 
     String cardanoAddress = cardanoService
         .getCardanoAddress(AddressType.CIP_113, null, givenPublicKey(), PREPROD);
@@ -407,7 +407,7 @@ class CardanoConstructionServiceImplTest {
 
   @Test
   void getCardanoCip113AddressDeterministicTest() {
-    setProgrammableLogicBaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
 
     String firstAddress = cardanoService
         .getCardanoAddress(AddressType.CIP_113, null, givenPublicKey(), PREPROD);
@@ -419,7 +419,7 @@ class CardanoConstructionServiceImplTest {
 
   @Test
   void getCardanoCip113Address_whenPublicKeyChanges_thenAddressChanges() {
-    setProgrammableLogicBaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
     PublicKey alternatePublicKey = new PublicKey(
             "159abeeecdf167ccc0ea60b30f9522154a0d74161aeb159fb43b6b0695f057b3",
             EDWARDS25519);
@@ -434,10 +434,10 @@ class CardanoConstructionServiceImplTest {
 
   @Test
   void getCardanoCip113Address_whenPlbChanges_thenAddressChanges() {
-    setProgrammableLogicBaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
     String firstAddress = cardanoService
         .getCardanoAddress(AddressType.CIP_113, null, givenPublicKey(), PREPROD);
-    setProgrammableLogicBaseScriptHash(ALTERNATE_PLB_SCRIPT_HASH);
+    setCip113BaseScriptHash(ALTERNATE_PLB_SCRIPT_HASH);
 
     String secondAddress = cardanoService
         .getCardanoAddress(AddressType.CIP_113, null, givenPublicKey(), PREPROD);
@@ -447,7 +447,7 @@ class CardanoConstructionServiceImplTest {
 
   @Test
   void getCardanoCip113Address_whenPlbMissing_thenThrowsNotConfigured() {
-    setProgrammableLogicBaseScriptHash("");
+    setCip113BaseScriptHash("");
 
     ApiException exception = assertThrows(ApiException.class,
         () -> cardanoService.getCardanoAddress(AddressType.CIP_113, null, givenPublicKey(), PREPROD));
@@ -456,6 +456,31 @@ class CardanoConstructionServiceImplTest {
         exception.getError().getCode());
     assertEquals(RosettaErrorType.CIP113_PLB_SCRIPT_HASH_NOT_CONFIGURED.getMessage(),
         exception.getError().getMessage());
+  }
+
+  @Test
+  void getCardanoCip113Address_whenPlbMissingAndPublicKeyInvalid_thenThrowsNotConfigured() {
+    setCip113BaseScriptHash("");
+    PublicKey invalidPublicKey = new PublicKey("INVALID_HEX", EDWARDS25519);
+
+    ApiException exception = assertThrows(ApiException.class,
+        () -> cardanoService.getCardanoAddress(AddressType.CIP_113, null, invalidPublicKey,
+            PREPROD));
+
+    assertEquals(RosettaErrorType.CIP113_PLB_SCRIPT_HASH_NOT_CONFIGURED.getCode(),
+        exception.getError().getCode());
+  }
+
+  @Test
+  void getCardanoCip113Address_whenStakingCredentialProvided_thenThrowsNotAllowed() {
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+
+    ApiException exception = assertThrows(ApiException.class,
+        () -> cardanoService.getCardanoAddress(AddressType.CIP_113, givenPublicKey(),
+            givenPublicKey(), PREPROD));
+
+    assertEquals(RosettaErrorType.CIP113_STAKING_CREDENTIAL_NOT_ALLOWED.getCode(),
+        exception.getError().getCode());
   }
 
   @Test
@@ -514,7 +539,7 @@ class CardanoConstructionServiceImplTest {
   @EnumSource(value = AddressType.class, names = {"ENTERPRISE", "BASE", "REWARD", "CIP_113"})
   void getCardanoAddress_whenCurveIsMissing_thenMatchesExplicitEdwardsAddress(
       AddressType addressType) {
-    setProgrammableLogicBaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
     PublicKey publicKeyWithoutCurve = givenPublicKey();
     publicKeyWithoutCurve.setCurveType(null);
     PublicKey stakingCredential = addressType == BASE ? givenPublicKey() : null;
@@ -544,7 +569,7 @@ class CardanoConstructionServiceImplTest {
   @EnumSource(value = AddressType.class, names = {"ENTERPRISE", "BASE", "REWARD", "CIP_113"})
   void getCardanoAddress_whenCurveIsUnsupported_thenThrowsInvalidPublicKeyFormat(
       AddressType addressType) {
-    setProgrammableLogicBaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
     PublicKey publicKey = new PublicKey(givenPublicKey().getHexBytes(), SECP256K1);
     PublicKey stakingCredential = addressType == BASE ? givenPublicKey() : null;
 
@@ -662,12 +687,12 @@ class CardanoConstructionServiceImplTest {
     return headers;
   }
 
-  private void setProgrammableLogicBaseScriptHash(String value) {
+  private void setCip113BaseScriptHash(String value) {
     ReflectionTestUtils.setField(cardanoService, "cip113BaseScriptHash", value);
   }
 
   private void assertCip113PlbInvalid(String value) {
-    setProgrammableLogicBaseScriptHash(value);
+    setCip113BaseScriptHash(value);
 
     ApiException exception = assertThrows(ApiException.class,
         () -> cardanoService.getCardanoAddress(AddressType.CIP_113, null, givenPublicKey(), PREPROD));
