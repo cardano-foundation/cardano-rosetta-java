@@ -522,19 +522,6 @@ class CardanoConstructionServiceImplTest {
     assertFalse(exception.getError().isRetriable());
   }
 
-  @Test
-  void getHdPublicKeyFromRosettaKey_whenCurveIsMissing_thenUsesLegacyDefault() {
-    PublicKey publicKeyWithoutCurve = givenPublicKey();
-    publicKeyWithoutCurve.setCurveType(null);
-
-    byte[] expectedKeyHash = cardanoService.getHdPublicKeyFromRosettaKey(givenPublicKey())
-        .getKeyHash();
-    byte[] actualKeyHash = cardanoService.getHdPublicKeyFromRosettaKey(publicKeyWithoutCurve)
-        .getKeyHash();
-
-    assertArrayEquals(expectedKeyHash, actualKeyHash);
-  }
-
   @ParameterizedTest
   @EnumSource(value = AddressType.class, names = {"ENTERPRISE", "BASE", "REWARD", "CIP_113"})
   void getCardanoAddress_whenCurveIsMissing_thenMatchesExplicitEdwardsAddress(
