@@ -643,7 +643,8 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   public HdPublicKey getHdPublicKeyFromRosettaKey(PublicKey publicKey) {
-    if (publicKey.getCurveType() != CurveType.EDWARDS25519) {
+    if (publicKey.getCurveType() != null
+        && publicKey.getCurveType() != CurveType.EDWARDS25519) {
       log.error("Unsupported public key curve type: {}", publicKey.getCurveType());
       throw ExceptionFactory.invalidPublicKeyFormat();
     }

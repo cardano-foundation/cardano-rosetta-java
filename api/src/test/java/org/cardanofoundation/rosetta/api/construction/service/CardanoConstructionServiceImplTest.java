@@ -498,16 +498,46 @@ class CardanoConstructionServiceImplTest {
   }
 
   @Test
-  void getHdPublicKeyFromRosettaKey_whenCurveIsMissing_thenThrowsInvalidPublicKeyFormat() {
-    PublicKey publicKey = givenPublicKey();
-    publicKey.setCurveType(null);
+  void getHdPublicKeyFromRosettaKey_whenCurveIsMissing_thenUsesLegacyDefault() {
+    PublicKey publicKeyWithoutCurve = givenPublicKey();
+    publicKeyWithoutCurve.setCurveType(null);
 
-    ApiException exception = assertThrows(ApiException.class,
-        () -> cardanoService.getHdPublicKeyFromRosettaKey(publicKey));
+    byte[] expectedKeyHash = cardanoService.getHdPublicKeyFromRosettaKey(givenPublicKey())
+        .getKeyHash();
+    byte[] actualKeyHash = cardanoService.getHdPublicKeyFromRosettaKey(publicKeyWithoutCurve)
+        .getKeyHash();
 
-    assertEquals(RosettaErrorType.INVALID_PUBLIC_KEY_FORMAT.getCode(),
-        exception.getError().getCode());
-    assertFalse(exception.getError().isRetriable());
+    assertArrayEquals(expectedKeyHash, actualKeyHash);
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = AddressType.class, names = {"ENTERPRISE", "BASE", "REWARD", "CIP_113"})
+  void getCardanoAddress_whenCurveIsMissing_thenMatchesExplicitEdwardsAddress(
+      AddressType addressType) {
+    setProgrammableLogicBaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+    PublicKey publicKeyWithoutCurve = givenPublicKey();
+    publicKeyWithoutCurve.setCurveType(null);
+    PublicKey stakingCredential = addressType == BASE ? givenPublicKey() : null;
+
+    String expectedAddress = cardanoService.getCardanoAddress(addressType, stakingCredential,
+        givenPublicKey(), PREPROD);
+    String actualAddress = cardanoService.getCardanoAddress(addressType, stakingCredential,
+        publicKeyWithoutCurve, PREPROD);
+
+    assertEquals(expectedAddress, actualAddress);
+  }
+
+  @Test
+  void getCardanoBaseAddress_whenStakingCurveIsMissing_thenMatchesExplicitEdwardsAddress() {
+    PublicKey stakingCredentialWithoutCurve = givenPublicKey();
+    stakingCredentialWithoutCurve.setCurveType(null);
+
+    String expectedAddress = cardanoService.getCardanoAddress(BASE, givenPublicKey(),
+        givenPublicKey(), PREPROD);
+    String actualAddress = cardanoService.getCardanoAddress(BASE, stakingCredentialWithoutCurve,
+        givenPublicKey(), PREPROD);
+
+    assertEquals(expectedAddress, actualAddress);
   }
 
   @ParameterizedTest
