@@ -643,7 +643,19 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   public HdPublicKey getHdPublicKeyFromRosettaKey(PublicKey publicKey) {
-    byte[] pubKeyBytes = decodeHexString(publicKey.getHexBytes());
+    if (publicKey.getCurveType() != CurveType.EDWARDS25519) {
+      log.error("Unsupported public key curve type: {}", publicKey.getCurveType());
+      throw ExceptionFactory.invalidPublicKeyFormat();
+    }
+
+    byte[] pubKeyBytes;
+    try {
+      pubKeyBytes = decodeHexString(publicKey.getHexBytes());
+    } catch (RuntimeException exception) {
+      log.error("Invalid public key hex bytes");
+      throw ExceptionFactory.invalidPublicKeyFormat();
+    }
+
     HdPublicKey pubKey;
     if(pubKeyBytes.length == 32) {
       pubKey = new HdPublicKey();
@@ -652,7 +664,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
       pubKey = HdPublicKey.fromBytes(pubKeyBytes);
     } else {
       log.error("Invalid public key length: {}", pubKeyBytes.length);
-      throw new IllegalArgumentException("Invalid public key length");
+      throw ExceptionFactory.invalidPublicKeyFormat();
     }
     return pubKey;
   }

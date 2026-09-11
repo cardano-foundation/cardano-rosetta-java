@@ -96,6 +96,10 @@ public class ExceptionFactory {
         return new ApiException(RosettaErrorType.PUBLIC_KEY_MISSING.toRosettaError(false));
     }
 
+    public static ApiException invalidPublicKeyFormat() {
+        return new ApiException(RosettaErrorType.INVALID_PUBLIC_KEY_FORMAT.toRosettaError(false));
+    }
+
     public static ApiException invalidStakingKeyFormat() {
         return new ApiException(RosettaErrorType.INVALID_STAKING_KEY_FORMAT.toRosettaError(false));
     }
