@@ -25,6 +25,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openapitools.client.model.Operation;
@@ -58,6 +60,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.openapitools.client.model.CurveType.EDWARDS25519;
+import static org.openapitools.client.model.CurveType.SECP256K1;
 
 @ExtendWith(MockitoExtension.class)
 class CardanoConstructionServiceImplTest {
@@ -471,13 +474,69 @@ class CardanoConstructionServiceImplTest {
   }
 
   @Test
-  void getHdPublicKeyFromRosettaKeyTest() {
+  void getHdPublicKeyFromRosettaKey_whenLengthIsInvalid_thenThrowsInvalidPublicKeyFormat() {
     PublicKey publicKey = new PublicKey("48656C6C6F2C20776F726C6421", EDWARDS25519);
 
-    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+    ApiException exception = assertThrows(ApiException.class,
         () -> cardanoService.getHdPublicKeyFromRosettaKey(publicKey));
 
-    assertEquals("Invalid public key length", exception.getMessage());
+    assertEquals(RosettaErrorType.INVALID_PUBLIC_KEY_FORMAT.getCode(),
+        exception.getError().getCode());
+    assertFalse(exception.getError().isRetriable());
+  }
+
+  @Test
+  void getHdPublicKeyFromRosettaKey_whenHexIsInvalid_thenThrowsInvalidPublicKeyFormat() {
+    PublicKey publicKey = new PublicKey("INVALID_HEX", EDWARDS25519);
+
+    ApiException exception = assertThrows(ApiException.class,
+        () -> cardanoService.getHdPublicKeyFromRosettaKey(publicKey));
+
+    assertEquals(RosettaErrorType.INVALID_PUBLIC_KEY_FORMAT.getCode(),
+        exception.getError().getCode());
+    assertFalse(exception.getError().isRetriable());
+  }
+
+  @Test
+  void getHdPublicKeyFromRosettaKey_whenCurveIsMissing_thenThrowsInvalidPublicKeyFormat() {
+    PublicKey publicKey = givenPublicKey();
+    publicKey.setCurveType(null);
+
+    ApiException exception = assertThrows(ApiException.class,
+        () -> cardanoService.getHdPublicKeyFromRosettaKey(publicKey));
+
+    assertEquals(RosettaErrorType.INVALID_PUBLIC_KEY_FORMAT.getCode(),
+        exception.getError().getCode());
+    assertFalse(exception.getError().isRetriable());
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = AddressType.class, names = {"ENTERPRISE", "BASE", "REWARD", "CIP_113"})
+  void getCardanoAddress_whenCurveIsUnsupported_thenThrowsInvalidPublicKeyFormat(
+      AddressType addressType) {
+    setProgrammableLogicBaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+    PublicKey publicKey = new PublicKey(givenPublicKey().getHexBytes(), SECP256K1);
+    PublicKey stakingCredential = addressType == BASE ? givenPublicKey() : null;
+
+    ApiException exception = assertThrows(ApiException.class,
+        () -> cardanoService.getCardanoAddress(addressType, stakingCredential, publicKey,
+            PREPROD));
+
+    assertEquals(RosettaErrorType.INVALID_PUBLIC_KEY_FORMAT.getCode(),
+        exception.getError().getCode());
+    assertFalse(exception.getError().isRetriable());
+  }
+
+  @Test
+  void getCardanoBaseAddress_whenStakingCurveIsUnsupported_thenThrowsInvalidPublicKeyFormat() {
+    PublicKey stakingCredential = new PublicKey(givenPublicKey().getHexBytes(), SECP256K1);
+
+    ApiException exception = assertThrows(ApiException.class,
+        () -> cardanoService.getCardanoAddress(BASE, stakingCredential, givenPublicKey(), PREPROD));
+
+    assertEquals(RosettaErrorType.INVALID_PUBLIC_KEY_FORMAT.getCode(),
+        exception.getError().getCode());
+    assertFalse(exception.getError().isRetriable());
   }
 
   @Test
