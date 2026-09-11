@@ -174,8 +174,8 @@ public class RosettaConstants {
         OUTPUT_MIN_ADA_VALUE_NOT_MET("Output ADA value is below the minimum UTxO requirement", 5060),
         UTXO_VALUE_SIZE_EXCEEDS_MAX("UTxO value byte size exceeds the allowed max_val_size protocol parameter", 5061),
         CIP113_STAKING_CREDENTIAL_NOT_ALLOWED("metadata.staking_credential is not allowed for CIP-113 address derivation", 5062),
-        CIP113_PLB_SCRIPT_HASH_NOT_CONFIGURED("Configure PROGRAMMABLE_LOGIC_BASE_SCRIPT_HASH to derive CIP-113 addresses", 5063),
-        CIP113_PLB_SCRIPT_HASH_INVALID("PROGRAMMABLE_LOGIC_BASE_SCRIPT_HASH must be a 28-byte hex string", 5064);
+        CIP113_PLB_SCRIPT_HASH_NOT_CONFIGURED("Configure CIP113_BASE_SCRIPT_HASH to derive CIP-113 addresses", 5063),
+        CIP113_PLB_SCRIPT_HASH_INVALID("CIP113_BASE_SCRIPT_HASH must be a 28-byte hex string", 5064);
 
         final String message;
         final int code;
