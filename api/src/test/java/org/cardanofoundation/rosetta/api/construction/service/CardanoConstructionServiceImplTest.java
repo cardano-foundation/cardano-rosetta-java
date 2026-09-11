@@ -663,7 +663,7 @@ class CardanoConstructionServiceImplTest {
   }
 
   private void setProgrammableLogicBaseScriptHash(String value) {
-    ReflectionTestUtils.setField(cardanoService, "programmableLogicBaseScriptHash", value);
+    ReflectionTestUtils.setField(cardanoService, "cip113BaseScriptHash", value);
   }
 
   private void assertCip113PlbInvalid(String value) {

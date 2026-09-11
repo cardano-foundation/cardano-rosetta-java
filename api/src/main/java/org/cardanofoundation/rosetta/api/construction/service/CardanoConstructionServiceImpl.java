@@ -90,8 +90,8 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   @Value("${cardano.rosetta.OFFLINE_MODE}")
   private boolean offlineMode;
 
-  @Value("${cardano.rosetta.PROGRAMMABLE_LOGIC_BASE_SCRIPT_HASH:}")
-  private String programmableLogicBaseScriptHash;
+  @Value("${cardano.rosetta.CIP113_BASE_SCRIPT_HASH:}")
+  private String cip113BaseScriptHash;
 
   @Override
   public TransactionParsed parseTransaction(Network network, String transaction, boolean signed) {
@@ -628,7 +628,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   private byte[] getConfiguredProgrammableLogicBaseScriptHash() {
-    String scriptHash = Optional.ofNullable(programmableLogicBaseScriptHash)
+    String scriptHash = Optional.ofNullable(cip113BaseScriptHash)
             .map(String::trim)
             .orElse("");
 
