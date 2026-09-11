@@ -1,0 +1,21 @@
+{
+  "test_name": "cip113 address without curve type",
+  "description": "Derive CIP-113 address without the optional curve_type for backward compatibility",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "public_key": {
+      "hex_bytes": "1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F"
+    },
+    "metadata": {
+      "address_type": "CIP-113"
+    }
+  },
+  "expected_response": {
+    "account_identifier": {
+      "address": "addr_test1zp5ccj9xxqsx9qnfqa62a086jsggjhqflpduzqa3n7vg3h9mgrc6v3au3rqm66mn3kuwke340kfxga82tl7kh2nke8asgws8rn"
+    }
+  }
+}
