@@ -34,15 +34,16 @@ COPY ./yaci-indexer /build/yaci-indexer
 COPY ./test-data-generator /build/test-data-generator
 COPY ./.git .git
 
-# Seed the Maven cache with artifacts from the optional host-m2 context, then
-# build only the API module and the modules it depends on.
+# Seed the Maven cache with artifacts from the optional host-m2 context
+# (e.g. locally-built yaci-store snapshots), then build with -nsu so Maven
+# does not try to re-resolve those snapshots from remote repos.
 RUN --mount=type=cache,target=/root/.m2 \
     --mount=type=bind,from=host-m2,target=/host-m2 \
     if [ -d /host-m2/com/bloxbean/cardano ]; then \
         mkdir -p /root/.m2/repository/com/bloxbean/cardano && \
         cp -r /host-m2/com/bloxbean/cardano/. /root/.m2/repository/com/bloxbean/cardano/; \
     fi && \
-    mvn -nsu -pl api -am clean package -DskipTests
+    mvn -nsu clean package -DskipTests
 RUN java --version
 
 WORKDIR /app
