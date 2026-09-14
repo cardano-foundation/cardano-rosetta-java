@@ -42,6 +42,7 @@ import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionData;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
+import org.cardanofoundation.rosetta.common.services.Cip113AddressService;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.time.OfflineSlotService;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
@@ -71,15 +72,12 @@ import static org.cardanofoundation.rosetta.common.util.Constants.*;
 @RequiredArgsConstructor
 public class CardanoConstructionServiceImpl implements CardanoConstructionService {
 
-  private static final int SCRIPT_HASH_HEX_LENGTH = 56;
-  private static final String SCRIPT_HASH_HEX_PATTERN = "^[0-9a-fA-F]{" + SCRIPT_HASH_HEX_LENGTH + "}$";
-  private static final byte BASE_SCRIPT_PAYMENT_KEY_STAKE_HEADER_KIND = 0x10;
-
   private final LedgerBlockService ledgerBlockService;
   private final ProtocolParamService protocolParamService;
   private final TransactionOperationParser transactionOperationParser;
   private final RestTemplate restTemplate;
   private final OfflineSlotService offlineSlotService;
+  private final Cip113AddressService cip113AddressService;
 
   @Value("${cardano.rosetta.NODE_SUBMIT_API_PORT}")
   private int nodeSubmitApiPort;
@@ -89,9 +87,6 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
 
   @Value("${cardano.rosetta.OFFLINE_MODE}")
   private boolean offlineMode;
-
-  @Value("${cardano.rosetta.CIP113_BASE_SCRIPT_HASH:}")
-  private String cip113BaseScriptHash;
 
   @Override
   public TransactionParsed parseTransaction(Network network, String transaction, boolean signed) {
@@ -619,30 +614,13 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   private String getCip113Address(PublicKey publicKey, NetworkEnum networkEnum) {
-    byte[] paymentScriptHash = getConfiguredProgrammableLogicBaseScriptHash();
-    byte[] stakingKeyHash = getHdPublicKeyFromRosettaKey(publicKey).getKeyHash();
+    byte[] configuredScriptHash = cip113AddressService.getConfiguredScriptHash();
+    byte[] userCredential = getHdPublicKeyFromRosettaKey(publicKey).getKeyHash();
 
-    return CardanoAddressUtils.getAddress(
-            paymentScriptHash,
-            stakingKeyHash,
-            BASE_SCRIPT_PAYMENT_KEY_STAKE_HEADER_KIND,
-            networkEnum.getNetwork(),
-            com.bloxbean.cardano.client.address.AddressType.Base).toBech32();
-  }
-
-  private byte[] getConfiguredProgrammableLogicBaseScriptHash() {
-    String scriptHash = Optional.ofNullable(cip113BaseScriptHash)
-            .map(String::trim)
-            .orElse("");
-
-    if (scriptHash.isEmpty()) {
-      throw ExceptionFactory.cip113PlbScriptHashNotConfigured();
-    }
-    if (!scriptHash.matches(SCRIPT_HASH_HEX_PATTERN)) {
-      throw ExceptionFactory.cip113PlbScriptHashInvalid();
-    }
-
-    return decodeHexString(scriptHash);
+    return cip113AddressService.buildSmartWalletAddress(
+        configuredScriptHash,
+        userCredential,
+        networkEnum);
   }
 
   public HdPublicKey getHdPublicKeyFromRosettaKey(PublicKey publicKey) {

@@ -78,7 +78,7 @@ class CborEncodeUtilTest {
   private String getEncodedTransaction(String requestPayloadFilename)
           throws IOException, CborSerializationException, AddressExcepion, CborException {
     CardanoConstructionServiceImpl cardanoService = new CardanoConstructionServiceImpl(null, null,
-            null, null, null);
+            null, null, null, null);
     ConstructionPayloadsRequest request = getRequest(requestPayloadFilename);
 
     NetworkEnum networkEnum = NetworkEnum.findByName(
