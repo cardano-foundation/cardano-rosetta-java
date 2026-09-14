@@ -1,15 +1,21 @@
 package org.cardanofoundation.rosetta.api.call.service;
 
+import com.bloxbean.cardano.client.address.Address;
+import com.bloxbean.cardano.client.address.AddressType;
+import com.bloxbean.cardano.client.address.util.AddressEncoderDecoderUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.error.model.domain.BlockParsingErrorReviewDTO;
 import org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus;
 import org.cardanofoundation.rosetta.api.error.model.entity.ErrorReviewEntity;
 import org.cardanofoundation.rosetta.api.error.service.BlockParsingErrorReviewService;
+import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.services.Cip113AddressService;
+import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.openapitools.client.model.CallRequest;
 import org.openapitools.client.model.CallResponse;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,12 +31,18 @@ public class CallServiceImpl implements CallService {
 
     private static final String METHOD_GET_PARSE_ERROR_BLOCKS = "get_parse_error_blocks";
     private static final String METHOD_MARK_PARSE_ERROR_BLOCK_CHECKED = "mark_parse_error_block_checked";
+    private static final String METHOD_RESOLVE_SMART_WALLET_ADDRESS = "resolve_smart_wallet_addr";
+    private static final int CREDENTIAL_HASH_LENGTH = 28;
+    private static final int ENTERPRISE_ADDRESS_LENGTH = 1 + CREDENTIAL_HASH_LENGTH;
+    private static final int BASE_ADDRESS_LENGTH = 1 + (2 * CREDENTIAL_HASH_LENGTH);
     
     private final BlockParsingErrorReviewService blockParsingErrorReviewService;
+    private final Cip113AddressService cip113AddressService;
 
     @Override
     public List<String> getSupportedMethods() {
-        return List.of(METHOD_GET_PARSE_ERROR_BLOCKS, METHOD_MARK_PARSE_ERROR_BLOCK_CHECKED);
+        return List.of(METHOD_GET_PARSE_ERROR_BLOCKS, METHOD_MARK_PARSE_ERROR_BLOCK_CHECKED,
+                METHOD_RESOLVE_SMART_WALLET_ADDRESS);
     }
 
     @Override
@@ -42,9 +54,168 @@ public class CallServiceImpl implements CallService {
         return switch (method) {
             case METHOD_GET_PARSE_ERROR_BLOCKS -> getParseErrorBlocks(extractStatusParameter(callRequest.getParameters()).orElse(null));
             case METHOD_MARK_PARSE_ERROR_BLOCK_CHECKED -> markParseErrorBlockChecked(callRequest.getParameters());
+            case METHOD_RESOLVE_SMART_WALLET_ADDRESS -> resolveSmartWalletAddress(callRequest);
 
             default -> throw ExceptionFactory.callMethodNotSupported();
         };
+    }
+
+    @Override
+    public CallResponse resolveSmartWalletAddress(CallRequest callRequest) {
+        String inputAddress = extractAddressParameter(callRequest.getParameters());
+        NetworkEnum network = NetworkEnum.findByName(callRequest.getNetworkIdentifier().getNetwork())
+                .orElseThrow(ExceptionFactory::invalidNetworkError);
+        byte[] configuredScriptHash = cip113AddressService.getConfiguredScriptHash();
+
+        EraAddressType eraAddressType = CardanoAddressUtils.getEraAddressType(inputAddress);
+        if (eraAddressType == null) {
+            throw ExceptionFactory.cip113InvalidAddress(
+                    "The provided address is malformed or has an unknown era");
+        }
+        if (eraAddressType == EraAddressType.BYRON) {
+            throw ExceptionFactory.cip113AddressTypeNotSupported(
+                    "Byron addresses are not supported");
+        }
+
+        Address address;
+        try {
+            address = new Address(inputAddress);
+        } catch (RuntimeException exception) {
+            throw ExceptionFactory.cip113InvalidAddress(
+                    "The provided Shelley address could not be parsed");
+        }
+
+        requireCanonicalPrefix(address);
+
+        if (address.getNetwork().getNetworkId() != network.getNetwork().getNetworkId()) {
+            throw ExceptionFactory.cip113InvalidAddress(
+                    "Address network does not match requested network '%s'".formatted(network.getName()));
+        }
+
+        byte[] userCredential = resolveUserCredential(address, configuredScriptHash);
+        String smartWalletAddress = cip113AddressService.buildSmartWalletAddress(
+                configuredScriptHash, userCredential, network);
+
+        Map<String, Object> accountIdentifier = new LinkedHashMap<>();
+        accountIdentifier.put("address", smartWalletAddress);
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("account_identifier", accountIdentifier);
+
+        CallResponse response = new CallResponse();
+        response.setResult(result);
+        response.setIdempotent(true);
+        return response;
+    }
+
+    private static String extractAddressParameter(Map<String, Object> parameters) {
+        if (parameters == null) {
+            throw ExceptionFactory.callParameterMissing("address");
+        }
+
+        Object addressValue = parameters.get("address");
+        if (!(addressValue instanceof String address) || address.isBlank()) {
+            throw ExceptionFactory.callParameterInvalid(
+                    "Parameter 'address' must be a non-empty string");
+        }
+
+        return address;
+    }
+
+    private static byte[] resolveUserCredential(Address address, byte[] configuredScriptHash) {
+        AddressType addressType = address.getAddressType();
+        if (addressType == null) {
+            throw ExceptionFactory.cip113AddressTypeNotSupported(
+                    "Address has an unknown type");
+        }
+
+        return switch (addressType) {
+            case Enterprise -> resolveEnterpriseCredential(address);
+            case Base -> resolveBaseCredential(address, configuredScriptHash);
+            case Ptr -> throw ExceptionFactory.cip113AddressTypeNotSupported(
+                    "Pointer addresses are not supported");
+            case Reward -> throw ExceptionFactory.cip113AddressTypeNotSupported(
+                    "Reward addresses are not supported");
+            case Byron -> throw ExceptionFactory.cip113AddressTypeNotSupported(
+                    "Byron addresses are not supported");
+        };
+    }
+
+    private static byte[] resolveEnterpriseCredential(Address address) {
+        requireAddressLength(address, ENTERPRISE_ADDRESS_LENGTH,
+                "Enterprise address is missing its payment credential");
+
+        if (address.isScriptHashInPaymentPart()) {
+            throw ExceptionFactory.cip113AddressNotSmartWallet(
+                    "Enterprise script payment credentials are not supported");
+        }
+        if (!address.isPubKeyHashInPaymentPart()) {
+            throw ExceptionFactory.cip113AddressTypeNotSupported(
+                    "Enterprise address does not contain a key payment credential");
+        }
+
+        return address.getPaymentCredentialHash()
+                .orElseThrow(() -> ExceptionFactory.cip113AddressTypeNotSupported(
+                        "Enterprise address is missing its payment credential"));
+    }
+
+    private static byte[] resolveBaseCredential(Address address, byte[] configuredScriptHash) {
+        requireAddressLength(address, BASE_ADDRESS_LENGTH,
+                "Base address is missing a payment or stake credential");
+
+        if (!address.isStakeKeyHashInDelegationPart()) {
+            throw ExceptionFactory.cip113AddressTypeNotSupported(
+                    "Base addresses must contain a key stake credential");
+        }
+
+        byte[] stakeCredential = address.getDelegationCredentialHash()
+                .orElseThrow(() -> ExceptionFactory.cip113AddressTypeNotSupported(
+                        "Base address is missing its stake credential"));
+
+        if (address.isPubKeyHashInPaymentPart()) {
+            return stakeCredential;
+        }
+        if (!address.isScriptHashInPaymentPart()) {
+            throw ExceptionFactory.cip113AddressTypeNotSupported(
+                    "Base address has an unknown payment credential type");
+        }
+
+        byte[] paymentScriptHash = address.getPaymentCredentialHash()
+                .orElseThrow(() -> ExceptionFactory.cip113AddressTypeNotSupported(
+                        "Base address is missing its payment credential"));
+        if (!Arrays.equals(paymentScriptHash, configuredScriptHash)) {
+            throw ExceptionFactory.cip113AddressNotSmartWallet(
+                    "Payment script hash does not match configured CIP113_BASE_SCRIPT_HASH");
+        }
+
+        return stakeCredential;
+    }
+
+    private static void requireAddressLength(Address address, int expectedLength, String details) {
+        int actualLength = address.getBytes().length;
+        if (actualLength < expectedLength) {
+            throw ExceptionFactory.cip113InvalidAddress(details);
+        }
+        if (actualLength > expectedLength) {
+            throw ExceptionFactory.cip113InvalidAddress(
+                    "Address payload contains trailing bytes");
+        }
+    }
+
+    private static void requireCanonicalPrefix(Address address) {
+        String expectedPrefix;
+        try {
+            expectedPrefix = AddressEncoderDecoderUtil.getPrefixHeader(address.getAddressType())
+                    + AddressEncoderDecoderUtil.getPrefixTail(
+                    AddressEncoderDecoderUtil.getNetworkId(address.getNetwork()));
+        } catch (RuntimeException exception) {
+            throw ExceptionFactory.cip113InvalidAddress(
+                    "The provided Shelley address has an invalid address type");
+        }
+
+        if (!expectedPrefix.equals(address.getPrefix())) {
+            throw ExceptionFactory.cip113InvalidAddress(
+                    "Address prefix does not match its type or network");
+        }
     }
 
     @Override

@@ -457,6 +457,7 @@ paths:
         This is a Cardano network-specific procedure call, using Coinbase Mesh’s generic /call endpoint. It enables exchanges and integrators to:
         - Review blocks that could not be fully parsed.
         - Mark blocks as “checked” if they do not affect their users or transactions.
+        - Resolve supported Cardano addresses to the configured CIP-113 smart-wallet address.
         ## Supported Methods
         
         ### get_parse_error_blocks
@@ -481,6 +482,18 @@ paths:
         **Response:**
         - `parse_error_blocks_response`: array of block numbers with parsing errors and their updated review status
         - `idempotent`: false (as this operation modifies error review status)
+
+        ### resolve_smart_wallet_addr
+        Resolves a supported Cardano enterprise or base address to the CIP-113 smart-wallet address using the server's configured programmable logic base script hash. The input address must match the requested network. Phase 1 supports enterprise key-payment addresses, base key-payment/key-stake addresses, and configured-PLB script-payment/key-stake smart-wallet addresses.
+
+        **Request:**
+        - `network_identifier` (required): The standard top-level Rosetta network identifier containing `blockchain` and `network`
+        - `method` (required): `resolve_smart_wallet_addr`
+        - `parameters.address` (required): A non-empty Cardano address string
+
+        **Response:**
+        - `account_identifier.address`: The resolved CIP-113 smart-wallet address
+        - `idempotent`: true
       operationId: call
       tags:
         - Call
@@ -1537,6 +1550,7 @@ components:
             For Cardano Rosetta, supported methods:
             - `get_parse_error_blocks`: Retrieves blocks with parsing errors
             - `mark_parse_error_block_checked`: Marks all errors for a block as reviewed
+            - `resolve_smart_wallet_addr`: Resolves a supported address to the configured CIP-113 smart-wallet address
           example: get_parse_error_blocks
         parameters:
           type: object
@@ -1552,6 +1566,9 @@ components:
             - `status` (required): Review status to set. Valid values: "REVIEWED_AFFECTS_US", "REVIEWED_DOES_NOT_AFFECT_US"
             - `checked_by` (optional): Identifier of who reviewed the block
             - `comment` (optional): Comment about the review
+
+            For `resolve_smart_wallet_addr`:
+            - `address` (required): Non-empty Cardano enterprise or base address on the requested network
           example:
             status: UNREVIEWED
     CallResponse:
@@ -1568,6 +1585,9 @@ components:
             
             For `get_parse_error_blocks`, the result contains:
             - `parse_error_blocks`: Array of error entries with block numbers and review status
+
+            For `resolve_smart_wallet_addr`, the result contains:
+            - `account_identifier.address`: The resolved CIP-113 smart-wallet address
           example:
             parse_error_blocks:
               - error_id: 1

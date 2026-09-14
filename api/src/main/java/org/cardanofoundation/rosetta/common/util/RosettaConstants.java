@@ -175,7 +175,10 @@ public class RosettaConstants {
         UTXO_VALUE_SIZE_EXCEEDS_MAX("UTxO value byte size exceeds the allowed max_val_size protocol parameter", 5061),
         CIP113_STAKING_CREDENTIAL_NOT_ALLOWED("metadata.staking_credential is not allowed for CIP-113 address derivation", 5062),
         CIP113_PLB_SCRIPT_HASH_NOT_CONFIGURED("Configure CIP113_BASE_SCRIPT_HASH to derive CIP-113 addresses", 5063),
-        CIP113_PLB_SCRIPT_HASH_INVALID("CIP113_BASE_SCRIPT_HASH must be a 28-byte hex string", 5064);
+        CIP113_PLB_SCRIPT_HASH_INVALID("CIP113_BASE_SCRIPT_HASH must be a 28-byte hex string", 5064),
+        CIP113_ADDRESS_NOT_SMART_WALLET("Address is not a CIP-113 smart wallet", 5065),
+        CIP113_ADDRESS_TYPE_NOT_SUPPORTED("Address type not supported for resolve_smart_wallet_addr", 5066),
+        CIP113_INVALID_ADDRESS("Invalid address for resolve_smart_wallet_addr", 5068);
 
         final String message;
         final int code;
