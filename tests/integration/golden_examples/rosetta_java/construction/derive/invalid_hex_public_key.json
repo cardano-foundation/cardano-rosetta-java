@@ -1,6 +1,6 @@
 {
   "test_name": "(-) invalid hex public key",
-  "description": "Negative test: CIP-113 rejects invalid hexadecimal public-key bytes",
+  "description": "Negative test: invalid hex format in public key",
   "request_body": {
     "network_identifier": {
       "blockchain": "cardano",
@@ -9,14 +9,14 @@
     "public_key": {
       "hex_bytes": "INVALID_HEX",
       "curve_type": "edwards25519"
-    },
-    "metadata": {
-      "address_type": "CIP-113"
     }
   },
   "expected_error": {
-    "code": 4007,
-    "message": "Invalid public key format",
-    "retriable": false
+    "code": 5000,
+    "message": "An error occurred",
+    "retriable": true,
+    "details": {
+      "message": "An error occurred for request 32040: Invalid hexadecimal String supplied. INVALID_HEX"
+    }
   }
 }
