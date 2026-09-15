@@ -69,7 +69,7 @@ class ConstructionApiServiceImplTest {
                     .addressType("CIP-113")
                     .build())
             .build();
-    String expectedAddress = "addr_test1zp5ccj9xxqsx9qnfqa62a086jsggjhqflpduzqa3n7vg3h9mgrc6v3au3rqm66mn3kuwke340kfxga82tl7kh2nke8asgws8rn";
+    String expectedAddress = "addr_test1zqvca3jpwpvrtd0fvexseqs55em0zg0zkr26hzs7e0qw6w9mgrc6v3au3rqm66mn3kuwke340kfxga82tl7kh2nke8asgpvgzg";
 
     when(cardanoConstructionService.getCardanoAddress(AddressType.CIP_113, null, publicKey,
             NetworkEnum.DEVNET))

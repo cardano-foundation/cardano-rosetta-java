@@ -97,7 +97,6 @@ public class ExceptionFactory {
     }
 
     public static ApiException invalidPublicKeyFormat() {
-        // Added to keep malformed hex, unsupported curves, and invalid lengths on one Rosetta error path.
         return new ApiException(RosettaErrorType.INVALID_PUBLIC_KEY_FORMAT.toRosettaError(false));
     }
 
@@ -206,17 +205,14 @@ public class ExceptionFactory {
     }
 
     public static ApiException cip113StakingCredentialNotAllowed() {
-        // CIP-113 derives the owner/stake credential from the request's top-level public key.
         return new ApiException(RosettaErrorType.CIP113_STAKING_CREDENTIAL_NOT_ALLOWED.toRosettaError(false));
     }
 
     public static ApiException cip113PlbScriptHashNotConfigured() {
-        // A deployment must opt into CIP-113 by supplying its network-specific PLB script hash.
         return new ApiException(RosettaErrorType.CIP113_PLB_SCRIPT_HASH_NOT_CONFIGURED.toRosettaError(false));
     }
 
     public static ApiException cip113PlbScriptHashInvalid() {
-        // Keep configuration failures distinct from malformed client public-key input.
         return new ApiException(RosettaErrorType.CIP113_PLB_SCRIPT_HASH_INVALID.toRosettaError(false));
     }
 
