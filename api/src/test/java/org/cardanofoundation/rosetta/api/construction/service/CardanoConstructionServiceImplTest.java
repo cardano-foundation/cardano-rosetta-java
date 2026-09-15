@@ -5,6 +5,7 @@ import com.bloxbean.cardano.client.transaction.spec.Asset;
 import com.bloxbean.cardano.client.transaction.spec.MultiAsset;
 import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
 import com.bloxbean.cardano.client.transaction.spec.Value;
+import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.util.HexUtil;
 import com.bloxbean.cardano.yaci.core.exception.CborRuntimeException;
 import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
@@ -453,6 +454,37 @@ class CardanoConstructionServiceImplTest {
         .getCardanoAddress(AddressType.CIP_113, null, givenPublicKey(), PREPROD);
 
     assertNotEquals(firstAddress, secondAddress);
+    assertArrayEquals(HexUtil.decodeHexString(ALTERNATE_PLB_SCRIPT_HASH),
+        new Address(secondAddress).getPaymentCredentialHash().orElseThrow());
+  }
+
+  @Test
+  void getCardanoCip113Address_decodedStructureMatchesInputs() {
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+    PublicKey publicKey = givenPublicKey();
+
+    Address address = new Address(
+        cardanoService.getCardanoAddress(AddressType.CIP_113, null, publicKey, PREPROD));
+
+    assertEquals(com.bloxbean.cardano.client.address.AddressType.Base, address.getAddressType());
+    assertEquals(0, address.getNetwork().getNetworkId());
+    assertTrue(address.isScriptHashInPaymentPart());
+    assertTrue(address.isStakeKeyHashInDelegationPart());
+    assertArrayEquals(HexUtil.decodeHexString(CIP113_PLB_SCRIPT_HASH),
+        address.getPaymentCredentialHash().orElseThrow());
+    assertArrayEquals(cardanoService.getHdPublicKeyFromRosettaKey(publicKey).getKeyHash(),
+        address.getDelegationCredentialHash().orElseThrow());
+  }
+
+  @Test
+  void getCardanoCip113Address_whenExtendedKey_thenMatchesRawKeyAddress() {
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+    String raw = givenPublicKey().getHexBytes();
+    PublicKey extended = new PublicKey(raw + raw, EDWARDS25519);
+
+    assertEquals(
+        cardanoService.getCardanoAddress(AddressType.CIP_113, null, givenPublicKey(), PREPROD),
+        cardanoService.getCardanoAddress(AddressType.CIP_113, null, extended, PREPROD));
   }
 
   @Test
