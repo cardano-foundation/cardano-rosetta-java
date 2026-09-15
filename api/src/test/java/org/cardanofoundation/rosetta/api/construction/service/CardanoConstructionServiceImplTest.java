@@ -55,6 +55,7 @@ import static com.bloxbean.cardano.client.util.HexUtil.encodeHexString;
 import static org.cardanofoundation.rosetta.EntityGenerator.*;
 import static org.cardanofoundation.rosetta.api.construction.enumeration.AddressType.BASE;
 import static org.cardanofoundation.rosetta.api.construction.enumeration.AddressType.REWARD;
+import static org.cardanofoundation.rosetta.common.enumeration.NetworkEnum.MAINNET;
 import static org.cardanofoundation.rosetta.common.enumeration.NetworkEnum.PREPROD;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -71,6 +72,7 @@ class CardanoConstructionServiceImplTest {
   private final static String COMBINE_SIGNED_TRANSACTION = "84a400d90102818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8a102d901028184582073fea80d424276ad0978d4fe5310e8bc2d485f5f6bb3bf87612989f112ad5a7d5840dc2a1948bfa9411b37e8d280b04c48a85af5588bcf509c0fca798f7b462ebca92d6733dacc1f1c6c1463623c085401be07ea422ad4f1c543375e7d3d2393aa0b5820dd75e154da417becec55cdd249327454138f082110297d5e87ab25e15fad150f41a0f5f6";
   private final static String CIP113_PLB_SCRIPT_HASH = "698c48a630206282690774aebcfa9410895c09f85bc103b19f9888dc";
   private final static String CIP113_EXPECTED_ADDRESS = "addr_test1zp5ccj9xxqsx9qnfqa62a086jsggjhqflpduzqa3n7vg3h9mgrc6v3au3rqm66mn3kuwke340kfxga82tl7kh2nke8asgws8rn";
+  private final static String CIP113_EXPECTED_MAINNET_ADDRESS = "addr1z95ccj9xxqsx9qnfqa62a086jsggjhqflpduzqa3n7vg3h9mgrc6v3au3rqm66mn3kuwke340kfxga82tl7kh2nke8astcd80v";
   private final static String ALTERNATE_PLB_SCRIPT_HASH = "00000000000000000000000000000000000000000000000000000000";
 
   @Mock
@@ -403,6 +405,16 @@ class CardanoConstructionServiceImplTest {
         .getCardanoAddress(AddressType.CIP_113, null, givenPublicKey(), PREPROD);
 
     assertEquals(CIP113_EXPECTED_ADDRESS, cardanoAddress);
+  }
+
+  @Test
+  void getCardanoCip113Address_whenMainnet_thenUsesMainnetNetworkTag() {
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+
+    String cardanoAddress = cardanoService
+        .getCardanoAddress(AddressType.CIP_113, null, givenPublicKey(), MAINNET);
+
+    assertEquals(CIP113_EXPECTED_MAINNET_ADDRESS, cardanoAddress);
   }
 
   @Test
