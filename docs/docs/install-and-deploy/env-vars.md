@@ -108,6 +108,7 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `PEER_DISCOVERY`                              | Enable peer discovery job for automatic peer refreshing               | false                                  | added in release 1.3.2  |
 | `TOKEN_REGISTRY_ENABLED`                      | Expose CIP-26/CIP-68 enrichment fields (subject, name, ticker, url, description, logo, version) in `currency.metadata`. Does NOT affect `currency.decimals`, which is always resolved from the registry regardless. | false                                  | added in release 1.4.0  |
 | `TOKEN_REGISTRY_LOGO_FETCH`                   | Include logos in enrichment output (significantly increases response size). Only takes effect when `TOKEN_REGISTRY_ENABLED=true`. | false                                  | added in release 1.4.0  |
+| `CIP113_BASE_SCRIPT_HASH`                     | CIP-113 programmable logic base script hash used for address derivation; must be a 28-byte hexadecimal string when configured | (empty)                                | added in release 2.3.0  |
 
 </div>
 

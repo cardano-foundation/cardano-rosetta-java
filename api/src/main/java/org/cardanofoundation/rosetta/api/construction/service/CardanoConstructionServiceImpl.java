@@ -7,6 +7,7 @@ import co.nstant.in.cbor.model.MajorType;
 import co.nstant.in.cbor.model.UnicodeString;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.ByronAddress;
+import com.bloxbean.cardano.client.address.Credential;
 import com.bloxbean.cardano.client.common.cbor.CborSerializationUtil;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.Blake2bUtil;
@@ -71,6 +72,8 @@ import static org.cardanofoundation.rosetta.common.util.Constants.*;
 @RequiredArgsConstructor
 public class CardanoConstructionServiceImpl implements CardanoConstructionService {
 
+  private static final int CREDENTIAL_HASH_LENGTH = 28;
+
   private final LedgerBlockService ledgerBlockService;
   private final ProtocolParamService protocolParamService;
   private final TransactionOperationParser transactionOperationParser;
@@ -85,6 +88,9 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
 
   @Value("${cardano.rosetta.OFFLINE_MODE}")
   private boolean offlineMode;
+
+  @Value("${cardano.rosetta.CIP113_BASE_SCRIPT_HASH:}")
+  private String cip113BaseScriptHash;
 
   @Override
   public TransactionParsed parseTransaction(Network network, String transaction, boolean signed) {
@@ -597,11 +603,62 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
         address = AddressProvider
                 .getEntAddress(getHdPublicKeyFromRosettaKey(publicKey), networkEnum.getNetwork()).getAddress();
         break;
+      case CIP_113:
+        log.debug("Deriving CIP-113 address");
+        address = getCip113Address(publicKey, networkEnum);
+        break;
       default:
         log.error("Invalid address type: {}", addressType);
         throw ExceptionFactory.invalidAddressTypeError();
     }
     return address;
+  }
+
+  private String getCip113Address(PublicKey publicKey, NetworkEnum networkEnum) {
+    byte[] paymentScriptHash = getConfiguredProgrammableLogicBaseScriptHash();
+    byte[] stakingKeyHash = getValidatedCip113PublicKey(publicKey).getKeyHash();
+
+    return AddressProvider.getBaseAddress(
+            Credential.fromScript(paymentScriptHash),
+            Credential.fromKey(stakingKeyHash),
+            networkEnum.getNetwork()).toBech32();
+  }
+
+  private byte[] getConfiguredProgrammableLogicBaseScriptHash() {
+    String scriptHash = Optional.ofNullable(cip113BaseScriptHash)
+            .map(String::trim)
+            .orElse("");
+
+    if (scriptHash.isEmpty()) {
+      throw ExceptionFactory.cip113PlbScriptHashNotConfigured();
+    }
+    byte[] scriptHashBytes;
+    try {
+      scriptHashBytes = decodeHexString(scriptHash);
+    } catch (RuntimeException exception) {
+      throw ExceptionFactory.cip113PlbScriptHashInvalid();
+    }
+
+    if (scriptHashBytes.length != CREDENTIAL_HASH_LENGTH) {
+      throw ExceptionFactory.cip113PlbScriptHashInvalid();
+    }
+
+    return scriptHashBytes;
+  }
+
+  private HdPublicKey getValidatedCip113PublicKey(PublicKey publicKey) {
+    if (publicKey.getCurveType() != null
+        && publicKey.getCurveType() != CurveType.EDWARDS25519) {
+      log.error("Unsupported public key curve type: {}", publicKey.getCurveType());
+      throw ExceptionFactory.invalidPublicKeyFormat();
+    }
+
+    try {
+      return getHdPublicKeyFromRosettaKey(publicKey);
+    } catch (RuntimeException exception) {
+      log.error("Invalid CIP-113 public key", exception);
+      throw ExceptionFactory.invalidPublicKeyFormat();
+    }
   }
 
   public HdPublicKey getHdPublicKeyFromRosettaKey(PublicKey publicKey) {

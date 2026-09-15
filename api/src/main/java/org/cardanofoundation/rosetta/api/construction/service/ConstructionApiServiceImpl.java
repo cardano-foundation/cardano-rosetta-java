@@ -79,6 +79,10 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
     if (addressType == AddressType.BASE) {
       stakingCredential = Optional.ofNullable(metadata.getStakingCredential())
               .orElseThrow(ExceptionFactory::missingStakingKeyError);
+    } else if (addressType == AddressType.CIP_113) {
+      if (metadata.getStakingCredential() != null) {
+        throw ExceptionFactory.cip113StakingCredentialNotAllowed();
+      }
     }
     String address = cardanoConstructionService
             .getCardanoAddress(addressType, stakingCredential, publicKey, networkEnum);
