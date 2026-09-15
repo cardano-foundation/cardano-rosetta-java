@@ -42,6 +42,17 @@ class DeriveApiTest extends IntegrationTest {
       String address = "addr_test1vza5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7c6mzywr";
       assertEquals(address, constructionDeriveResponse.getAccountIdentifier().getAddress());
     }
+
+    @Test
+    void shouldReturnCorrectCip113Address() throws IOException {
+      ConstructionDeriveRequest deriveRequest = getDeriveRequest(
+          "testdata/construction/derive/derive_cip113_request.json");
+      ConstructionDeriveResponse constructionDeriveResponse = constructionApiService.constructionDeriveService(
+          deriveRequest);
+
+      String address = "addr_test1zp5ccj9xxqsx9qnfqa62a086jsggjhqflpduzqa3n7vg3h9mgrc6v3au3rqm66mn3kuwke340kfxga82tl7kh2nke8asgws8rn";
+      assertEquals(address, constructionDeriveResponse.getAccountIdentifier().getAddress());
+    }
   }
 
   @Nested

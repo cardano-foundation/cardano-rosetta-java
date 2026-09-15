@@ -515,6 +515,21 @@
           "code": 5061,
           "message": "UTxO value byte size exceeds the allowed max_val_size protocol parameter",
           "retriable": false
+        },
+        {
+          "code": 5062,
+          "message": "metadata.staking_credential is not allowed for CIP-113 address derivation",
+          "retriable": false
+        },
+        {
+          "code": 5063,
+          "message": "Configure CIP113_BASE_SCRIPT_HASH to derive CIP-113 addresses",
+          "retriable": false
+        },
+        {
+          "code": 5064,
+          "message": "CIP113_BASE_SCRIPT_HASH must be a 28-byte hex string",
+          "retriable": false
         }
       ],
       "historical_balance_lookup": true,
