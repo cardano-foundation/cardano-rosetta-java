@@ -620,7 +620,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     // The configured PLB is already a script hash and is used directly as the payment credential.
     byte[] paymentScriptHash = getConfiguredProgrammableLogicBaseScriptHash();
     // The supplied enterprise payment key identifies the user and becomes the key stake credential.
-    byte[] stakingKeyHash = getHdPublicKeyFromRosettaKey(publicKey).getKeyHash();
+    byte[] stakingKeyHash = getValidatedCip113PublicKey(publicKey).getKeyHash();
 
     return AddressProvider.getBaseAddress(
             Credential.fromScript(paymentScriptHash),
@@ -653,24 +653,25 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     return scriptHashBytes;
   }
 
-  public HdPublicKey getHdPublicKeyFromRosettaKey(PublicKey publicKey) {
-    // Preserve compatibility with clients that omit curve_type; when present it must be Ed25519.
+  private HdPublicKey getValidatedCip113PublicKey(PublicKey publicKey) {
+    // CIP-113 accepts the established omitted-curve form, but an explicit curve must be Ed25519.
     if (publicKey.getCurveType() != null
         && publicKey.getCurveType() != CurveType.EDWARDS25519) {
       log.error("Unsupported public key curve type: {}", publicKey.getCurveType());
       throw ExceptionFactory.invalidPublicKeyFormat();
     }
 
-    byte[] pubKeyBytes;
     try {
-      pubKeyBytes = decodeHexString(publicKey.getHexBytes());
+      return getHdPublicKeyFromRosettaKey(publicKey);
     } catch (RuntimeException exception) {
-      // Replace decoder-specific exceptions with the stable, non-retriable Rosetta error 4017.
-      log.error("Invalid public key hex bytes");
+      // Keep decoder and length failures on the stable, non-retriable Rosetta error 4007.
+      log.error("Invalid CIP-113 public key", exception);
       throw ExceptionFactory.invalidPublicKeyFormat();
     }
+  }
 
-    // Accept either a raw 32-byte Ed25519 public key or the established 64-byte extended form.
+  public HdPublicKey getHdPublicKeyFromRosettaKey(PublicKey publicKey) {
+    byte[] pubKeyBytes = decodeHexString(publicKey.getHexBytes());
     HdPublicKey pubKey;
     if(pubKeyBytes.length == 32) {
       pubKey = new HdPublicKey();
@@ -679,8 +680,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
       pubKey = HdPublicKey.fromBytes(pubKeyBytes);
     } else {
       log.error("Invalid public key length: {}", pubKeyBytes.length);
-      // This previously escaped as IllegalArgumentException; clients should receive Rosetta error 4017.
-      throw ExceptionFactory.invalidPublicKeyFormat();
+      throw new IllegalArgumentException("Invalid public key length");
     }
     return pubKey;
   }
