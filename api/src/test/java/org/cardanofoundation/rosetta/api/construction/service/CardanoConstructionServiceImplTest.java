@@ -48,6 +48,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.bloxbean.cardano.client.crypto.Blake2bUtil.blake2bHash224;
 import static com.bloxbean.cardano.client.crypto.Blake2bUtil.blake2bHash256;
 import static com.bloxbean.cardano.client.util.HexUtil.decodeHexString;
 import static com.bloxbean.cardano.client.util.HexUtil.encodeHexString;
@@ -472,8 +473,18 @@ class CardanoConstructionServiceImplTest {
     assertTrue(address.isStakeKeyHashInDelegationPart());
     assertArrayEquals(HexUtil.decodeHexString(CIP113_PLB_SCRIPT_HASH),
         address.getPaymentCredentialHash().orElseThrow());
-    assertArrayEquals(cardanoService.getHdPublicKeyFromRosettaKey(publicKey).getKeyHash(),
+    assertArrayEquals(blake2bHash224(HexUtil.decodeHexString(publicKey.getHexBytes())),
         address.getDelegationCredentialHash().orElseThrow());
+  }
+
+  @Test
+  void getCardanoCip113Address_whenPublicKeyMissing_thenThrowsPublicKeyMissing() {
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+
+    ApiException exception = assertThrows(ApiException.class,
+        () -> cardanoService.getCardanoAddress(AddressType.CIP_113, null, null, PREPROD));
+
+    assertEquals(RosettaErrorType.PUBLIC_KEY_MISSING.getCode(), exception.getError().getCode());
   }
 
   @Test

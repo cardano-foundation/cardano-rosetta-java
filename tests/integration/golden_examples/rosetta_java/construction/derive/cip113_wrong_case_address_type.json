@@ -1,7 +1,6 @@
 {
-  "test_name": "(-) CIP-113 PLB not configured",
-  "description": "Negative test: CIP-113 derive fails with the configuration error when CIP113_BASE_SCRIPT_HASH is unset on the server",
-  "network": "preprod",
+  "test_name": "(-) CIP-113 wrong-case address type",
+  "description": "Negative test: address_type is case-sensitive, so \"cip113\" is rejected with the existing invalid-address-type error rather than a new code",
   "request_body": {
     "network_identifier": {
       "blockchain": "cardano",
@@ -12,12 +11,12 @@
       "curve_type": "edwards25519"
     },
     "metadata": {
-      "address_type": "CIP-113"
+      "address_type": "cip113"
     }
   },
   "expected_error": {
-    "code": 5063,
-    "message": "Configure CIP113_BASE_SCRIPT_HASH to derive CIP-113 addresses",
+    "code": 4016,
+    "message": "Provided address type is invalid",
     "retriable": false
   }
 }
