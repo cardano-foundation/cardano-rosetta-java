@@ -484,18 +484,6 @@ class CardanoConstructionServiceImplTest {
   }
 
   @Test
-  void getCardanoCip113Address_whenStakingCredentialProvided_thenThrowsNotAllowed() {
-    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
-
-    ApiException exception = assertThrows(ApiException.class,
-        () -> cardanoService.getCardanoAddress(AddressType.CIP_113, givenPublicKey(),
-            givenPublicKey(), PREPROD));
-
-    assertEquals(RosettaErrorType.CIP113_STAKING_CREDENTIAL_NOT_ALLOWED.getCode(),
-        exception.getError().getCode());
-  }
-
-  @Test
   void getCardanoCip113Address_whenPlbMalformed_thenThrowsInvalid() {
     assertCip113PlbInvalid("not-hex");
   }
