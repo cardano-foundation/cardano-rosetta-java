@@ -7,6 +7,7 @@ import co.nstant.in.cbor.model.MajorType;
 import co.nstant.in.cbor.model.UnicodeString;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.ByronAddress;
+import com.bloxbean.cardano.client.address.Credential;
 import com.bloxbean.cardano.client.common.cbor.CborSerializationUtil;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.Blake2bUtil;
@@ -71,9 +72,7 @@ import static org.cardanofoundation.rosetta.common.util.Constants.*;
 @RequiredArgsConstructor
 public class CardanoConstructionServiceImpl implements CardanoConstructionService {
 
-  private static final int SCRIPT_HASH_HEX_LENGTH = 56;
-  private static final String SCRIPT_HASH_HEX_PATTERN = "^[0-9a-fA-F]{" + SCRIPT_HASH_HEX_LENGTH + "}$";
-  private static final byte BASE_SCRIPT_PAYMENT_KEY_STAKE_HEADER_KIND = 0x10;
+  private static final int CREDENTIAL_HASH_LENGTH = 28;
 
   private final LedgerBlockService ledgerBlockService;
   private final ProtocolParamService protocolParamService;
@@ -622,12 +621,10 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     byte[] paymentScriptHash = getConfiguredProgrammableLogicBaseScriptHash();
     byte[] stakingKeyHash = getHdPublicKeyFromRosettaKey(publicKey).getKeyHash();
 
-    return CardanoAddressUtils.getAddress(
-            paymentScriptHash,
-            stakingKeyHash,
-            BASE_SCRIPT_PAYMENT_KEY_STAKE_HEADER_KIND,
-            networkEnum.getNetwork(),
-            com.bloxbean.cardano.client.address.AddressType.Base).toBech32();
+    return AddressProvider.getBaseAddress(
+            Credential.fromScript(paymentScriptHash),
+            Credential.fromKey(stakingKeyHash),
+            networkEnum.getNetwork()).toBech32();
   }
 
   private byte[] getConfiguredProgrammableLogicBaseScriptHash() {
@@ -638,11 +635,18 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     if (scriptHash.isEmpty()) {
       throw ExceptionFactory.cip113PlbScriptHashNotConfigured();
     }
-    if (!scriptHash.matches(SCRIPT_HASH_HEX_PATTERN)) {
+    byte[] scriptHashBytes;
+    try {
+      scriptHashBytes = decodeHexString(scriptHash);
+    } catch (RuntimeException exception) {
       throw ExceptionFactory.cip113PlbScriptHashInvalid();
     }
 
-    return decodeHexString(scriptHash);
+    if (scriptHashBytes.length != CREDENTIAL_HASH_LENGTH) {
+      throw ExceptionFactory.cip113PlbScriptHashInvalid();
+    }
+
+    return scriptHashBytes;
   }
 
   public HdPublicKey getHdPublicKeyFromRosettaKey(PublicKey publicKey) {
