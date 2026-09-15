@@ -77,6 +77,8 @@ public class ConstructionApiServiceImpl implements ConstructionApiService {
 
     PublicKey stakingCredential = null;
     if (addressType == AddressType.CIP_113) {
+      // CIP-113 derives its owner credential from public_key; reject an explicit stake key
+      // here so it cannot be silently ignored while routing the request.
       if (metadata.getStakingCredential() != null) {
         throw ExceptionFactory.cip113StakingCredentialNotAllowed();
       }

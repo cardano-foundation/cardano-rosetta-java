@@ -72,6 +72,7 @@ import static org.cardanofoundation.rosetta.common.util.Constants.*;
 @RequiredArgsConstructor
 public class CardanoConstructionServiceImpl implements CardanoConstructionService {
 
+  // Both Cardano key and script credentials are 28-byte Blake2b-224 hashes.
   private static final int CREDENTIAL_HASH_LENGTH = 28;
 
   private final LedgerBlockService ledgerBlockService;
@@ -89,6 +90,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   @Value("${cardano.rosetta.OFFLINE_MODE}")
   private boolean offlineMode;
 
+  // Keep CIP-113 optional for other flows; validate this value only when CIP-113 is requested.
   @Value("${cardano.rosetta.CIP113_BASE_SCRIPT_HASH:}")
   private String cip113BaseScriptHash;
 
@@ -605,6 +607,8 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
         break;
       case CIP_113:
         log.debug("Deriving CIP-113 address");
+        // CIP-113 derives the owner credential from the top-level public key, so a separate
+        // staking credential would be ambiguous and must not be silently ignored.
         if (stakingCredential != null) {
           throw ExceptionFactory.cip113StakingCredentialNotAllowed();
         }
@@ -618,7 +622,9 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   private String getCip113Address(PublicKey publicKey, NetworkEnum networkEnum) {
+    // The configured PLB is already a script hash and is used directly as the payment credential.
     byte[] paymentScriptHash = getConfiguredProgrammableLogicBaseScriptHash();
+    // The supplied enterprise payment key identifies the user and becomes the key stake credential.
     byte[] stakingKeyHash = getHdPublicKeyFromRosettaKey(publicKey).getKeyHash();
 
     return AddressProvider.getBaseAddress(
@@ -632,9 +638,12 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
             .map(String::trim)
             .orElse("");
 
+    // Keep an absent configuration distinct from a supplied but malformed value.
     if (scriptHash.isEmpty()) {
       throw ExceptionFactory.cip113PlbScriptHashNotConfigured();
     }
+    // Decode once, then validate the protocol-defined byte length instead of duplicating a
+    // character-count rule; malformed hex and wrong-length hashes share the configuration error.
     byte[] scriptHashBytes;
     try {
       scriptHashBytes = decodeHexString(scriptHash);
@@ -650,6 +659,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   public HdPublicKey getHdPublicKeyFromRosettaKey(PublicKey publicKey) {
+    // Preserve compatibility with clients that omit curve_type; when present it must be Ed25519.
     if (publicKey.getCurveType() != null
         && publicKey.getCurveType() != CurveType.EDWARDS25519) {
       log.error("Unsupported public key curve type: {}", publicKey.getCurveType());
@@ -660,10 +670,12 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     try {
       pubKeyBytes = decodeHexString(publicKey.getHexBytes());
     } catch (RuntimeException exception) {
+      // Replace decoder-specific exceptions with the stable, non-retriable Rosetta error 4017.
       log.error("Invalid public key hex bytes");
       throw ExceptionFactory.invalidPublicKeyFormat();
     }
 
+    // Accept either a raw 32-byte Ed25519 public key or the established 64-byte extended form.
     HdPublicKey pubKey;
     if(pubKeyBytes.length == 32) {
       pubKey = new HdPublicKey();
@@ -672,6 +684,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
       pubKey = HdPublicKey.fromBytes(pubKeyBytes);
     } else {
       log.error("Invalid public key length: {}", pubKeyBytes.length);
+      // This previously escaped as IllegalArgumentException; clients should receive Rosetta error 4017.
       throw ExceptionFactory.invalidPublicKeyFormat();
     }
     return pubKey;
