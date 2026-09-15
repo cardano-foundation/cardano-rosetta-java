@@ -59,6 +59,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.openapitools.client.model.CurveType.EDWARDS25519;
+import static org.openapitools.client.model.CurveType.SECP256K1;
 
 @ExtendWith(MockitoExtension.class)
 class CardanoConstructionServiceImplTest {
@@ -538,7 +539,7 @@ class CardanoConstructionServiceImplTest {
   @Test
   void getCardanoCip113Address_whenCurveIsUnsupported_thenThrowsInvalidPublicKeyFormat() {
     setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
-    PublicKey publicKey = new PublicKey(givenPublicKey().getHexBytes(), CurveType.SECP256K1);
+    PublicKey publicKey = new PublicKey(givenPublicKey().getHexBytes(), SECP256K1);
 
     ApiException exception = assertThrows(ApiException.class,
         () -> cardanoService.getCardanoAddress(AddressType.CIP_113, null, publicKey, PREPROD));
