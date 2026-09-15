@@ -1,13 +1,13 @@
 {
-  "test_name": "(-) invalid hex public key",
-  "description": "Negative test: invalid hex format in public key",
+  "test_name": "(-) public key hash supplied as public key",
+  "description": "Negative test: a 28-byte Cardano key hash is not accepted as a public key",
   "request_body": {
     "network_identifier": {
       "blockchain": "cardano",
       "network": "{{networkId}}"
     },
     "public_key": {
-      "hex_bytes": "INVALID_HEX",
+      "hex_bytes": "BD49833C183D34A082DA395CD73B1C816F0271907A9F58620BCAC694",
       "curve_type": "edwards25519"
     }
   },
