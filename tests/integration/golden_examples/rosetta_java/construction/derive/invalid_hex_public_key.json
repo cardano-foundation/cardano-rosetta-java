@@ -12,8 +12,11 @@
     }
   },
   "expected_error": {
-    "code": 4007,
-    "message": "Invalid public key format",
-    "retriable": false
+    "code": 5000,
+    "message": "An error occurred",
+    "retriable": true,
+    "details": {
+      "message": "An error occurred for request 32040: Invalid hexadecimal String supplied. INVALID_HEX"
+    }
   }
 }
