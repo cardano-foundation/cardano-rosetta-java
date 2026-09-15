@@ -138,6 +138,15 @@ jobs:
             fi
           done
 
+      - name: Check out immutable image resolver
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: .release-automation
+          sparse-checkout: .github/scripts/release_test_images.sh
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
       - name: Set up Docker Buildx for image inspection
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
 
@@ -149,80 +158,8 @@ jobs:
         run: |
           set -euo pipefail
 
-          get_value() {
-            local value
-            value=$(awk -F= -v key="$1" '$1 == key {print substr($0, index($0, "=") + 1)}' .env.docker-compose)
-            [[ -n "$value" ]] || { echo "Missing $1 in .env.docker-compose." >&2; return 1; }
-            printf '%s' "$value"
-          }
-          resolve_linux_amd64_digest() {
-            local image=$1
-            local inspection
-            local media_type
-            local digest
-            inspection=$(docker buildx imagetools inspect "$image" --format '{{json .}}')
-            media_type=$(jq -r '.manifest.mediaType // ""' <<< "$inspection")
-
-            case "$media_type" in
-              application/vnd.oci.image.index.v1+json|application/vnd.docker.distribution.manifest.list.v2+json)
-                digest=$(jq -er '
-                  [.manifest.manifests[] |
-                    select(.platform.os == "linux" and .platform.architecture == "amd64") |
-                    select(.mediaType == "application/vnd.oci.image.manifest.v1+json" or
-                           .mediaType == "application/vnd.docker.distribution.manifest.v2+json") |
-                    select(has("artifactType") | not) |
-                    select(.annotations["vnd.docker.reference.type"] != "attestation-manifest")]
-                  | if length == 1 then .[0].digest
-                    else error("Expected one runnable linux/amd64 manifest, found \(length)") end
-                ' <<< "$inspection")
-                ;;
-              application/vnd.oci.image.manifest.v1+json|application/vnd.docker.distribution.manifest.v2+json)
-                local platform
-                digest=$(jq -er '.manifest.digest' <<< "$inspection")
-                platform=$(jq -er '.image | "\(.os // "")/\(.architecture // "")"' <<< "$inspection")
-                if [[ "$platform" != "linux/amd64" ]]; then
-                  echo "$image is a single-platform $platform image, expected linux/amd64." >&2
-                  return 1
-                fi
-                ;;
-              *)
-                echo "$image does not resolve to an OCI/Docker image manifest." >&2
-                return 1
-                ;;
-            esac
-
-            if [[ ! "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]; then
-              echo "Could not resolve an immutable manifest digest for $image." >&2
-              return 1
-            fi
-            printf '%s' "$digest"
-          }
-          resolve_published_image() {
-            local repository=$1
-            local tag=$2
-            local output_name=$3
-            if [[ ! "$tag" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]]; then
-              echo "Invalid Docker tag for $repository: $tag"
-              exit 1
-            fi
-            local tagged_image="${repository}:${tag}"
-            local runtime_digest
-            runtime_digest=$(resolve_linux_amd64_digest "$tagged_image")
-            local runtime_image="${tagged_image}@${runtime_digest}"
-            echo "${output_name}=${runtime_image}" >> "$GITHUB_OUTPUT"
-            echo "Resolved published image: $runtime_image"
-          }
-
-          resolve_published_image \
-            cardanofoundation/cardano-rosetta-java-api "$PRERELEASE_TAG" api_image
-          resolve_published_image \
-            cardanofoundation/cardano-rosetta-java-indexer "$PRERELEASE_TAG" indexer_image
-          resolve_published_image \
-            cardanofoundation/cardano-rosetta-java-cardano-node "$(get_value CARDANO_NODE_VERSION)" cardano_node_image
-          resolve_published_image \
-            cardanofoundation/cardano-rosetta-java-postgres "$(get_value PG_VERSION_TAG)" postgres_image
-          resolve_published_image \
-            cardanofoundation/cardano-rosetta-java-mithril "$(get_value MITHRIL_VERSION)" mithril_image
+          source "$GITHUB_WORKSPACE/.release-automation/.github/scripts/release_test_images.sh"
+          resolve_release_images "$PRERELEASE_TAG"
           resolve_published_image \
             cardanofoundation/cardano-rosetta-java-api "$UPGRADE_FROM_TAG" upgrade_api_image
           resolve_published_image \
@@ -252,8 +189,6 @@ jobs:
       candidate_indexer_image: ${{ needs.validate.outputs.indexer_image }}
       candidate_mithril_image: ${{ needs.validate.outputs.mithril_image }}
       candidate_postgres_image: ${{ needs.validate.outputs.postgres_image }}
-      expected_node_pvc_uid: ${{ vars.RELEASE_MAINNET_K8S_NODE_PVC_UID }}
-      expected_postgres_pvc_uid: ${{ vars.RELEASE_MAINNET_K8S_POSTGRES_PVC_UID }}
       prerelease_tag: ${{ needs.validate.outputs.prerelease_tag }}
       source_sha: ${{ needs.validate.outputs.source_sha }}
       upgrade_api_image: ${{ needs.validate.outputs.upgrade_api_image }}
@@ -299,7 +234,7 @@ jobs:
 
           A successful Mainnet job means the deployment and performance evidence was generated. It does not accept a performance regression. Review both uploaded comparison reports before the release decision.
 
-          If a Mainnet job failed after mutation began, treat that deployment as unavailable or partially upgraded until an operator inspects it. Deleted chain data cannot be rolled back; do not rerun before confirming the current deployment and storage state.
+          If a Mainnet job failed after mutation began, treat that deployment as unavailable or partial. A clean-resync retry must rerun the reusable job from its reset boundary; never resume installation over partial data.
           EOF
 
           [[ "${{ needs.validate.result }}" == "success" &&

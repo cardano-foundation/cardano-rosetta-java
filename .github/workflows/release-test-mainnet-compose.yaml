@@ -37,24 +37,18 @@ on:
 permissions:
   contents: read
 
-
 env:
   RELEASE_SCRIPTS: ${{ github.workspace }}/.release-automation/.github/scripts
   PRERELEASE_TAG: ${{ inputs.prerelease_tag }}
-  SOURCE_SHA: ${{ inputs.source_sha }}
   COMPOSE_BASE_ENV: .env.docker-compose
-  GIT_CONFIG_COUNT: "1"
-  GIT_CONFIG_GLOBAL: /dev/null
-  GIT_CONFIG_KEY_0: core.hooksPath
-  GIT_CONFIG_SYSTEM: /dev/null
-  GIT_CONFIG_VALUE_0: /dev/null
 
   API_IMAGE: ${{ inputs.candidate_api_image }}
   CARDANO_NODE_IMAGE: ${{ inputs.candidate_cardano_node_image }}
   CARDANO_NODE_DIR: /opt/cardano-rosetta-java/mainnet/node_data
+  COMPOSE_MIN_FREE_GIB: "1100"
   DATA_ROOT: /opt/cardano-rosetta-java/mainnet
   DB_PATH: /opt/cardano-rosetta-java/mainnet/sql_data
-  DEPLOY_DIR: /home/integration/release-tests/cardano-rosetta-java
+  DEPLOY_DIR: ${{ github.workspace }}/.release-target
   EXPECTED_HOST: zur2-s-d-115.colo2.cf-systems.internal
   INDEXER_IMAGE: ${{ inputs.candidate_indexer_image }}
   MITHRIL_IMAGE: ${{ inputs.candidate_mithril_image }}
@@ -68,17 +62,16 @@ env:
   NETWORK: mainnet
   RELEASE_VERSION: ${{ inputs.prerelease_tag }}
   REMOVE_SPENT_UTXOS: "false"
-  TOKEN_REGISTRY_ENABLED: "true"
   TOKEN_REGISTRY_BASE_URL: http://zur2-s-d-115.colo2.cf-systems.internal:8080/api
+  TOKEN_REGISTRY_ENABLED: "true"
+  TOKEN_REGISTRY_HOSTNAME: zur2-s-d-115.colo2.cf-systems.internal
 
 jobs:
   preflight:
     runs-on: [rosetta-server-colo2]
     timeout-minutes: 180
     outputs:
-      db_identity: ${{ steps.storage.outputs.db_identity }}
       machine_specs: ${{ steps.machine.outputs.machine_specs }}
-      node_identity: ${{ steps.storage.outputs.node_identity }}
     steps:
       - &checkout_automation
         name: Check out immutable test automation
@@ -89,7 +82,16 @@ jobs:
           sparse-checkout: .github/scripts
           persist-credentials: false
 
-      - name: Validate Compose runner and release source
+      - &checkout_target
+        name: Check out immutable release source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: cardano-foundation/cardano-rosetta-java
+          ref: ${{ inputs.source_sha }}
+          path: .release-target
+          persist-credentials: false
+
+      - name: Validate Compose runner
         run: |
           set -euo pipefail
 
@@ -98,11 +100,6 @@ jobs:
           done
           docker compose version
           sudo -n true
-          docker_platform=$(docker version --format '{{.Server.Os}}/{{.Server.Arch}}')
-          if [[ "$docker_platform" != "linux/amd64" ]]; then
-            echo "Release images require a linux/amd64 Docker server, found $docker_platform."
-            exit 1
-          fi
           python3 - <<'PY'
           import sys
           if sys.version_info < (3, 10):
@@ -113,8 +110,8 @@ jobs:
             echo "Mainnet data root is not a canonical directory: $DATA_ROOT"
             exit 1
           fi
-          source "$RELEASE_SCRIPTS/release_test_source.sh"
-          release_source fetch
+          source "$RELEASE_SCRIPTS/release_test_runtime.sh"
+          require_release_host
 
       - name: Validate Compose service and data ownership
         run: |
@@ -138,7 +135,6 @@ jobs:
           source "$RELEASE_SCRIPTS/release_test_compose.sh"
           verify_compose_database_access
 
-
       - name: Validate Compose upgrade source
         env:
           UPGRADE_FROM_TAG: ${{ inputs.upgrade_from_tag }}
@@ -153,23 +149,17 @@ jobs:
           verify_compose_container api "$UPGRADE_API_IMAGE"
           verify_compose_container yaci-indexer "$UPGRADE_INDEXER_IMAGE"
 
-
       - name: Prepare pinned candidate images for Compose
         run: |
           set -euo pipefail
           source "$RELEASE_SCRIPTS/release_test_compose.sh"
-          prepare_compose_images
+          verify_and_prefetch_compose_target
 
-          verify_compose_config
-
-      - name: Validate Compose data identity and report cleanup space
-        id: storage
+      - name: Validate Compose data filesystem and projected cleanup space
         run: |
           set -euo pipefail
           db_path="$DB_PATH"
           node_path="$CARDANO_NODE_DIR"
-          echo "db_identity=$(stat -c '%d:%i' "$db_path")" >> "$GITHUB_OUTPUT"
-          echo "node_identity=$(stat -c '%d:%i' "$node_path")" >> "$GITHUB_OUTPUT"
           db_device=$(df --output=source "$db_path" | awk 'NR == 2 {print $1}')
           node_device=$(df --output=source "$node_path" | awk 'NR == 2 {print $1}')
           if [[ "$db_device" != "$node_device" ]]; then
@@ -177,7 +167,8 @@ jobs:
             exit 1
           fi
           source "$RELEASE_SCRIPTS/release_test_runtime.sh"
-          report_release_cleanup_space "$db_path" "$db_path" "$node_path"
+          require_release_cleanup_space \
+            "$DATA_ROOT" "$COMPOSE_MIN_FREE_GIB" "$db_path" "$node_path"
 
       - name: Discover published Compose baseline
         run: |
@@ -197,19 +188,27 @@ jobs:
     needs: preflight
     runs-on: [rosetta-server-colo2]
     timeout-minutes: 1440
+    outputs:
+      mutation_started: ${{ steps.mutation.outputs.started }}
     steps:
       - *checkout_automation
+      - *checkout_target
+      - name: Prepare Docker Compose upgrade
+        run: |
+          set -euo pipefail
+          source "$RELEASE_SCRIPTS/release_test_compose.sh"
+          prepare_compose_images
+          verify_compose_database_access
+
+      # Failures after this point may require destructive recovery.
+      - name: Mark Compose mutation boundary
+        id: mutation
+        run: echo "started=true" >> "$GITHUB_OUTPUT"
+
       - name: Upgrade Docker Compose to pinned pre-release images
         run: |
           set -euo pipefail
-          source "$RELEASE_SCRIPTS/release_test_source.sh"
-          release_source checkout
-
           source "$RELEASE_SCRIPTS/release_test_compose.sh"
-          prepare_compose_images
-          # Jobs can inherit different runner environments; check again before mutation.
-          verify_compose_database_access
-
           release_compose up --detach --pull never --no-build
 
       - name: Wait for upgraded Compose deployment to reach LIVE
@@ -218,108 +217,25 @@ jobs:
           SYNC_TIMEOUT_SECONDS: "72000"
         run: &wait_for_compose |
           set -euo pipefail
-          source "$RELEASE_SCRIPTS/release_test_runtime.sh"
           source "$RELEASE_SCRIPTS/release_test_compose.sh"
-          wait_for_release_live http://127.0.0.1:8082 mainnet "${PRERELEASE_TAG%-pre-release}"
-          verify_compose_candidate
+          wait_for_compose_target_live
 
   clean-resync:
+    # Recover only after a successful upgrade or a failure beyond the mutation boundary.
+    if: ${{ always() && !cancelled() && needs.preflight.result == 'success' && (needs.upgrade.result == 'success' || (needs.upgrade.result == 'failure' && needs.upgrade.outputs.mutation_started == 'true')) }}
     needs:
       - preflight
       - upgrade
-    runs-on: [rosetta-server-colo2]
-    timeout-minutes: 5760
-    steps:
-      - *checkout_automation
-      - name: Delete the verified Compose release data
-        env:
-          EXPECTED_DB_IDENTITY: ${{ needs.preflight.outputs.db_identity }}
-          EXPECTED_NODE_IDENTITY: ${{ needs.preflight.outputs.node_identity }}
-        run: |
-          set -euo pipefail
-          source "$RELEASE_SCRIPTS/release_test_source.sh"
-          release_source checkout
-
-          if [[ "$(stat -c '%d:%i' "$DB_PATH")" != "$EXPECTED_DB_IDENTITY" ||
-                "$(stat -c '%d:%i' "$CARDANO_NODE_DIR")" != "$EXPECTED_NODE_IDENTITY" ]]; then
-            echo "Compose data directory identity changed after preflight."
-            exit 1
-          fi
-
-          source "$RELEASE_SCRIPTS/release_test_compose.sh"
-
-          verify_compose_mounts services
-          release_compose down
-          verify_compose_mounts unmounted
-
-          db_path="$DB_PATH"
-          node_path="$CARDANO_NODE_DIR"
-          cleanup_root="$DATA_ROOT"
-          if [[ "$db_path" != "$cleanup_root/sql_data" || "$node_path" != "$cleanup_root/node_data" ||
-                "$cleanup_root" == "/" ]]; then
-            echo "Refusing to delete data outside the configured release root."
-            exit 1
-          fi
-          if [[ "$(realpath -e "$cleanup_root")" != "$cleanup_root" || -L "$cleanup_root" ]]; then
-            echo "Refusing cleanup through a non-canonical root: $cleanup_root"
-            exit 1
-          fi
-
-          root_device=$(stat -c '%d' "$cleanup_root")
-          host_mounts=$(
-            findmnt --json --output TARGET |
-              jq -er '.filesystems[] | recurse(.children[]?) | .target'
-          )
-          for data_path in "$db_path" "$node_path"; do
-            if [[ "$data_path" == "$db_path" ]]; then
-              expected_identity="$EXPECTED_DB_IDENTITY"
-            else
-              expected_identity="$EXPECTED_NODE_IDENTITY"
-            fi
-            if [[ ! -d "$data_path" || -L "$data_path" ]]; then
-              echo "Refusing cleanup of a missing, non-directory, or symlinked path: $data_path"
-              exit 1
-            fi
-            if [[ "$(realpath -e "$data_path")" != "$data_path" ]]; then
-              echo "Refusing cleanup of a non-canonical data path: $data_path"
-              exit 1
-            fi
-            if [[ "$(stat -c '%d' "$data_path")" != "$root_device" ]]; then
-              echo "Refusing cleanup across a different filesystem: $data_path"
-              exit 1
-            fi
-            if [[ "$(stat -c '%d:%i' "$data_path")" != "$expected_identity" ]]; then
-              echo "Data directory identity changed immediately before cleanup: $data_path"
-              exit 1
-            fi
-            while IFS= read -r mount; do
-              if [[ "$mount" == "$data_path" || "$mount" == "$data_path"/* ]]; then
-                echo "Refusing cleanup across host mount $mount under $data_path."
-                exit 1
-              fi
-            done <<< "$host_mounts"
-          done
-
-          cd "$cleanup_root"
-          sudo find ./sql_data ./node_data -xdev -mindepth 1 -delete
-          free_gb=$(df --output=avail -BG "$cleanup_root" | awk 'NR == 2 {gsub(/G/, ""); print $1}')
-          echo "Compose data cleanup completed with ${free_gb}GiB available."
-
-      - name: Start clean Compose deployment from pinned pre-release images
-        run: |
-          set -euo pipefail
-          source "$RELEASE_SCRIPTS/release_test_source.sh"
-          release_source assert
-          source "$RELEASE_SCRIPTS/release_test_compose.sh"
-          prepare_compose_images
-
-          release_compose up --detach --pull never --no-build
-
-      - name: Wait for clean Compose resync to reach LIVE
-        env:
-          PHASE: Clean Compose resync
-          SYNC_TIMEOUT_SECONDS: "259200"
-        run: *wait_for_compose
+    uses: ./.github/workflows/release-test-mainnet-clean-resync.yaml
+    with:
+      deployment: docker-compose
+      target_api_image: ${{ inputs.candidate_api_image }}
+      target_cardano_node_image: ${{ inputs.candidate_cardano_node_image }}
+      target_image_tag: ${{ inputs.prerelease_tag }}
+      target_indexer_image: ${{ inputs.candidate_indexer_image }}
+      target_mithril_image: ${{ inputs.candidate_mithril_image }}
+      target_postgres_image: ${{ inputs.candidate_postgres_image }}
+      target_source_sha: ${{ inputs.source_sha }}
 
   performance:
     needs:
@@ -329,11 +245,12 @@ jobs:
     timeout-minutes: 720
     steps:
       - *checkout_automation
+      - *checkout_target
       - name: Prepare immutable Compose release harness
         run: |
           set -euo pipefail
-          source "$RELEASE_SCRIPTS/release_test_source.sh"
-          release_source checkout
+          source "$RELEASE_SCRIPTS/release_test_compose.sh"
+          write_compose_override
 
       - name: Revalidate Compose candidate before performance testing
         env:

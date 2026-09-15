@@ -38,43 +38,36 @@ permissions:
 env:
   RELEASE_SCRIPTS: ${{ github.workspace }}/.release-automation/.github/scripts
   PRERELEASE_TAG: ${{ inputs.prerelease_tag }}
-  SOURCE_SHA: ${{ inputs.source_sha }}
   COMPOSE_BASE_ENV: .env.docker-compose-preprod
-  GIT_CONFIG_COUNT: "1"
-  GIT_CONFIG_GLOBAL: /dev/null
-  GIT_CONFIG_KEY_0: core.hooksPath
-  GIT_CONFIG_SYSTEM: /dev/null
-  GIT_CONFIG_VALUE_0: /dev/null
 
   API_IMAGE: ${{ inputs.candidate_api_image }}
   CARDANO_NODE_IMAGE: ${{ inputs.candidate_cardano_node_image }}
-  DEPLOY_DIR: /home/integration/release-tests/cardano-rosetta-java
+  DEPLOY_DIR: ${{ github.workspace }}/.release-target
   EXPECTED_HOST: zur2-s-d-102.colo2.cf-systems.internal
   INDEXER_IMAGE: ${{ inputs.candidate_indexer_image }}
   MITHRIL_IMAGE: ${{ inputs.candidate_mithril_image }}
   POSTGRES_IMAGE: ${{ inputs.candidate_postgres_image }}
 
-  # The dedicated release stack is isolated from the PR stack's data. Both
-  # stacks share host ports and a Docker network, so this job stops the exact
-  # running PR containers temporarily and restores them during cleanup.
+  # Release Testing has its own project, data, network, and host ports. The PR
+  # Preprod project remains running while this workflow exercises the candidate.
   PROJECT_NAME: rosetta-release-test
-  PR_PROJECT_NAME: cardano-rosetta-java
-  CLEANUP_ROOT: /opt/rosetta-release-test
+  DATA_ROOT: /opt/rosetta-release-test
 
   # Compose settings for this run. The environment outranks every --env-file,
   # so the committed defaults are read as-is and never rewritten.
-  BLOCK_TRANSACTION_API_TIMEOUT_SECS: "10"
+  API_PORT: "8083"
   CARDANO_NODE_DIR: /opt/rosetta-release-test/node_data
+  CARDANO_NODE_PORT: "3002"
+  COMPOSE_NETWORK_NAME: rosetta-release-test-preprod
   DB_PATH: /opt/rosetta-release-test/sql_data
-  DB_PORT: "5433"
+  DB_PORT: "5432"
   NETWORK: preprod
-  PEER_DISCOVERY: "true"
+  NODE_SUBMIT_API_PORT: "8091"
   RELEASE_VERSION: ${{ inputs.prerelease_tag }}
   REMOVE_SPENT_UTXOS: "false"
   TOKEN_REGISTRY_BASE_URL: https://preprod.tokens.cardano.org/api
-  TOKEN_REGISTRY_CACHE_TTL_HOURS: "1"
   TOKEN_REGISTRY_ENABLED: "true"
-  TOKEN_REGISTRY_LOGO_FETCH: "true"
+  YACI_INDEXER_PORT: "9096"
 
 jobs:
   e2e:
@@ -92,12 +85,20 @@ jobs:
           sparse-checkout: .github/scripts
           persist-credentials: false
 
-      - name: Validate runner prerequisites and release source
+      - name: Check out immutable release source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: cardano-foundation/cardano-rosetta-java
+          ref: ${{ inputs.source_sha }}
+          path: .release-target
+          persist-credentials: false
+
+      - name: Validate runner prerequisites
         env: &e2e_env
           BLOCKFROST_PROJECT_ID: ${{ secrets.BLOCKFROST_PROJECT_ID }}
           TEST_WALLET_MNEMONIC: ${{ secrets.TEST_WALLET_MNEMONIC }}
           CARDANO_NETWORK: preprod
-          ROSETTA_ENDPOINT: http://127.0.0.1:8082/
+          ROSETTA_ENDPOINT: http://127.0.0.1:8083/
         run: |
           set -euo pipefail
           : "${BLOCKFROST_PROJECT_ID:?Missing BLOCKFROST_PROJECT_ID secret}"
@@ -115,32 +116,6 @@ jobs:
             exit 1
           fi
 
-          source "$RELEASE_SCRIPTS/release_test_source.sh"
-          release_source fetch
-
-      - name: Validate the dedicated data root
-        run: |
-          set -euo pipefail
-
-          # Both data paths must sit directly under the one root this workflow
-          # owns, so the clean-resync step can never reach anywhere else.
-          for data_path in "$DB_PATH" "$CARDANO_NODE_DIR"; do
-            if [[ "$data_path" != "$CLEANUP_ROOT"/?* || "$data_path" == */../* ]]; then
-              echo "$data_path must live directly under $CLEANUP_ROOT."
-              exit 1
-            fi
-          done
-
-          test -d "$CLEANUP_ROOT"
-          if [[ -L "$CLEANUP_ROOT" || "$(realpath -e "$CLEANUP_ROOT")" != "$CLEANUP_ROOT" ]]; then
-            echo "Refusing a non-canonical or symlinked root: $CLEANUP_ROOT"
-            exit 1
-          fi
-
-          free_gib=$(df --output=avail -BG "$CLEANUP_ROOT" | awk 'NR == 2 {gsub(/G/, ""); print $1}')
-          echo "Data root $CLEANUP_ROOT has ${free_gib}GiB available."
-
-
       - name: Prepare pinned candidate images for Compose
         run: |
           set -euo pipefail
@@ -149,70 +124,27 @@ jobs:
 
           verify_compose_config
 
-      - name: Stop running PR test containers
-        run: |
-          set -euo pipefail
-          mapfile -t pr_containers < <(docker ps \
-            --filter "label=com.docker.compose.project=${PR_PROJECT_NAME}" \
-            --format '{{.ID}}')
-          if (( ${#pr_containers[@]} == 0 )); then
-            echo "The PR test stack was not running."
-            exit 0
-          fi
-
-          marker="$RUNNER_TEMP/pr-stack-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.containers"
-          printf '%s\n' "${pr_containers[@]}" > "$marker"
-          docker stop --time 60 "${pr_containers[@]}"
-          echo "Stopped ${#pr_containers[@]} PR test containers without removing them."
-
       - name: Delete the dedicated release-test data
         run: |
           set -euo pipefail
-
-          source "$RELEASE_SCRIPTS/release_test_source.sh"
-          release_source assert
-
+          source "$RELEASE_SCRIPTS/release_test_runtime.sh"
+          require_release_host
+          test -d "$DATA_ROOT"
+          [[ ! -L "$DATA_ROOT" && "$(realpath -e "$DATA_ROOT")" == "$DATA_ROOT" ]] || {
+            echo "Refusing a non-canonical or symlinked root: $DATA_ROOT" >&2
+            exit 1
+          }
+          sudo mkdir -p "$DB_PATH" "$CARDANO_NODE_DIR"
           source "$RELEASE_SCRIPTS/release_test_compose.sh"
-          release_compose config --quiet
-          release_compose down
-
-          verify_compose_mounts unmounted
-
-          root_device=$(stat -c '%d' "$CLEANUP_ROOT")
-          host_mounts=$(
-            findmnt --json --output TARGET |
-              jq -er '.filesystems[] | recurse(.children[]?) | .target'
-          )
-          for data_path in "$DB_PATH" "$CARDANO_NODE_DIR"; do
-            sudo mkdir -p "$data_path"
-            if [[ ! -d "$data_path" || -L "$data_path" ]]; then
-              echo "Refusing a missing, non-directory, or symlinked path: $data_path"
-              exit 1
-            fi
-            if [[ "$(realpath -e "$data_path")" != "$data_path" ]]; then
-              echo "Refusing a non-canonical data path: $data_path"
-              exit 1
-            fi
-            if [[ "$(stat -c '%d' "$data_path")" != "$root_device" ]]; then
-              echo "Refusing cleanup across a different filesystem: $data_path"
-              exit 1
-            fi
-            while IFS= read -r mount; do
-              if [[ "$mount" == "$data_path" || "$mount" == "$data_path"/* ]]; then
-                echo "Refusing cleanup across host mount $mount under $data_path."
-                exit 1
-              fi
-            done <<< "$host_mounts"
-            sudo find "$data_path" -xdev -mindepth 1 -delete
-          done
-          echo "Cleared $DB_PATH and $CARDANO_NODE_DIR for a clean resync."
+          reset_current_compose_release_data
 
       - name: Deploy pre-release images
         run: |
           set -euo pipefail
           source "$RELEASE_SCRIPTS/release_test_compose.sh"
           touch "$RUNNER_TEMP/release-deployed-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.marker"
-          release_compose up --detach --pull never --no-build
+          release_compose up --detach --pull never --no-build \
+            api yaci-indexer db cardano-node cardano-submit-api cardano-sync-waiter mithril
 
       - name: Wait for the clean Preprod resync to reach LIVE
         env:
@@ -223,8 +155,9 @@ jobs:
           set -euo pipefail
           source "$RELEASE_SCRIPTS/release_test_runtime.sh"
           source "$RELEASE_SCRIPTS/release_test_compose.sh"
-          wait_for_release_live http://127.0.0.1:8082 preprod "${PRERELEASE_TAG%-pre-release}"
+          wait_for_release_live http://127.0.0.1:8083 preprod "${PRERELEASE_TAG%-pre-release}"
           verify_compose_candidate
+          wait_for_preprod_token_metadata http://127.0.0.1:8083
 
       - name: Prepare E2E environment and wallet
         env: *e2e_env
@@ -232,8 +165,8 @@ jobs:
           set -euo pipefail
           export PATH="$HOME/.local/bin:$PATH"
           cd "$DEPLOY_DIR/tests/e2e"
-          mkdir -p "test-results/$GITHUB_RUN_ID"
-          # Keep the start marker outside the uploaded evidence directory.
+          evidence_dir="$RUNNER_TEMP/release-evidence-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          mkdir -p "$evidence_dir"
           touch "$RUNNER_TEMP/e2e-start-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.marker"
           uv sync --locked
           uv run python prepare_wallet.py check
@@ -244,7 +177,7 @@ jobs:
           set -euo pipefail
           export PATH="$HOME/.local/bin:$PATH"
           cd "$DEPLOY_DIR/tests/e2e"
-          junit="test-results/$GITHUB_RUN_ID/e2e-preprod.xml"
+          junit="$RUNNER_TEMP/release-evidence-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}/e2e-preprod.xml"
           uv run pytest -v --tb=short --junitxml="$junit"
 
           # Asserted here rather than through the artifact upload, so "the suite
@@ -256,7 +189,7 @@ jobs:
         run: |
           set -euo pipefail
           e2e_dir="$DEPLOY_DIR/tests/e2e"
-          evidence_dir="$e2e_dir/test-results/$GITHUB_RUN_ID"
+          evidence_dir="$RUNNER_TEMP/release-evidence-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           start_marker="$RUNNER_TEMP/e2e-start-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.marker"
           if [[ -f "$start_marker" && -d "$e2e_dir/logs" ]]; then
             mkdir -p "$evidence_dir/logs"
@@ -265,8 +198,8 @@ jobs:
               -exec cp -- {} "$evidence_dir/logs/" \;
           fi
 
-      - name: Tear down the release stack
-        if: ${{ always() }}
+      - name: Tear down failed Release Testing deployment
+        if: ${{ failure() }}
         run: |
           set -euo pipefail
 
@@ -275,16 +208,10 @@ jobs:
             echo "This run did not start the release stack, refusing to tear down a stack."
             exit 0
           fi
-          if [[ ! -d "$DEPLOY_DIR/.git" ]]; then
-            echo "Nothing was deployed, nothing to tear down."
-            exit 0
-          fi
-          source "$RELEASE_SCRIPTS/release_test_source.sh"
-          release_source assert
           source "$RELEASE_SCRIPTS/release_test_compose.sh"
 
           # Container logs are the only post-mortem left once the stack is gone.
-          evidence_dir="$DEPLOY_DIR/tests/e2e/test-results/$GITHUB_RUN_ID"
+          evidence_dir="$RUNNER_TEMP/release-evidence-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           mkdir -p "$evidence_dir"
           if ! release_compose logs --no-color --timestamps \
               > "$evidence_dir/compose.log" \
@@ -295,44 +222,12 @@ jobs:
           release_compose down
           mv "$marker" "${marker}.finished"
 
-      - name: Restore PR test containers
-        if: ${{ always() }}
-        run: |
-          set -euo pipefail
-          marker="$RUNNER_TEMP/pr-stack-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.containers"
-          if [[ ! -f "$marker" ]]; then
-            echo "The PR test stack was not running before pre-release testing."
-            exit 0
-          fi
-
-          mapfile -t pr_containers < "$marker"
-          if (( ${#pr_containers[@]} == 0 )); then
-            echo "The saved PR container list is empty."
-            exit 1
-          fi
-          for container in "${pr_containers[@]}"; do
-            project=$(docker inspect "$container" \
-              --format '{{index .Config.Labels "com.docker.compose.project"}}')
-            if [[ "$project" != "$PR_PROJECT_NAME" ]]; then
-              echo "Refusing to start container $container from project $project."
-              exit 1
-            fi
-          done
-          docker start "${pr_containers[@]}"
-          for container in "${pr_containers[@]}"; do
-            if [[ "$(docker inspect "$container" --format '{{.State.Running}}')" != "true" ]]; then
-              echo "PR container $container did not return to the running state."
-              exit 1
-            fi
-          done
-          echo "Restored ${#pr_containers[@]} PR test containers."
-
       - name: Upload E2E evidence
         if: ${{ always() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: preprod-e2e-${{ inputs.prerelease_tag }}
-          path: ${{ env.DEPLOY_DIR }}/tests/e2e/test-results/${{ github.run_id }}
+          path: ${{ runner.temp }}/release-evidence-${{ github.run_id }}-${{ github.run_attempt }}
           if-no-files-found: error
           overwrite: true
           retention-days: 30

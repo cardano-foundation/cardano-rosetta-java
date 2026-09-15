@@ -18,12 +18,6 @@ on:
       candidate_postgres_image:
         required: true
         type: string
-      expected_node_pvc_uid:
-        required: true
-        type: string
-      expected_postgres_pvc_uid:
-        required: true
-        type: string
       upgrade_api_image:
         required: true
         type: string
@@ -43,29 +37,23 @@ on:
 permissions:
   contents: read
 
-
 env:
   RELEASE_SCRIPTS: ${{ github.workspace }}/.release-automation/.github/scripts
   PRERELEASE_TAG: ${{ inputs.prerelease_tag }}
-  SOURCE_SHA: ${{ inputs.source_sha }}
-  GIT_CONFIG_COUNT: "1"
-  GIT_CONFIG_GLOBAL: /dev/null
-  GIT_CONFIG_KEY_0: core.hooksPath
-  GIT_CONFIG_SYSTEM: /dev/null
-  GIT_CONFIG_VALUE_0: /dev/null
 
   API_IMAGE: ${{ inputs.candidate_api_image }}
   CARDANO_NODE_IMAGE: ${{ inputs.candidate_cardano_node_image }}
   DB_SECRET_NAME: rosetta-db-secret
-  DEPLOY_DIR: /home/integration/release-tests/cardano-rosetta-java
+  DEPLOY_DIR: ${{ github.workspace }}/.release-target
   EXPECTED_HOST: zur2-s-d-100.colo2.cf-systems.internal
   EXPECTED_KUBE_SYSTEM_UID: 241a420f-223d-4a5f-bd98-3fb032657d6f
-  EXPECTED_NODE_PVC_UID: ${{ inputs.expected_node_pvc_uid }}
-  EXPECTED_POSTGRES_PVC_UID: ${{ inputs.expected_postgres_pvc_uid }}
   HELM_RELEASE: rosetta
   INDEXER_IMAGE: ${{ inputs.candidate_indexer_image }}
   MITHRIL_IMAGE: ${{ inputs.candidate_mithril_image }}
   POSTGRES_IMAGE: ${{ inputs.candidate_postgres_image }}
+  TOKEN_REGISTRY_BASE_URL: http://zur2-s-d-100.colo2.cf-systems.internal:8080/api
+  TOKEN_REGISTRY_ENABLED: "true"
+  K8S_MIN_FREE_GIB: "1100"
   K8S_STORAGE_ROOT: /var/lib/rancher/k3s/storage
   KUBECONFIG: /etc/rancher/k3s/k3s.yaml
   NAMESPACE: cardano
@@ -78,16 +66,6 @@ jobs:
     timeout-minutes: 180
     outputs:
       machine_specs: ${{ steps.machine.outputs.machine_specs }}
-      node_data_path: ${{ steps.volumes.outputs.node_data_path }}
-      node_pv: ${{ steps.volumes.outputs.node_pv }}
-      node_pv_uid: ${{ steps.volumes.outputs.node_pv_uid }}
-      node_pvc: ${{ steps.volumes.outputs.node_pvc }}
-      node_pvc_uid: ${{ steps.volumes.outputs.node_pvc_uid }}
-      postgres_data_path: ${{ steps.volumes.outputs.postgres_data_path }}
-      postgres_pv: ${{ steps.volumes.outputs.postgres_pv }}
-      postgres_pv_uid: ${{ steps.volumes.outputs.postgres_pv_uid }}
-      postgres_pvc: ${{ steps.volumes.outputs.postgres_pvc }}
-      postgres_pvc_uid: ${{ steps.volumes.outputs.postgres_pvc_uid }}
     steps:
       - &checkout_automation
         name: Check out immutable test automation
@@ -98,23 +76,23 @@ jobs:
           sparse-checkout: .github/scripts
           persist-credentials: false
 
-      - name: Validate K8s runner, release source and cluster
+      - &checkout_target
+        name: Check out immutable release source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: cardano-foundation/cardano-rosetta-java
+          ref: ${{ inputs.source_sha }}
+          path: .release-target
+          persist-credentials: false
+
+      - name: Validate K8s runner and cluster
         run: |
           set -euo pipefail
 
-          for command in ab cp curl findmnt git helm jq k3s kubectl lscpu mktemp python3 realpath stat sudo tee; do
+          for command in ab cp curl docker findmnt git helm jq k3s kubectl lscpu mktemp python3 realpath stat sudo tee; do
             command -v "$command"
           done
           sudo -n true
-          host_platform="$(uname -s)/$(uname -m)"
-          if [[ "$host_platform" != "Linux/x86_64" ]]; then
-            echo "Release images require a Linux/x86_64 K8s host, found $host_platform."
-            exit 1
-          fi
-          if [[ -z "$EXPECTED_NODE_PVC_UID" || -z "$EXPECTED_POSTGRES_PVC_UID" ]]; then
-            echo "Expected Mainnet test PVC UIDs are missing."
-            exit 1
-          fi
           if [[ "$K8S_STORAGE_ROOT" == "/" || "$(realpath -e "$K8S_STORAGE_ROOT")" != "$K8S_STORAGE_ROOT" || -L "$K8S_STORAGE_ROOT" ]]; then
             echo "K8S_STORAGE_ROOT must be a canonical, non-root directory."
             exit 1
@@ -126,9 +104,9 @@ jobs:
               raise SystemExit(f"Python 3.10+ is required, found {sys.version}")
           PY
 
-          source "$RELEASE_SCRIPTS/release_test_source.sh"
+          source "$RELEASE_SCRIPTS/release_test_runtime.sh"
           source "$RELEASE_SCRIPTS/release_test_k8s.sh"
-          release_source fetch
+          require_release_host
           verify_release_cluster
 
       - name: Validate K8s workload contract
@@ -155,12 +133,8 @@ jobs:
         id: volumes
         run: |
           set -euo pipefail
-          secret_key=$(kubectl get secret "$DB_SECRET_NAME" \
-            --namespace "$NAMESPACE" -o json | jq -r '.data["db-secret"] // ""')
-          if [[ -z "$secret_key" ]]; then
-            echo "$DB_SECRET_NAME does not contain a db-secret key."
-            exit 1
-          fi
+          source "$RELEASE_SCRIPTS/release_test_k8s.sh"
+          verify_release_database_secret
           postgres_pod="$HELM_RELEASE-postgresql-0"
           node_pod="$HELM_RELEASE-cardano-node-0"
           # shellcheck disable=SC2016
@@ -177,15 +151,11 @@ jobs:
             exit 1
           fi
 
-          source "$RELEASE_SCRIPTS/release_test_k8s.sh"
-          for volume in "node:$node_pvc:$EXPECTED_NODE_PVC_UID" "postgres:$postgres_pvc:$EXPECTED_POSTGRES_PVC_UID"; do
-            IFS=: read -r prefix pvc expected_pvc_uid <<< "$volume"
-            identity=$(verify_release_volume "$pvc" "$expected_pvc_uid")
-            IFS=$'\t' read -r pv pv_uid data_path <<< "$identity"
-            echo "${prefix}_pvc=$pvc" >> "$GITHUB_OUTPUT"
-            echo "${prefix}_pvc_uid=$expected_pvc_uid" >> "$GITHUB_OUTPUT"
-            echo "${prefix}_pv=$pv" >> "$GITHUB_OUTPUT"
-            echo "${prefix}_pv_uid=$pv_uid" >> "$GITHUB_OUTPUT"
+          for volume in "node:$node_pvc" "postgres:$postgres_pvc"; do
+            IFS=: read -r prefix pvc <<< "$volume"
+            pvc_uid=$(kubectl get pvc "$pvc" --namespace "$NAMESPACE" -o json | jq -r '.metadata.uid')
+            identity=$(verify_release_volume "$pvc" "$pvc_uid")
+            IFS=$'\t' read -r _pv _pv_uid data_path <<< "$identity"
             echo "${prefix}_data_path=$data_path" >> "$GITHUB_OUTPUT"
           done
 
@@ -206,59 +176,21 @@ jobs:
           PHASE="K8s upgrade source" SYNC_TIMEOUT_SECONDS=0 \
             wait_for_release_live "http://${api_ip}:8082" mainnet "$UPGRADE_FROM_TAG"
 
-
       - name: Render chart and prefetch candidate K8s images
         run: |
           set -euo pipefail
           source "$RELEASE_SCRIPTS/release_test_k8s.sh"
-          rendered="$RUNNER_TEMP/release-test-k8s-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.yaml"
-          release_helm template > "$rendered"
+          verify_and_prefetch_k8s_target
 
-          rendered_objects=$(kubectl create \
-            --dry-run=client \
-            --validate=false \
-            --filename "$rendered" \
-            --output json | jq -s '.')
-          if ! jq -e \
-            --arg release "$HELM_RELEASE" \
-            --arg api "$API_IMAGE" \
-            --arg indexer "$INDEXER_IMAGE" \
-            --arg node "$CARDANO_NODE_IMAGE" \
-            --arg mithril "$MITHRIL_IMAGE" \
-            --arg postgres "$POSTGRES_IMAGE" '
-              def resource($kind; $name):
-                .[] | select(.kind == $kind and .metadata.name == $name);
-              (resource("Deployment"; ($release + "-rosetta-api")) |
-                any(.spec.template.spec.containers[]; .name == "rosetta-api" and .image == $api) and
-                any(.spec.template.spec.initContainers[]; .name == "copy-node-config" and .image == $node)) and
-              (resource("Deployment"; ($release + "-yaci-indexer")) |
-                any(.spec.template.spec.containers[]; .name == "yaci-indexer" and .image == $indexer) and
-                any(.spec.template.spec.initContainers[]; .name == "wait-for-node-sync" and .image == $node) and
-                any(.spec.template.spec.initContainers[]; .name == "copy-node-config" and .image == $node)) and
-              (resource("StatefulSet"; ($release + "-cardano-node")) |
-                any(.spec.template.spec.containers[]; .name == "cardano-node" and .image == $node) and
-                any(.spec.template.spec.containers[]; .name == "cardano-submit-api" and .image == $node) and
-                any(.spec.template.spec.initContainers[]; .name == "mithril-download" and .image == $mithril)) and
-              (resource("StatefulSet"; ($release + "-postgresql")) |
-                any(.spec.template.spec.containers[]; .name == "postgresql" and .image == $postgres))
-            ' <<< "$rendered_objects"; then
-            echo "Rendered chart did not preserve the five resolved immutable image references."
-            exit 1
-          fi
-
-          for image in \
-            "$API_IMAGE" "$INDEXER_IMAGE" "$CARDANO_NODE_IMAGE" "$MITHRIL_IMAGE" "$POSTGRES_IMAGE"; do
-            sudo k3s ctr images pull "docker.io/${image}"
-          done
-
-      - name: Report projected K8s cleanup space
+      - name: Validate projected K8s cleanup space
         env:
           NODE_DATA_PATH: ${{ steps.volumes.outputs.node_data_path }}
           POSTGRES_DATA_PATH: ${{ steps.volumes.outputs.postgres_data_path }}
         run: |
           set -euo pipefail
           source "$RELEASE_SCRIPTS/release_test_runtime.sh"
-          report_release_cleanup_space "$K8S_STORAGE_ROOT" "$NODE_DATA_PATH" "$POSTGRES_DATA_PATH"
+          require_release_cleanup_space \
+            "$K8S_STORAGE_ROOT" "$K8S_MIN_FREE_GIB" "$NODE_DATA_PATH" "$POSTGRES_DATA_PATH"
 
       - name: Discover published Kubernetes baseline
         run: |
@@ -278,15 +210,26 @@ jobs:
     needs: preflight
     runs-on: [mainnet-server-colo2]
     timeout-minutes: 1440
+    outputs:
+      mutation_started: ${{ steps.mutation.outputs.started }}
     steps:
       - *checkout_automation
+      - *checkout_target
+      - name: Prepare K8s upgrade
+        run: |
+          set -euo pipefail
+          source "$RELEASE_SCRIPTS/release_test_k8s.sh"
+          verify_release_cluster
+
+      # Failures after this point may require destructive recovery.
+      - name: Mark K8s mutation boundary
+        id: mutation
+        run: echo "started=true" >> "$GITHUB_OUTPUT"
+
       - name: Upgrade K8s to pre-release
         run: |
           set -euo pipefail
-          source "$RELEASE_SCRIPTS/release_test_source.sh"
           source "$RELEASE_SCRIPTS/release_test_k8s.sh"
-          release_source checkout
-          verify_release_cluster
           release_helm upgrade
 
       - name: Wait for upgraded K8s deployment to reach LIVE
@@ -295,149 +238,25 @@ jobs:
           SYNC_TIMEOUT_SECONDS: "72000"
         run: &wait_for_k8s |
           set -euo pipefail
-          api_ip=$(kubectl get service "$HELM_RELEASE-rosetta-api" \
-            --namespace "$NAMESPACE" -o jsonpath='{.spec.clusterIP}')
-          endpoint="http://${api_ip}:8082"
-
-          source "$RELEASE_SCRIPTS/release_test_runtime.sh"
-          wait_for_release_live "$endpoint" mainnet "${PRERELEASE_TAG%-pre-release}"
-
           source "$RELEASE_SCRIPTS/release_test_k8s.sh"
-          verify_release_deployment rosetta-api "$API_IMAGE" copy-node-config
-          verify_release_deployment yaci-indexer "$INDEXER_IMAGE" wait-for-node-sync copy-node-config
-          load_release_workload statefulset cardano-node
-          verify_release_container cardano-node "$CARDANO_NODE_IMAGE"
-          verify_release_container cardano-submit-api "$CARDANO_NODE_IMAGE"
-          verify_release_init_container mithril-download "$MITHRIL_IMAGE"
-          load_release_workload statefulset postgresql
-          verify_release_container postgresql "$POSTGRES_IMAGE"
+          wait_for_k8s_target_live
 
   clean-resync:
+    # Recover only after a successful upgrade or a failure beyond the mutation boundary.
+    if: ${{ always() && !cancelled() && needs.preflight.result == 'success' && (needs.upgrade.result == 'success' || (needs.upgrade.result == 'failure' && needs.upgrade.outputs.mutation_started == 'true')) }}
     needs:
       - preflight
       - upgrade
-    runs-on: [mainnet-server-colo2]
-    timeout-minutes: 5760
-    steps:
-      - *checkout_automation
-      - name: Delete the verified K8s release data
-        env:
-          EXPECTED_NODE_DATA_PATH: ${{ needs.preflight.outputs.node_data_path }}
-          EXPECTED_NODE_PV: ${{ needs.preflight.outputs.node_pv }}
-          EXPECTED_NODE_PV_UID: ${{ needs.preflight.outputs.node_pv_uid }}
-          EXPECTED_NODE_PVC: ${{ needs.preflight.outputs.node_pvc }}
-          EXPECTED_NODE_PVC_UID: ${{ needs.preflight.outputs.node_pvc_uid }}
-          EXPECTED_POSTGRES_DATA_PATH: ${{ needs.preflight.outputs.postgres_data_path }}
-          EXPECTED_POSTGRES_PV: ${{ needs.preflight.outputs.postgres_pv }}
-          EXPECTED_POSTGRES_PV_UID: ${{ needs.preflight.outputs.postgres_pv_uid }}
-          EXPECTED_POSTGRES_PVC: ${{ needs.preflight.outputs.postgres_pvc }}
-          EXPECTED_POSTGRES_PVC_UID: ${{ needs.preflight.outputs.postgres_pvc_uid }}
-        run: |
-          set -euo pipefail
-
-          source "$RELEASE_SCRIPTS/release_test_source.sh"
-          source "$RELEASE_SCRIPTS/release_test_k8s.sh"
-          release_source checkout
-          verify_release_cluster
-
-          host_mounts=$(
-            findmnt --json --output TARGET |
-              jq -er '.filesystems[] | recurse(.children[]?) | .target'
-          )
-          for volume in \
-            "node|$EXPECTED_NODE_PVC|$EXPECTED_NODE_PVC_UID|$EXPECTED_NODE_PV|$EXPECTED_NODE_PV_UID|$EXPECTED_NODE_DATA_PATH" \
-            "postgres|$EXPECTED_POSTGRES_PVC|$EXPECTED_POSTGRES_PVC_UID|$EXPECTED_POSTGRES_PV|$EXPECTED_POSTGRES_PV_UID|$EXPECTED_POSTGRES_DATA_PATH"; do
-            IFS='|' read -r prefix pvc expected_pvc_uid expected_pv expected_pv_uid expected_data_path <<< "$volume"
-            identity=$(verify_release_volume "$pvc" "$expected_pvc_uid")
-            IFS=$'\t' read -r pv pv_uid data_path <<< "$identity"
-            if [[ "$pv" != "$expected_pv" || "$pv_uid" != "$expected_pv_uid" || "$data_path" != "$expected_data_path" ]]; then
-              echo "Persistent-volume identity changed after preflight: $prefix"
-              exit 1
-            fi
-            while IFS= read -r mount; do
-              if [[ "$mount" == "$data_path" || "$mount" == "$data_path"/* ]]; then
-                echo "Persistent-volume path contains host mount $mount: $prefix"
-                exit 1
-              fi
-            done <<< "$host_mounts"
-          done
-
-          kubectl scale \
-            statefulset/"$HELM_RELEASE-cardano-node" \
-            statefulset/"$HELM_RELEASE-postgresql" \
-            deployment/"$HELM_RELEASE-rosetta-api" \
-            deployment/"$HELM_RELEASE-yaci-indexer" \
-            --replicas=0 \
-            --namespace "$NAMESPACE"
-
-          helm uninstall "$HELM_RELEASE" \
-            --namespace "$NAMESPACE" \
-            --wait \
-            --timeout 30m
-
-          delete_pvc_with_uid() {
-            local pvc=$1
-            local uid=$2
-            # With --raw, kubectl sends the single file/stdin as the HTTP DELETE body.
-            kubectl delete \
-              --raw="/api/v1/namespaces/${NAMESPACE}/persistentvolumeclaims/${pvc}" \
-              --filename=- <<EOF
-          {
-            "apiVersion": "v1",
-            "kind": "DeleteOptions",
-            "preconditions": {"uid": "$uid"}
-          }
-          EOF
-          }
-          delete_pvc_with_uid "$EXPECTED_NODE_PVC" "$EXPECTED_NODE_PVC_UID"
-          delete_pvc_with_uid "$EXPECTED_POSTGRES_PVC" "$EXPECTED_POSTGRES_PVC_UID"
-
-          deadline=$((SECONDS + 7200))
-          while (( SECONDS < deadline )); do
-            pvc_json=$(kubectl get persistentvolumeclaims --namespace "$NAMESPACE" --output json)
-            remaining_pvcs=$(jq \
-              --arg node "$EXPECTED_NODE_PVC" \
-              --arg postgres "$EXPECTED_POSTGRES_PVC" \
-              '[.items[] | select(.metadata.name == $node or .metadata.name == $postgres)] | length' \
-              <<< "$pvc_json")
-            pv_json=$(kubectl get persistentvolumes --output json)
-            remaining_pvs=$(jq \
-              --arg node "$EXPECTED_NODE_PV" \
-              --arg postgres "$EXPECTED_POSTGRES_PV" \
-              '[.items[] | select(.metadata.name == $node or .metadata.name == $postgres)] | length' \
-              <<< "$pv_json")
-            remaining_paths=0
-            for data_path in "$EXPECTED_NODE_DATA_PATH" "$EXPECTED_POSTGRES_DATA_PATH"; do
-              if sudo test -e "$data_path"; then
-                (( remaining_paths += 1 ))
-              fi
-            done
-            free_gb=$(df --output=avail -BG "$K8S_STORAGE_ROOT" | awk 'NR == 2 {gsub(/G/, ""); print $1}')
-            if (( remaining_pvcs == 0 && remaining_pvs == 0 && remaining_paths == 0 )); then
-              echo "PVC, PV, local-path, and disk cleanup completed with ${free_gb}GiB available."
-              exit 0
-            fi
-            echo "Waiting for local-path cleanup: pvc=$remaining_pvcs pv=$remaining_pvs paths=$remaining_paths free=${free_gb}GiB."
-            sleep 30
-          done
-
-          echo "PVC deletion did not remove the bound PVs and paths."
-          exit 1
-
-      - name: Install clean K8s pre-release deployment
-        run: |
-          set -euo pipefail
-          source "$RELEASE_SCRIPTS/release_test_source.sh"
-          source "$RELEASE_SCRIPTS/release_test_k8s.sh"
-          release_source checkout
-          verify_release_cluster
-          release_helm install --create-namespace
-
-      - name: Wait for clean K8s resync to reach LIVE
-        env:
-          PHASE: Clean K8s resync
-          SYNC_TIMEOUT_SECONDS: "259200"
-        run: *wait_for_k8s
+    uses: ./.github/workflows/release-test-mainnet-clean-resync.yaml
+    with:
+      deployment: kubernetes
+      target_api_image: ${{ inputs.candidate_api_image }}
+      target_cardano_node_image: ${{ inputs.candidate_cardano_node_image }}
+      target_image_tag: ${{ inputs.prerelease_tag }}
+      target_indexer_image: ${{ inputs.candidate_indexer_image }}
+      target_mithril_image: ${{ inputs.candidate_mithril_image }}
+      target_postgres_image: ${{ inputs.candidate_postgres_image }}
+      target_source_sha: ${{ inputs.source_sha }}
 
   performance:
     needs:
@@ -447,13 +266,7 @@ jobs:
     timeout-minutes: 720
     steps:
       - *checkout_automation
-      - name: Prepare immutable K8s release harness
-        run: |
-          set -euo pipefail
-          source "$RELEASE_SCRIPTS/release_test_source.sh"
-          source "$RELEASE_SCRIPTS/release_test_k8s.sh"
-          release_source checkout
-          verify_release_cluster
+      - *checkout_target
 
       - name: Revalidate K8s candidate before performance testing
         env:
