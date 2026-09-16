@@ -4,6 +4,7 @@ import org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus;
 import org.openapitools.client.model.CallRequest;
 import org.openapitools.client.model.CallResponse;
 
+import jakarta.validation.constraints.NotNull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +29,7 @@ public interface CallService {
     /**
      * Resolve a supported Cardano address to its configured CIP-113 smart-wallet address
      */
-    CallResponse resolveSmartWalletAddress(CallRequest callRequest);
+    @NotNull CallResponse resolveSmartWalletAddress(@NotNull CallRequest callRequest);
 
     /**
      * Get a list of supported method names for the /call endpoint
