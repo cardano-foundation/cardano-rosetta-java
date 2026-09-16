@@ -1,0 +1,24 @@
+{
+  "test_name": "cip113 resolve base shared stake",
+  "description": "Two Base addresses with different payment keys but the same stake key resolve to the same smart wallet",
+  "network": "devkit",
+  "endpoint": "/call",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "method": "resolve_smart_wallet_addr",
+    "parameters": {
+      "address": "addr_test1qz75nqeurq7nfgyzmgu4e4emrjqk7qn3jpaf7krzp09vd9qqzppp5sllda3lrk5k7txy6kg5w2afqpfh2spwxxjc7t2sfqqr44"
+    }
+  },
+  "expected_response": {
+    "result": {
+      "account_identifier": {
+        "address": "addr_test1zqvca3jpwpvrtd0fvexseqs55em0zg0zkr26hzs7e0qw6wqqzppp5sllda3lrk5k7txy6kg5w2afqpfh2spwxxjc7t2srfn3an"
+      }
+    },
+    "idempotent": true
+  }
+}
