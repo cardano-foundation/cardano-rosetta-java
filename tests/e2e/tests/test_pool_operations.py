@@ -74,7 +74,7 @@ def test_pool_registration(
             client=rosetta_client,
             address=payment_address,
             required_amount=required_amount,
-            strategy="single",
+            strategy="multiple",
         )
 
         # 3. Build operations
@@ -157,6 +157,12 @@ def test_pool_registration(
         raise
 
 
+@pytest.mark.skip(
+    reason="POOL_REGISTRATION_CERT is stale: its cost of 3 ADA is below the "
+    "current minPoolCost, and the pool it registers is deregistered, so the "
+    "transaction owes the 500 ADA deposit this test does not fund. Needs a cert "
+    "regenerated with cardano-cli plus a balance that accounts for the deposit."
+)
 @pytest.mark.order(2)
 def test_pool_registration_with_cert(
     rosetta_client,

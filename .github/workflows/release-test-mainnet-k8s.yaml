@@ -1,0 +1,306 @@
+name: Pre-release testing - Mainnet K8s
+
+on:
+  workflow_call:
+    inputs:
+      candidate_api_image:
+        required: true
+        type: string
+      candidate_cardano_node_image:
+        required: true
+        type: string
+      candidate_indexer_image:
+        required: true
+        type: string
+      candidate_mithril_image:
+        required: true
+        type: string
+      candidate_postgres_image:
+        required: true
+        type: string
+      upgrade_api_image:
+        required: true
+        type: string
+      upgrade_indexer_image:
+        required: true
+        type: string
+      prerelease_tag:
+        required: true
+        type: string
+      upgrade_from_tag:
+        required: true
+        type: string
+      source_sha:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  RELEASE_SCRIPTS: ${{ github.workspace }}/.release-automation/.github/scripts
+  PRERELEASE_TAG: ${{ inputs.prerelease_tag }}
+
+  API_IMAGE: ${{ inputs.candidate_api_image }}
+  CARDANO_NODE_IMAGE: ${{ inputs.candidate_cardano_node_image }}
+  DB_SECRET_NAME: rosetta-db-secret
+  DEPLOY_DIR: ${{ github.workspace }}/.release-target
+  EXPECTED_HOST: zur2-s-d-100.colo2.cf-systems.internal
+  EXPECTED_KUBE_SYSTEM_UID: 241a420f-223d-4a5f-bd98-3fb032657d6f
+  HELM_RELEASE: rosetta
+  INDEXER_IMAGE: ${{ inputs.candidate_indexer_image }}
+  MITHRIL_IMAGE: ${{ inputs.candidate_mithril_image }}
+  POSTGRES_IMAGE: ${{ inputs.candidate_postgres_image }}
+  TOKEN_REGISTRY_BASE_URL: http://zur2-s-d-100.colo2.cf-systems.internal:8080/api
+  TOKEN_REGISTRY_ENABLED: "true"
+  K8S_MIN_FREE_GIB: "1100"
+  K8S_STORAGE_ROOT: /var/lib/rancher/k3s/storage
+  KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  NAMESPACE: cardano
+  UPGRADE_API_IMAGE: ${{ inputs.upgrade_api_image }}
+  UPGRADE_INDEXER_IMAGE: ${{ inputs.upgrade_indexer_image }}
+
+jobs:
+  preflight:
+    runs-on: [mainnet-server-colo2]
+    timeout-minutes: 180
+    outputs:
+      machine_specs: ${{ steps.machine.outputs.machine_specs }}
+    steps:
+      - &checkout_automation
+        name: Check out immutable test automation
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: .release-automation
+          sparse-checkout: .github/scripts
+          persist-credentials: false
+
+      - &checkout_target
+        name: Check out immutable release source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: cardano-foundation/cardano-rosetta-java
+          ref: ${{ inputs.source_sha }}
+          path: .release-target
+          persist-credentials: false
+
+      - name: Validate K8s runner and cluster
+        run: |
+          set -euo pipefail
+
+          for command in ab cp curl docker findmnt git helm jq k3s kubectl lscpu mktemp python3 realpath stat sudo tee; do
+            command -v "$command"
+          done
+          sudo -n true
+          if [[ "$K8S_STORAGE_ROOT" == "/" || "$(realpath -e "$K8S_STORAGE_ROOT")" != "$K8S_STORAGE_ROOT" || -L "$K8S_STORAGE_ROOT" ]]; then
+            echo "K8S_STORAGE_ROOT must be a canonical, non-root directory."
+            exit 1
+          fi
+          test -r "$KUBECONFIG"
+          python3 - <<'PY'
+          import sys
+          if sys.version_info < (3, 10):
+              raise SystemExit(f"Python 3.10+ is required, found {sys.version}")
+          PY
+
+          source "$RELEASE_SCRIPTS/release_test_runtime.sh"
+          source "$RELEASE_SCRIPTS/release_test_k8s.sh"
+          require_release_host
+          verify_release_cluster
+
+      - name: Validate K8s workload contract
+        run: |
+          set -euo pipefail
+          helm status "$HELM_RELEASE" --namespace "$NAMESPACE"
+          kubectl get statefulset \
+            "$HELM_RELEASE-cardano-node" \
+            "$HELM_RELEASE-postgresql" \
+            --namespace "$NAMESPACE"
+
+          api_history=$(kubectl get deployment "$HELM_RELEASE-rosetta-api" \
+            --namespace "$NAMESPACE" -o json | jq -r \
+            '.spec.template.spec.containers[0].env[] | select(.name == "REMOVE_SPENT_UTXOS") | .value')
+          indexer_history=$(kubectl get deployment "$HELM_RELEASE-yaci-indexer" \
+            --namespace "$NAMESPACE" -o json | jq -r \
+            '.spec.template.spec.containers[0].env[] | select(.name == "REMOVE_SPENT_UTXOS") | .value')
+          if [[ "$api_history" != "false" || "$indexer_history" != "false" ]]; then
+            echo "K8s release baseline must use full-history mode."
+            exit 1
+          fi
+
+      - name: Validate K8s database and persistent-volume identity
+        id: volumes
+        run: |
+          set -euo pipefail
+          source "$RELEASE_SCRIPTS/release_test_k8s.sh"
+          verify_release_database_secret
+          postgres_pod="$HELM_RELEASE-postgresql-0"
+          node_pod="$HELM_RELEASE-cardano-node-0"
+          # shellcheck disable=SC2016
+          kubectl exec "$postgres_pod" \
+            --namespace "$NAMESPACE" \
+            -- sh -c 'PGPASSWORD="$DB_SECRET" psql --username rosetta_db_admin --dbname rosetta-java --command "SELECT 1;"'
+
+          node_pvc=$(kubectl get pod "$node_pod" --namespace "$NAMESPACE" -o json | jq -r \
+            '.spec.volumes[] | select(.name == "node-data") | .persistentVolumeClaim.claimName // ""')
+          postgres_pvc=$(kubectl get pod "$postgres_pod" --namespace "$NAMESPACE" -o json | jq -r \
+            '.spec.volumes[] | select(.name == "pg-data") | .persistentVolumeClaim.claimName // ""')
+          if [[ -z "$node_pvc" || -z "$postgres_pvc" ]]; then
+            echo "Could not discover the release PVCs from the running StatefulSet pods."
+            exit 1
+          fi
+
+          for volume in "node:$node_pvc" "postgres:$postgres_pvc"; do
+            IFS=: read -r prefix pvc <<< "$volume"
+            pvc_uid=$(kubectl get pvc "$pvc" --namespace "$NAMESPACE" -o json | jq -r '.metadata.uid')
+            identity=$(verify_release_volume "$pvc" "$pvc_uid")
+            IFS=$'\t' read -r _pv _pv_uid data_path <<< "$identity"
+            echo "${prefix}_data_path=$data_path" >> "$GITHUB_OUTPUT"
+          done
+
+      - name: Validate K8s upgrade source
+        env:
+          UPGRADE_FROM_TAG: ${{ inputs.upgrade_from_tag }}
+        run: |
+          set -euo pipefail
+          source "$RELEASE_SCRIPTS/release_test_k8s.sh"
+          load_release_workload deployment rosetta-api
+          verify_release_container rosetta-api "$UPGRADE_API_IMAGE"
+          load_release_workload deployment yaci-indexer
+          verify_release_container yaci-indexer "$UPGRADE_INDEXER_IMAGE"
+
+          api_ip=$(kubectl get service "$HELM_RELEASE-rosetta-api" \
+            --namespace "$NAMESPACE" -o jsonpath='{.spec.clusterIP}')
+          source "$RELEASE_SCRIPTS/release_test_runtime.sh"
+          PHASE="K8s upgrade source" SYNC_TIMEOUT_SECONDS=0 \
+            wait_for_release_live "http://${api_ip}:8082" mainnet "$UPGRADE_FROM_TAG"
+
+      - name: Render chart and prefetch candidate K8s images
+        run: |
+          set -euo pipefail
+          source "$RELEASE_SCRIPTS/release_test_k8s.sh"
+          verify_and_prefetch_k8s_target
+
+      - name: Validate projected K8s cleanup space
+        env:
+          NODE_DATA_PATH: ${{ steps.volumes.outputs.node_data_path }}
+          POSTGRES_DATA_PATH: ${{ steps.volumes.outputs.postgres_data_path }}
+        run: |
+          set -euo pipefail
+          source "$RELEASE_SCRIPTS/release_test_runtime.sh"
+          require_release_cleanup_space \
+            "$K8S_STORAGE_ROOT" "$K8S_MIN_FREE_GIB" "$NODE_DATA_PATH" "$POSTGRES_DATA_PATH"
+
+      - name: Discover published Kubernetes baseline
+        run: |
+          set -euo pipefail
+          source "$RELEASE_SCRIPTS/release_test_performance.sh"
+          compare_release_performance kubernetes.md --check-baseline-only
+
+      - name: Capture runner configuration
+        id: machine
+        run: |
+          set -euo pipefail
+          source "$RELEASE_SCRIPTS/release_test_runtime.sh"
+          k3s_version=$(k3s --version | sed -n '1p')
+          capture_release_machine "$K8S_STORAGE_ROOT" "Mainnet K8s" "$k3s_version"
+
+  upgrade:
+    needs: preflight
+    runs-on: [mainnet-server-colo2]
+    timeout-minutes: 1440
+    outputs:
+      mutation_started: ${{ steps.mutation.outputs.started }}
+    steps:
+      - *checkout_automation
+      - *checkout_target
+      - name: Prepare K8s upgrade
+        run: |
+          set -euo pipefail
+          source "$RELEASE_SCRIPTS/release_test_k8s.sh"
+          verify_release_cluster
+
+      # Failures after this point may require destructive recovery.
+      - name: Mark K8s mutation boundary
+        id: mutation
+        run: echo "started=true" >> "$GITHUB_OUTPUT"
+
+      - name: Upgrade K8s to pre-release
+        run: |
+          set -euo pipefail
+          source "$RELEASE_SCRIPTS/release_test_k8s.sh"
+          release_helm upgrade
+
+      - name: Wait for upgraded K8s deployment to reach LIVE
+        env:
+          PHASE: Upgraded K8s deployment
+          SYNC_TIMEOUT_SECONDS: "72000"
+        run: &wait_for_k8s |
+          set -euo pipefail
+          source "$RELEASE_SCRIPTS/release_test_k8s.sh"
+          wait_for_k8s_target_live
+
+  clean-resync:
+    # Recover only after a successful upgrade or a failure beyond the mutation boundary.
+    if: ${{ always() && !cancelled() && needs.preflight.result == 'success' && (needs.upgrade.result == 'success' || (needs.upgrade.result == 'failure' && needs.upgrade.outputs.mutation_started == 'true')) }}
+    needs:
+      - preflight
+      - upgrade
+    uses: ./.github/workflows/release-test-mainnet-clean-resync.yaml
+    with:
+      deployment: kubernetes
+      target_api_image: ${{ inputs.candidate_api_image }}
+      target_cardano_node_image: ${{ inputs.candidate_cardano_node_image }}
+      target_image_tag: ${{ inputs.prerelease_tag }}
+      target_indexer_image: ${{ inputs.candidate_indexer_image }}
+      target_mithril_image: ${{ inputs.candidate_mithril_image }}
+      target_postgres_image: ${{ inputs.candidate_postgres_image }}
+      target_source_sha: ${{ inputs.source_sha }}
+
+  performance:
+    needs:
+      - preflight
+      - clean-resync
+    runs-on: [mainnet-server-colo2]
+    timeout-minutes: 720
+    steps:
+      - *checkout_automation
+      - *checkout_target
+
+      - name: Revalidate K8s candidate before performance testing
+        env:
+          PHASE: K8s performance preflight
+          SYNC_TIMEOUT_SECONDS: "0"
+        run: *wait_for_k8s
+
+      - name: Run legacy stability test against the K8s ClusterIP
+        id: stability
+        env:
+          MACHINE_SPECS: ${{ needs.preflight.outputs.machine_specs }}
+        run: |
+          set -euo pipefail
+          source "$RELEASE_SCRIPTS/release_test_performance.sh"
+          api_ip=$(kubectl get service "$HELM_RELEASE-rosetta-api" \
+            --namespace "$NAMESPACE" -o jsonpath='{.spec.clusterIP}')
+          run_release_stability "http://${api_ip}:8082"
+
+      - name: Compare with the latest published K8s result
+        env:
+          RESULT_DIR: ${{ steps.stability.outputs.result_dir }}
+        run: |
+          set -euo pipefail
+          source "$RELEASE_SCRIPTS/release_test_performance.sh"
+          compare_release_performance kubernetes.md \
+            --candidate-dir "$RESULT_DIR" --deployment "Mainnet K8s"
+          cat "$RESULT_DIR/performance-comparison.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload K8s performance evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: mainnet-k8s-performance-${{ inputs.prerelease_tag }}
+          path: ${{ steps.stability.outputs.result_dir }}
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 30

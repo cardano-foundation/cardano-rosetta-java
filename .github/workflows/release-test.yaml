@@ -1,0 +1,243 @@
+name: Pre-release testing
+run-name: Test published pre-release ${{ inputs.release_tag }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: GitHub pre-release tag, for example 2.4.0
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prerelease-testing
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      api_image: ${{ steps.images.outputs.api_image }}
+      cardano_node_image: ${{ steps.images.outputs.cardano_node_image }}
+      indexer_image: ${{ steps.images.outputs.indexer_image }}
+      mithril_image: ${{ steps.images.outputs.mithril_image }}
+      postgres_image: ${{ steps.images.outputs.postgres_image }}
+      prerelease_tag: ${{ steps.metadata.outputs.prerelease_tag }}
+      source_sha: ${{ steps.source.outputs.source_sha }}
+      upgrade_api_image: ${{ steps.images.outputs.upgrade_api_image }}
+      upgrade_from_tag: ${{ steps.lineage.outputs.upgrade_from_tag }}
+      upgrade_indexer_image: ${{ steps.images.outputs.upgrade_indexer_image }}
+    steps:
+      - name: Validate release identity
+        id: metadata
+        env:
+          EXPECTED_REPOSITORY: cardano-foundation/cardano-rosetta-java
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REPOSITORY" != "$EXPECTED_REPOSITORY" ]]; then
+            echo "Pre-release testing must run from $EXPECTED_REPOSITORY, not $GITHUB_REPOSITORY."
+            exit 1
+          fi
+          if [[ ! "$RELEASE_TAG" =~ ^2\.[0-9]+\.[0-9]+$ ]]; then
+            echo "release_tag must identify a 2.x GitHub pre-release."
+            exit 1
+          fi
+          echo "prerelease_tag=${RELEASE_TAG}-pre-release" >> "$GITHUB_OUTPUT"
+
+      - name: Check out the official release tag
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          ref: refs/tags/${{ inputs.release_tag }}
+
+      - name: Resolve immutable release source
+        id: source
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          source_sha=$(git rev-parse "refs/tags/${RELEASE_TAG}^{commit}")
+          if [[ "$(git rev-parse HEAD)" != "$source_sha" ]]; then
+            echo "The release tag and checkout do not identify the same source commit."
+            exit 1
+          fi
+          echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
+          echo "Official candidate source: $RELEASE_TAG at $source_sha"
+
+      - name: Derive previous stable release
+        id: lineage
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        with:
+          script: |
+            const parse = (tag) => {
+              const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(tag);
+              return match ? match.slice(1).map(Number) : null;
+            };
+            const compare = (left, right) => {
+              for (let index = 0; index < 3; index += 1) {
+                if (left[index] !== right[index]) return left[index] - right[index];
+              }
+              return 0;
+            };
+
+            const candidateTag = process.env.RELEASE_TAG;
+            const candidateVersion = parse(candidateTag);
+            const releases = await github.paginate(github.rest.repos.listReleases, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100,
+            });
+            const current = releases.find((release) => release.tag_name === candidateTag);
+            if (!current || current.draft || !current.prerelease) {
+              core.setFailed(`${candidateTag} must be an existing, non-draft GitHub pre-release.`);
+              return;
+            }
+            const previous = releases
+              .filter((release) => !release.draft && !release.prerelease)
+              .map((release) => ({ release, version: parse(release.tag_name) }))
+              .filter(({ version }) => version && version[0] === candidateVersion[0] && compare(version, candidateVersion) < 0)
+              .sort((left, right) => compare(right.version, left.version))[0];
+
+            if (!previous) {
+              core.setFailed(`No earlier stable GitHub release exists for ${candidateTag}.`);
+              return;
+            }
+            core.setOutput('upgrade_from_tag', previous.release.tag_name);
+            core.info(`Latest earlier stable GitHub release: ${previous.release.tag_name}`);
+
+      - name: Check release prerequisites
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          revision=$(sed -n 's:.*<revision>\(.*\)</revision>.*:\1:p' pom.xml | head -1)
+          if [[ "$revision" != "$RELEASE_TAG" ]]; then
+            echo "pom.xml <revision> is '$revision' but the release tag is '$RELEASE_TAG'."
+            exit 1
+          fi
+
+          for required_path in \
+            tests/e2e/pyproject.toml \
+            tests/e2e/uv.lock \
+            tests/e2e/prepare_wallet.py \
+            tests/legacy-load-tests/stability_test.py \
+            tests/legacy-load-tests/data/mainnet-data.csv \
+            helm/cardano-rosetta-java/Chart.yaml \
+            helm/cardano-rosetta-java/values-k3s.yaml \
+            docker-compose.yaml; do
+            if [[ ! -f "$required_path" ]]; then
+              echo "Release source is unsupported: missing $required_path."
+              exit 1
+            fi
+          done
+
+      - name: Check out immutable image resolver
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: .release-automation
+          sparse-checkout: .github/scripts/release_test_images.sh
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Set up Docker Buildx for image inspection
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Resolve published Linux AMD64 test artifacts
+        id: images
+        env:
+          PRERELEASE_TAG: ${{ steps.metadata.outputs.prerelease_tag }}
+          UPGRADE_FROM_TAG: ${{ steps.lineage.outputs.upgrade_from_tag }}
+        run: |
+          set -euo pipefail
+
+          source "$GITHUB_WORKSPACE/.release-automation/.github/scripts/release_test_images.sh"
+          resolve_release_images "$PRERELEASE_TAG"
+          resolve_published_image \
+            cardanofoundation/cardano-rosetta-java-api "$UPGRADE_FROM_TAG" upgrade_api_image
+          resolve_published_image \
+            cardanofoundation/cardano-rosetta-java-indexer "$UPGRADE_FROM_TAG" upgrade_indexer_image
+
+  preprod:
+    needs: validate
+    uses: ./.github/workflows/release-test-preprod.yaml
+    secrets:
+      BLOCKFROST_PROJECT_ID: ${{ secrets.BLOCKFROST_PROJECT_ID }}
+      TEST_WALLET_MNEMONIC: ${{ secrets.TEST_WALLET_MNEMONIC }}
+    with:
+      candidate_api_image: ${{ needs.validate.outputs.api_image }}
+      candidate_cardano_node_image: ${{ needs.validate.outputs.cardano_node_image }}
+      candidate_indexer_image: ${{ needs.validate.outputs.indexer_image }}
+      candidate_mithril_image: ${{ needs.validate.outputs.mithril_image }}
+      candidate_postgres_image: ${{ needs.validate.outputs.postgres_image }}
+      prerelease_tag: ${{ needs.validate.outputs.prerelease_tag }}
+      source_sha: ${{ needs.validate.outputs.source_sha }}
+
+  mainnet-k8s:
+    needs: validate
+    uses: ./.github/workflows/release-test-mainnet-k8s.yaml
+    with:
+      candidate_api_image: ${{ needs.validate.outputs.api_image }}
+      candidate_cardano_node_image: ${{ needs.validate.outputs.cardano_node_image }}
+      candidate_indexer_image: ${{ needs.validate.outputs.indexer_image }}
+      candidate_mithril_image: ${{ needs.validate.outputs.mithril_image }}
+      candidate_postgres_image: ${{ needs.validate.outputs.postgres_image }}
+      prerelease_tag: ${{ needs.validate.outputs.prerelease_tag }}
+      source_sha: ${{ needs.validate.outputs.source_sha }}
+      upgrade_api_image: ${{ needs.validate.outputs.upgrade_api_image }}
+      upgrade_from_tag: ${{ needs.validate.outputs.upgrade_from_tag }}
+      upgrade_indexer_image: ${{ needs.validate.outputs.upgrade_indexer_image }}
+
+  mainnet-compose:
+    needs: validate
+    uses: ./.github/workflows/release-test-mainnet-compose.yaml
+    with:
+      candidate_api_image: ${{ needs.validate.outputs.api_image }}
+      candidate_cardano_node_image: ${{ needs.validate.outputs.cardano_node_image }}
+      candidate_indexer_image: ${{ needs.validate.outputs.indexer_image }}
+      candidate_mithril_image: ${{ needs.validate.outputs.mithril_image }}
+      candidate_postgres_image: ${{ needs.validate.outputs.postgres_image }}
+      prerelease_tag: ${{ needs.validate.outputs.prerelease_tag }}
+      source_sha: ${{ needs.validate.outputs.source_sha }}
+      upgrade_api_image: ${{ needs.validate.outputs.upgrade_api_image }}
+      upgrade_from_tag: ${{ needs.validate.outputs.upgrade_from_tag }}
+      upgrade_indexer_image: ${{ needs.validate.outputs.upgrade_indexer_image }}
+
+  summary:
+    if: ${{ always() }}
+    needs:
+      - validate
+      - preprod
+      - mainnet-k8s
+      - mainnet-compose
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Write pre-release testing summary
+        run: |
+          cat <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          # Pre-release testing
+
+          | Test target | Result |
+          |---|---|
+          | Candidate and upgrade-artifact validation | `${{ needs.validate.result }}` |
+          | Preprod E2E | `${{ needs.preprod.result }}` |
+          | Mainnet K8s evidence generation | `${{ needs['mainnet-k8s'].result }}` |
+          | Mainnet Docker Compose evidence generation | `${{ needs['mainnet-compose'].result }}` |
+
+          A successful Mainnet job means the deployment and performance evidence was generated. It does not accept a performance regression. Review both uploaded comparison reports before the release decision.
+
+          If a Mainnet job failed after mutation began, treat that deployment as unavailable or partial. A clean-resync retry must rerun the reusable job from its reset boundary; never resume installation over partial data.
+          EOF
+
+          [[ "${{ needs.validate.result }}" == "success" &&
+             "${{ needs.preprod.result }}" == "success" &&
+             "${{ needs['mainnet-k8s'].result }}" == "success" &&
+             "${{ needs['mainnet-compose'].result }}" == "success" ]]
