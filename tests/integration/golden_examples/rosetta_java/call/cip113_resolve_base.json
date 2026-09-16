@@ -1,0 +1,24 @@
+{
+  "test_name": "cip113 resolve base",
+  "description": "Resolve a key/key Base address: its stake key hash (not its payment key hash) becomes the stake credential of the smart wallet",
+  "network": "devkit",
+  "endpoint": "/call",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "method": "resolve_smart_wallet_addr",
+    "parameters": {
+      "address": "addr_test1qza5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cqzppp5sllda3lrk5k7txy6kg5w2afqpfh2spwxxjc7t2s52m4r0"
+    }
+  },
+  "expected_response": {
+    "result": {
+      "account_identifier": {
+        "address": "addr_test1zqvca3jpwpvrtd0fvexseqs55em0zg0zkr26hzs7e0qw6wqqzppp5sllda3lrk5k7txy6kg5w2afqpfh2spwxxjc7t2srfn3an"
+      }
+    },
+    "idempotent": true
+  }
+}

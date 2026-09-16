@@ -1,0 +1,24 @@
+{
+  "test_name": "(-) cip113 resolve valid prefix invalid body",
+  "description": "Negative test: a string with a valid-looking addr_test1 prefix but an invalid body still fails bech32 validation",
+  "network": "devkit",
+  "endpoint": "/call",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "method": "resolve_smart_wallet_addr",
+    "parameters": {
+      "address": "addr_test1notavalidaddressxyz"
+    }
+  },
+  "expected_error": {
+    "code": 5067,
+    "message": "Invalid address for resolve_smart_wallet_addr",
+    "retriable": false,
+    "details": {
+      "message": "The provided address is malformed or has an unknown era"
+    }
+  }
+}
