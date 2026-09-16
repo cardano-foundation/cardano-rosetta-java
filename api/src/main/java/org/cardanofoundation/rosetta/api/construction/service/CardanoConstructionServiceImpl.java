@@ -47,6 +47,7 @@ import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.time.OfflineSlotService;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.cardanofoundation.rosetta.common.util.HexUtils;
 import org.cardanofoundation.rosetta.common.util.OperationParseUtil;
 import org.cardanofoundation.rosetta.common.util.ValidateParseUtil;
 import org.openapitools.client.model.*;
@@ -72,7 +73,9 @@ import static org.cardanofoundation.rosetta.common.util.Constants.*;
 @RequiredArgsConstructor
 public class CardanoConstructionServiceImpl implements CardanoConstructionService {
 
-  private static final int CREDENTIAL_HASH_LENGTH = 28;
+  private static final int SCRIPT_HASH_HEX_LENGTH = 56;
+  private static final int RAW_KEY_HEX_LENGTH = 64;
+  private static final int EXTENDED_KEY_HEX_LENGTH = 128;
 
   private final LedgerBlockService ledgerBlockService;
   private final ProtocolParamService protocolParamService;
@@ -632,18 +635,11 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
     if (scriptHash.isEmpty()) {
       throw ExceptionFactory.cip113PlbScriptHashNotConfigured();
     }
-    byte[] scriptHashBytes;
-    try {
-      scriptHashBytes = decodeHexString(scriptHash);
-    } catch (RuntimeException exception) {
+    if (scriptHash.length() != SCRIPT_HASH_HEX_LENGTH || !HexUtils.isHexString(scriptHash)) {
       throw ExceptionFactory.cip113PlbScriptHashInvalid();
     }
 
-    if (scriptHashBytes.length != CREDENTIAL_HASH_LENGTH) {
-      throw ExceptionFactory.cip113PlbScriptHashInvalid();
-    }
-
-    return scriptHashBytes;
+    return decodeHexString(scriptHash);
   }
 
   private HdPublicKey getValidatedCip113PublicKey(PublicKey publicKey) {
@@ -653,12 +649,15 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
       throw ExceptionFactory.invalidPublicKeyFormat();
     }
 
-    try {
-      return getHdPublicKeyFromRosettaKey(publicKey);
-    } catch (RuntimeException exception) {
-      log.error("Invalid CIP-113 public key", exception);
+    String hexBytes = publicKey.getHexBytes();
+    if (hexBytes == null
+        || !HexUtils.isHexString(hexBytes)
+        || (hexBytes.length() != RAW_KEY_HEX_LENGTH && hexBytes.length() != EXTENDED_KEY_HEX_LENGTH)) {
+      log.error("Invalid CIP-113 public key hex bytes");
       throw ExceptionFactory.invalidPublicKeyFormat();
     }
+
+    return getHdPublicKeyFromRosettaKey(publicKey);
   }
 
   public HdPublicKey getHdPublicKeyFromRosettaKey(PublicKey publicKey) {
