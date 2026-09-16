@@ -11,13 +11,14 @@ import com.bloxbean.cardano.client.address.Credential;
 
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.util.HexUtils;
 
 import static com.bloxbean.cardano.client.util.HexUtil.decodeHexString;
 
 @Service
 public class Cip113AddressServiceImpl implements Cip113AddressService {
 
-  private static final int CREDENTIAL_HASH_LENGTH = 28;
+  private static final int SCRIPT_HASH_HEX_LENGTH = 56;
 
   @Value("${cardano.rosetta.CIP113_BASE_SCRIPT_HASH:}")
   private String cip113BaseScriptHash;
@@ -31,18 +32,11 @@ public class Cip113AddressServiceImpl implements Cip113AddressService {
     if (scriptHash.isEmpty()) {
       throw ExceptionFactory.cip113PlbScriptHashNotConfigured();
     }
-    byte[] scriptHashBytes;
-    try {
-      scriptHashBytes = decodeHexString(scriptHash);
-    } catch (Exception e) {
+    if (scriptHash.length() != SCRIPT_HASH_HEX_LENGTH || !HexUtils.isHexString(scriptHash)) {
       throw ExceptionFactory.cip113PlbScriptHashInvalid();
     }
 
-    if (scriptHashBytes.length != CREDENTIAL_HASH_LENGTH) {
-      throw ExceptionFactory.cip113PlbScriptHashInvalid();
-    }
-
-    return scriptHashBytes;
+    return decodeHexString(scriptHash);
   }
 
   @Override
