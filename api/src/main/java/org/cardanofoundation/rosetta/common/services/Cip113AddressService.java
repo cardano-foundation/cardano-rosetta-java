@@ -1,13 +1,15 @@
 package org.cardanofoundation.rosetta.common.services;
 
+import jakarta.validation.constraints.NotNull;
+
 import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 
 public interface Cip113AddressService {
 
-  byte[] getConfiguredScriptHash();
+  @NotNull byte[] getConfiguredScriptHash();
 
-  String buildSmartWalletAddress(
-      byte[] configuredScriptHash,
-      byte[] userCredential,
-      NetworkEnum network);
+  @NotNull String buildSmartWalletAddress(
+      @NotNull byte[] configuredScriptHash,
+      @NotNull byte[] userCredential,
+      @NotNull NetworkEnum network);
 }

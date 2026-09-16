@@ -5,6 +5,7 @@ import com.bloxbean.cardano.client.address.AddressType;
 import com.bloxbean.cardano.client.address.util.AddressEncoderDecoderUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import jakarta.validation.constraints.NotNull;
 import org.cardanofoundation.rosetta.api.error.model.domain.BlockParsingErrorReviewDTO;
 import org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus;
 import org.cardanofoundation.rosetta.api.error.model.entity.ErrorReviewEntity;
@@ -31,7 +32,7 @@ public class CallServiceImpl implements CallService {
 
     private static final String METHOD_GET_PARSE_ERROR_BLOCKS = "get_parse_error_blocks";
     private static final String METHOD_MARK_PARSE_ERROR_BLOCK_CHECKED = "mark_parse_error_block_checked";
-    private static final String METHOD_RESOLVE_SMART_WALLET_ADDRESS = "resolve_smart_wallet_addr";
+    private static final String METHOD_RESOLVE_SMART_WALLET_ADDR = "resolve_smart_wallet_addr";
     private static final int CREDENTIAL_HASH_LENGTH = 28;
     private static final int ENTERPRISE_ADDRESS_LENGTH = 1 + CREDENTIAL_HASH_LENGTH;
     private static final int BASE_ADDRESS_LENGTH = 1 + (2 * CREDENTIAL_HASH_LENGTH);
@@ -42,7 +43,7 @@ public class CallServiceImpl implements CallService {
     @Override
     public List<String> getSupportedMethods() {
         return List.of(METHOD_GET_PARSE_ERROR_BLOCKS, METHOD_MARK_PARSE_ERROR_BLOCK_CHECKED,
-                METHOD_RESOLVE_SMART_WALLET_ADDRESS);
+                METHOD_RESOLVE_SMART_WALLET_ADDR);
     }
 
     @Override
@@ -54,14 +55,14 @@ public class CallServiceImpl implements CallService {
         return switch (method) {
             case METHOD_GET_PARSE_ERROR_BLOCKS -> getParseErrorBlocks(extractStatusParameter(callRequest.getParameters()).orElse(null));
             case METHOD_MARK_PARSE_ERROR_BLOCK_CHECKED -> markParseErrorBlockChecked(callRequest.getParameters());
-            case METHOD_RESOLVE_SMART_WALLET_ADDRESS -> resolveSmartWalletAddress(callRequest);
+            case METHOD_RESOLVE_SMART_WALLET_ADDR -> resolveSmartWalletAddress(callRequest);
 
             default -> throw ExceptionFactory.callMethodNotSupported();
         };
     }
 
     @Override
-    public CallResponse resolveSmartWalletAddress(CallRequest callRequest) {
+    public @NotNull CallResponse resolveSmartWalletAddress(@NotNull CallRequest callRequest) {
         String inputAddress = extractAddressParameter(callRequest.getParameters());
         NetworkEnum network = NetworkEnum.findByName(callRequest.getNetworkIdentifier().getNetwork())
                 .orElseThrow(ExceptionFactory::invalidNetworkError);
@@ -80,7 +81,7 @@ public class CallServiceImpl implements CallService {
         Address address;
         try {
             address = new Address(inputAddress);
-        } catch (RuntimeException exception) {
+        } catch (Exception e) {
             throw ExceptionFactory.cip113InvalidAddress(
                     "The provided Shelley address could not be parsed");
         }
@@ -107,11 +108,7 @@ public class CallServiceImpl implements CallService {
         return response;
     }
 
-    private static String extractAddressParameter(Map<String, Object> parameters) {
-        if (parameters == null) {
-            throw ExceptionFactory.callParameterMissing("address");
-        }
-
+    private static String extractAddressParameter(@NotNull Map<String, Object> parameters) {
         Object addressValue = parameters.get("address");
         if (!(addressValue instanceof String address) || address.isBlank()) {
             throw ExceptionFactory.callParameterInvalid(
@@ -207,7 +204,7 @@ public class CallServiceImpl implements CallService {
             expectedPrefix = AddressEncoderDecoderUtil.getPrefixHeader(address.getAddressType())
                     + AddressEncoderDecoderUtil.getPrefixTail(
                     AddressEncoderDecoderUtil.getNetworkId(address.getNetwork()));
-        } catch (RuntimeException exception) {
+        } catch (Exception e) {
             throw ExceptionFactory.cip113InvalidAddress(
                     "The provided Shelley address has an invalid address type");
         }
