@@ -178,7 +178,7 @@ public class RosettaConstants {
         CIP113_PLB_SCRIPT_HASH_INVALID("CIP113_BASE_SCRIPT_HASH must be a 28-byte hex string", 5064),
         CIP113_ADDRESS_NOT_SMART_WALLET("Address is not a CIP-113 smart wallet", 5065),
         CIP113_ADDRESS_TYPE_NOT_SUPPORTED("Address type not supported for resolve_smart_wallet_addr", 5066),
-        CIP113_INVALID_ADDRESS("Invalid address for resolve_smart_wallet_addr", 5068);
+        CIP113_INVALID_ADDRESS("Invalid address for resolve_smart_wallet_addr", 5067);
 
         final String message;
         final int code;
