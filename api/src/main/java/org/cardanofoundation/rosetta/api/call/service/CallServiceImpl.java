@@ -78,13 +78,7 @@ public class CallServiceImpl implements CallService {
                     "Byron addresses are not supported");
         }
 
-        Address address;
-        try {
-            address = new Address(inputAddress);
-        } catch (Exception e) {
-            throw ExceptionFactory.cip113InvalidAddress(
-                    "The provided Shelley address could not be parsed");
-        }
+        Address address = new Address(inputAddress);
 
         requireCanonicalPrefix(address);
 
@@ -199,15 +193,9 @@ public class CallServiceImpl implements CallService {
     }
 
     private static void requireCanonicalPrefix(Address address) {
-        String expectedPrefix;
-        try {
-            expectedPrefix = AddressEncoderDecoderUtil.getPrefixHeader(address.getAddressType())
-                    + AddressEncoderDecoderUtil.getPrefixTail(
-                    AddressEncoderDecoderUtil.getNetworkId(address.getNetwork()));
-        } catch (Exception e) {
-            throw ExceptionFactory.cip113InvalidAddress(
-                    "The provided Shelley address has an invalid address type");
-        }
+        String expectedPrefix = AddressEncoderDecoderUtil.getPrefixHeader(address.getAddressType())
+                + AddressEncoderDecoderUtil.getPrefixTail(
+                AddressEncoderDecoderUtil.getNetworkId(address.getNetwork()));
 
         if (!expectedPrefix.equals(address.getPrefix())) {
             throw ExceptionFactory.cip113InvalidAddress(
