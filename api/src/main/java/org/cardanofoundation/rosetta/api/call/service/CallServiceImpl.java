@@ -1,11 +1,9 @@
 package org.cardanofoundation.rosetta.api.call.service;
 
 import com.bloxbean.cardano.client.address.Address;
-import com.bloxbean.cardano.client.address.AddressType;
 import com.bloxbean.cardano.client.address.util.AddressEncoderDecoderUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import jakarta.validation.constraints.NotNull;
 import org.cardanofoundation.rosetta.api.error.model.domain.BlockParsingErrorReviewDTO;
 import org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus;
 import org.cardanofoundation.rosetta.api.error.model.entity.ErrorReviewEntity;
@@ -20,6 +18,7 @@ import org.openapitools.client.model.CallResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.validation.constraints.NotNull;
 import javax.annotation.Nullable;
 import java.util.*;
 
@@ -113,13 +112,7 @@ public class CallServiceImpl implements CallService {
     }
 
     private static byte[] resolveUserCredential(Address address, byte[] configuredScriptHash) {
-        AddressType addressType = address.getAddressType();
-        if (addressType == null) {
-            throw ExceptionFactory.cip113AddressTypeNotSupported(
-                    "Address has an unknown type");
-        }
-
-        return switch (addressType) {
+        return switch (address.getAddressType()) {
             case Enterprise -> resolveEnterpriseCredential(address);
             case Base -> resolveBaseCredential(address, configuredScriptHash);
             case Ptr -> throw ExceptionFactory.cip113AddressTypeNotSupported(
