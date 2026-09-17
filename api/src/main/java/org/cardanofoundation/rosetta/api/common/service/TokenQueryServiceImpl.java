@@ -41,6 +41,9 @@ public class TokenQueryServiceImpl implements TokenQueryService {
     private static final String CIP68_FUNGIBLE_TOKEN_PREFIX = "0014df10";
     private static final String CIP68_REFERENCE_TOKEN_PREFIX = "000643b0";
 
+    /** CIP-26 tops out around 19 in practice; 255 leaves headroom. */
+    private static final long MAX_DECIMALS = 255;
+
     private final TokenMetadataRepository tokenMetadataRepository;
     private final MetadataReferenceNftRepository metadataReferenceNftRepository;
 
@@ -193,9 +196,9 @@ public class TokenQueryServiceImpl implements TokenQueryService {
         Optional.ofNullable(cip26.getTicker()).ifPresent(builder::ticker);
         Optional.ofNullable(cip26.getUrl()).ifPresent(builder::url);
 
-        if (cip26.getDecimals() != null) {
-            builder.decimals(Math.toIntExact(cip26.getDecimals()));
-        }
+        Optional.ofNullable(sanitizeDecimals(cip26.getDecimals(), cip26.getSubject()))
+                .ifPresent(builder::decimals);
+
         if (logoEnabled && cip26.getLogo() != null) {
             builder.logo(TokenRegistryCurrencyData.LogoData.builder()
                     .format(TokenRegistryCurrencyData.LogoFormat.BASE64)
@@ -216,9 +219,9 @@ public class TokenQueryServiceImpl implements TokenQueryService {
         Optional.ofNullable(cip68.getUrl()).ifPresent(builder::url);
         Optional.ofNullable(cip68.getVersion()).ifPresent(v -> builder.version(BigDecimal.valueOf(v)));
 
-        if (cip68.getDecimals() != null) {
-            builder.decimals(Math.toIntExact(cip68.getDecimals()));
-        }
+        Optional.ofNullable(sanitizeDecimals(cip68.getDecimals(),
+                        cip68.getPolicyId() + cip68.getAssetName()))
+                .ifPresent(builder::decimals);
 
         if (logoEnabled && cip68.getLogo() != null) {
             builder.logo(TokenRegistryCurrencyData.LogoData.builder()
@@ -226,6 +229,23 @@ public class TokenQueryServiceImpl implements TokenQueryService {
                     .value(cip68.getLogo())
                     .build());
         }
+    }
+
+    /**
+     * Narrows stored decimals to an {@code int}, or {@code null} to keep the 0 default.
+     * CIP-68 decimals come from an on-chain datum, so a bad value must not fail the batch.
+     */
+    @Nullable
+    private static Integer sanitizeDecimals(@Nullable Long decimals, String identifier) {
+        if (decimals == null) {
+            return null;
+        }
+        if (decimals < 0 || decimals > MAX_DECIMALS) {
+            log.warn("Ignoring out-of-range decimals {} for {}", decimals, identifier);
+            return null;
+        }
+
+        return decimals.intValue();
     }
 
     /**
