@@ -70,7 +70,6 @@ def pytest_sessionstart(session):
         "REMOVE_SPENT_UTXOS": os.environ.get("REMOVE_SPENT_UTXOS", ""),
         "REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT": os.environ.get("REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT", ""),
         "TOKEN_REGISTRY_ENABLED": os.environ.get("TOKEN_REGISTRY_ENABLED", ""),
-        "TOKEN_REGISTRY_BASE_URL": os.environ.get("TOKEN_REGISTRY_BASE_URL", ""),
         "PEER_DISCOVERY": os.environ.get("PEER_DISCOVERY", ""),
     }
 
