@@ -515,4 +515,62 @@ class TokenQueryServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("Out-of-range decimals")
+    class OutOfRangeDecimalsTests {
+
+        @Test
+        @DisplayName("CIP-68 decimals beyond int range should fall back to 0, not throw")
+        void cip68DecimalsBeyondIntRangeShouldFallBackToZero() {
+            when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
+
+            MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
+                    .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
+                    .name("Overflow").decimals(Integer.MAX_VALUE + 1L).build();
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection()))
+                    .thenReturn(List.of(cip68));
+
+            TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
+
+            assertThat(result.getName()).isEqualTo("Overflow");
+            assertThat(result.getDecimals()).isEqualTo(0);
+        }
+
+        @Test
+        @DisplayName("Negative CIP-26 decimals should fall back to 0")
+        void negativeCip26DecimalsShouldFallBackToZero() {
+            TokenMetadataEntity cip26 = TokenMetadataEntity.builder()
+                    .subject(SUBJECT).name("Negative").decimals(-1L).build();
+            when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of(cip26));
+
+            TokenRegistryCurrencyData result = querySingle(POLICY_ID, ASSET_HEX);
+
+            assertThat(result.getName()).isEqualTo("Negative");
+            assertThat(result.getDecimals()).isEqualTo(0);
+        }
+
+        @Test
+        @DisplayName("A token with bad decimals should not break others in the same batch")
+        void badDecimalsShouldNotBreakTheRestOfTheBatch() {
+            AssetFingerprint good = AssetFingerprint.of(POLICY_ID, ASSET_HEX);
+            AssetFingerprint bad = AssetFingerprint.of(POLICY_ID, CIP68_FT_ASSET);
+
+            TokenMetadataEntity cip26 = TokenMetadataEntity.builder()
+                    .subject(SUBJECT).name("Good").decimals(6L).build();
+            when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of(cip26));
+
+            MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
+                    .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
+                    .name("Bad").decimals(Long.MAX_VALUE).build();
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection()))
+                    .thenReturn(List.of(cip68));
+
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result =
+                    tokenQueryService.queryMetadataBatch(List.of(good, bad));
+
+            assertThat(result.get(good).getDecimals()).isEqualTo(6);
+            assertThat(result.get(bad).getDecimals()).isEqualTo(0);
+        }
+    }
+
 }
