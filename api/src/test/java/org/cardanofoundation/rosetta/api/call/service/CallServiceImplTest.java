@@ -50,6 +50,8 @@ class CallServiceImplTest {
   private static final String REWARD_SCRIPT = "stake_test17qvca3jpwpvrtd0fvexseqs55em0zg0zkr26hzs7e0qw6wqpqa08h";
   private static final String POINTER = "addr_test1gza5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cqqqqqd9a64v";
   private static final String MAINNET_HRP_TESTNET_HEADER = "addr1vza5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cppxfpp";
+  // Checksum-valid bech32 whose header nibble (0x8) is the Byron marker; no wallet emits this.
+  private static final String BYRON_HEADER_UNDER_SHELLEY_HRP = "addr_test1sz75nqeurq7nfgyzmgu4e4emrjqk7qn3jpaf7krzp09vd9qgf3m4p";
 
   // Mainnet inputs (network id 1).
   private static final String MAINNET_ENTERPRISE_USER = "addr1vx75nqeurq7nfgyzmgu4e4emrjqk7qn3jpaf7krzp09vd9qk2f80y";
@@ -245,6 +247,12 @@ class CallServiceImplTest {
     @Test
     void pointerAddressIsRejected() {
       assertCode(resolveError(PREPROD, address(POINTER)),
+          RosettaErrorType.CIP113_ADDRESS_TYPE_NOT_SUPPORTED);
+    }
+
+    @Test
+    void byronHeaderUnderShelleyPrefixIsRejected() {
+      assertCode(resolveError(PREPROD, address(BYRON_HEADER_UNDER_SHELLEY_HRP)),
           RosettaErrorType.CIP113_ADDRESS_TYPE_NOT_SUPPORTED);
     }
   }

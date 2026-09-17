@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.call.service;
 
 import com.bloxbean.cardano.client.address.Address;
+import com.bloxbean.cardano.client.address.AddressType;
 import com.bloxbean.cardano.client.address.util.AddressEncoderDecoderUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -78,6 +79,12 @@ public class CallServiceImpl implements CallService {
         }
 
         Address address = new Address(inputAddress);
+        // A bech32 payload whose header nibble marks it as Byron parses, but cardano-client-lib
+        // has no HRP for that type, so it must be rejected before the canonical-prefix check.
+        if (address.getAddressType() == AddressType.Byron) {
+            throw ExceptionFactory.cip113AddressTypeNotSupported(
+                    "Byron addresses are not supported");
+        }
 
         requireCanonicalPrefix(address);
 
@@ -119,6 +126,7 @@ public class CallServiceImpl implements CallService {
                     "Pointer addresses are not supported");
             case Reward -> throw ExceptionFactory.cip113AddressTypeNotSupported(
                     "Reward addresses are not supported");
+            // Rejected before prefix validation; retained so the switch stays exhaustive.
             case Byron -> throw ExceptionFactory.cip113AddressTypeNotSupported(
                     "Byron addresses are not supported");
         };
