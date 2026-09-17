@@ -58,7 +58,7 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `CARDANO_NODE_DB`                             | Cardano node db path                                                  | /node/db                               | added in release 1.0.0  |
 | `CARDANO_CONFIG`                              | Cardano node config path (host side)                                  | ./config/node/mainnet                  | added in release 1.0.0  |
 | `CARDANO_CONFIG_CONTAINER_PATH`               | Cardano node config path inside container                             | /config                                | added in release 2.0.0  |
-| `MITHRIL_VERSION`                             | Mithril client version                                                | 2617.0                                 | added in release 1.2.9  |
+| `MITHRIL_VERSION`                             | Mithril client version                                                | 2630.1-hotfix                                 | added in release 1.2.9  |
 | `SNAPSHOT_DIGEST`                             | Mithril snapshot digest                                               | latest                                 | added in release 1.0.0  |
 | `AGGREGATOR_ENDPOINT`                         | Mithril aggregator endpoint (uses default if not set)                 | (empty)                                | added in release 1.0.0  |
 | `GENESIS_VERIFICATION_KEY`                    | Mithril genesis verification key (uses default if not set)            | (empty)                                | added in release 1.0.0  |
