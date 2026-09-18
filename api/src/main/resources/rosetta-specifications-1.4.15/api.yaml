@@ -1996,7 +1996,7 @@ components:
       properties:
         address_type:
           type: string
-          description: AddressType is the type of address that will be derived from the PublicKey. This field is used to indicate that a PublicKey is associated with a particular address type. If this field is not populated, it is assumed that the PublicKey is associated with the default address type for the network.
+          description: AddressType is the type of address that will be derived from the PublicKey. This field is used to indicate that a PublicKey is associated with a particular address type. If this field is not populated, it is assumed that the PublicKey is associated with the default address type for the network. Supported derive values are Enterprise, Base, Reward, and CIP-113.
         staking_credential:
           $ref: '#/components/schemas/PublicKey'
 

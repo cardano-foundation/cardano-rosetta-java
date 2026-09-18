@@ -141,6 +141,8 @@ spec:
               value: {{ .Values.env.tokenRegistryEnabled | toString | quote }}
             - name: TOKEN_REGISTRY_LOGO_FETCH
               value: {{ .Values.env.tokenRegistryLogoFetch | toString | quote }}
+            - name: CIP113_BASE_SCRIPT_HASH
+              value: {{ .Values.env.cip113BaseScriptHash | quote }}
             {{- $profile := (include "rosetta-api.profile" .) }}
             {{- $db := index .Values.global.profiles $profile "db" }}
             - name: API_DB_POOL_MIN_COUNT
