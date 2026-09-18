@@ -1,0 +1,3 @@
+    assert response.status_code == 200
+    assert block["index"] == 0, "Genesis must be at index 0"
+    assert parent["index"] == -1, "Genesis parent index must be -1"
