@@ -1,3 +1,0 @@
-    assert response.status_code == 200
-    assert len(txs) == 1, "Should respect limit parameter"
-    assert asset["symbol_hex"].lower() in currencies_in_tx, (
