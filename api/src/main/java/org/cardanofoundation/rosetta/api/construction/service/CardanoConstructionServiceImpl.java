@@ -7,7 +7,6 @@ import co.nstant.in.cbor.model.MajorType;
 import co.nstant.in.cbor.model.UnicodeString;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.ByronAddress;
-import com.bloxbean.cardano.client.address.Credential;
 import com.bloxbean.cardano.client.common.cbor.CborSerializationUtil;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.Blake2bUtil;
@@ -43,6 +42,7 @@ import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionData;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
+import org.cardanofoundation.rosetta.common.services.Cip113AddressService;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.time.OfflineSlotService;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
@@ -73,7 +73,6 @@ import static org.cardanofoundation.rosetta.common.util.Constants.*;
 @RequiredArgsConstructor
 public class CardanoConstructionServiceImpl implements CardanoConstructionService {
 
-  private static final int SCRIPT_HASH_HEX_LENGTH = 56;
   private static final int RAW_KEY_HEX_LENGTH = 64;
   private static final int EXTENDED_KEY_HEX_LENGTH = 128;
 
@@ -82,6 +81,7 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   private final TransactionOperationParser transactionOperationParser;
   private final RestTemplate restTemplate;
   private final OfflineSlotService offlineSlotService;
+  private final Cip113AddressService cip113AddressService;
 
   @Value("${cardano.rosetta.NODE_SUBMIT_API_PORT}")
   private int nodeSubmitApiPort;
@@ -91,9 +91,6 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
 
   @Value("${cardano.rosetta.OFFLINE_MODE}")
   private boolean offlineMode;
-
-  @Value("${cardano.rosetta.CIP113_BASE_SCRIPT_HASH:}")
-  private String cip113BaseScriptHash;
 
   @Override
   public TransactionParsed parseTransaction(Network network, String transaction, boolean signed) {
@@ -618,28 +615,13 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   }
 
   private String getCip113Address(PublicKey publicKey, NetworkEnum networkEnum) {
-    byte[] paymentScriptHash = getConfiguredProgrammableLogicBaseScriptHash();
-    byte[] stakingKeyHash = getValidatedCip113PublicKey(publicKey).getKeyHash();
+    byte[] configuredScriptHash = cip113AddressService.getConfiguredScriptHash();
+    byte[] userCredential = getValidatedCip113PublicKey(publicKey).getKeyHash();
 
-    return AddressProvider.getBaseAddress(
-            Credential.fromScript(paymentScriptHash),
-            Credential.fromKey(stakingKeyHash),
-            networkEnum.getNetwork()).toBech32();
-  }
-
-  private byte[] getConfiguredProgrammableLogicBaseScriptHash() {
-    String scriptHash = Optional.ofNullable(cip113BaseScriptHash)
-            .map(String::trim)
-            .orElse("");
-
-    if (scriptHash.isEmpty()) {
-      throw ExceptionFactory.cip113PlbScriptHashNotConfigured();
-    }
-    if (scriptHash.length() != SCRIPT_HASH_HEX_LENGTH || !HexUtils.isHexString(scriptHash)) {
-      throw ExceptionFactory.cip113PlbScriptHashInvalid();
-    }
-
-    return decodeHexString(scriptHash);
+    return cip113AddressService.buildSmartWalletAddress(
+        configuredScriptHash,
+        userCredential,
+        networkEnum);
   }
 
   private HdPublicKey getValidatedCip113PublicKey(PublicKey publicKey) {
