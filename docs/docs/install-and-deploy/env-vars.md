@@ -50,14 +50,14 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `DB_PATH`                                     | Database path                                                         | data                                   | added in release 1.0.0  |
 | `CARDANO_NODE_HOST`                           | Cardano node host                                                     | cardano-node                           | added in release 1.0.0  |
 | `CARDANO_NODE_PORT`                           | Cardano node port                                                     | 3001                                   | added in release 1.0.0  |
-| `CARDANO_NODE_VERSION`                        | Cardano node version                                                  | 11.0.1                                 | added in release 1.0.0  |
+| `CARDANO_NODE_VERSION`                        | Cardano node version                                                  | 11.1.2                                 | added in release 1.0.0  |
 | `CARDANO_NODE_SUBMIT_HOST`                    | Cardano node submit API host                                          | cardano-submit-api                     | added in release 1.0.0  |
 | `NODE_SUBMIT_API_PORT`                        | Cardano node submit API port                                          | 8090                                   | added in release 1.0.0  |
 | `CARDANO_NODE_DIR`                            | Cardano node base directory                                           | /node                                  | added in release 1.0.0  |
 | `CARDANO_NODE_SOCKET_PATH`                    | Cardano node socket file path                                         | /node/node.socket                      | added in release 1.0.0  |
 | `CARDANO_NODE_DB`                             | Cardano node db path                                                  | /node/db                               | added in release 1.0.0  |
 | `CARDANO_CONFIG`                              | Cardano node config path                                              | ./config/node/mainnet                  | added in release 1.0.0  |
-| `MITHRIL_VERSION`                             | Mithril client version                                                | 2617.0                                 | added in release 1.2.9  |
+| `MITHRIL_VERSION`                             | Mithril client version                                                | 2630.1-hotfix                                 | added in release 1.2.9  |
 | `SNAPSHOT_DIGEST`                             | Mithril snapshot digest                                               | latest                                 | added in release 1.0.0  |
 | `AGGREGATOR_ENDPOINT`                         | Mithril aggregator endpoint (uses default if not set)                 | (empty)                                | added in release 1.0.0  |
 | `GENESIS_VERIFICATION_KEY`                    | Mithril genesis verification key (uses default if not set)            | (empty)                                | added in release 1.0.0  |
