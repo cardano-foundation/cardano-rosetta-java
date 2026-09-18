@@ -14,7 +14,10 @@ permissions:
 
 jobs:
   test-on-preprod:
-    runs-on: [self-hosted]
+    runs-on: [preview-server-colo2]
+    concurrency:
+      group: preprod-host-deployment
+      cancel-in-progress: false
     timeout-minutes: 60
 
     steps:
@@ -85,6 +88,7 @@ jobs:
 
 
       - name: Build and start services with PR code
+        id: deployment
         run: |
           cd /home/integration/git/cardano-rosetta-java
 
@@ -316,6 +320,17 @@ jobs:
               issue_number: prNumber,
               body: comment
             });
+
+      - name: Stop incomplete deployment before tests
+        if: failure() && steps.deployment.outcome != 'skipped' && steps.test.outcome == 'skipped'
+        run: |
+          set -euo pipefail
+          cd /home/integration/git/cardano-rosetta-java
+          docker compose \
+            --env-file .env.docker-compose-preprod \
+            --env-file .env.docker-compose-profile-mid-level \
+            -f docker-compose.yaml \
+            down
 
       - name: Clean shutdown on failure
         if: failure() && (steps.test.outcome == 'failure' || steps.test.outcome == 'cancelled')
