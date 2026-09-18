@@ -29,14 +29,14 @@ ARG CABAL_VERSION=${CABAL_VERSION:-3.12.1.0}
 ARG GHC_VERSION=${GHC_VERSION:-9.6.7}
 
 # Cardano node version
-ARG CARDANO_NODE_VERSION=${CARDANO_NODE_VERSION:-11.0.1}
+ARG CARDANO_NODE_VERSION=${CARDANO_NODE_VERSION:-11.1.2}
 
 # Clone config fork reposotory
 ARG CONFIG_FORK_REPO="VladislavKudrin/gnu-config-fork"
 ARG CONFIG_FORK_BRANCH="master"
 
 # Mithril version
-ARG MITHRIL_VERSION=${MITHRIL_VERSION:-2617.0}
+ARG MITHRIL_VERSION=${MITHRIL_VERSION:-2630.1-hotfix}
 
 RUN bash -c "ghcup install cabal ${CABAL_VERSION}"
 RUN bash -c "ghcup set cabal ${CABAL_VERSION}"
