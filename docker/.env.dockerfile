@@ -57,6 +57,9 @@ REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT=129600
 BLOCK_TRANSACTION_API_TIMEOUT_SECS=5
 REMOVE_SPENT_UTXOS_BATCH_SIZE=3000
 
+## When set to true, the parsing / processing blockchain data even if an error occurs.
+CONTINUE_PARSING_ON_ERROR=true
+
 # database profiles: h2, h2-testdata, postgres
 MEMPOOL_ENABLED=false
 # Haven't implemented yet
