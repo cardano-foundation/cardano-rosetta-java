@@ -1,0 +1,24 @@
+{
+  "test_name": "(-) cip113 resolve reward address",
+  "description": "Negative test: a stake/reward address has no payment credential and cannot be resolved",
+  "network": "devkit",
+  "endpoint": "/call",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "method": "resolve_smart_wallet_addr",
+    "parameters": {
+      "address": "stake_test1uz75nqeurq7nfgyzmgu4e4emrjqk7qn3jpaf7krzp09vd9qd2rrht"
+    }
+  },
+  "expected_error": {
+    "code": 5066,
+    "message": "Address type not supported for resolve_smart_wallet_addr",
+    "retriable": false,
+    "details": {
+      "message": "Reward addresses are not supported"
+    }
+  }
+}
