@@ -131,22 +131,91 @@ verify_release_deployment() {
   done
 }
 
+reinstall_helm_release() {
+  local workload pvc pv current phase secret_identity
+  local -a pvcs=("node-data-$HELM_RELEASE-cardano-node-0" "pg-data-$HELM_RELEASE-postgresql-0")
+  local -A pvc_uids=() volume_identities=()
+  for workload in cardano-node postgresql; do
+    current=$(kubectl get statefulset "$HELM_RELEASE-$workload" --namespace "$NAMESPACE" -o json) || return
+    if ! jq -e '
+      .metadata.deletionTimestamp == null and
+      (.spec.persistentVolumeClaimRetentionPolicy.whenDeleted // "Retain") == "Retain" and
+      (.spec.persistentVolumeClaimRetentionPolicy.whenScaled // "Retain") == "Retain"
+    ' <<< "$current" >/dev/null; then
+      echo "Unsafe PVC retention for $workload." >&2
+      return 1
+    fi
+  done
+  for pvc in "${pvcs[@]}"; do
+    current=$(kubectl get pvc "$pvc" --namespace "$NAMESPACE" -o json) || return
+    pvc_uids[$pvc]=$(jq -er '
+      if .metadata.deletionTimestamp == null and ((.metadata.ownerReferences // []) | length == 0)
+      then .metadata.uid else error("Unsafe PVC ownership or deletion") end
+    ' <<< "$current") || return
+    volume_identities[$pvc]=$(verify_release_volume "$pvc" "${pvc_uids[$pvc]}") || return
+    pv=${volume_identities[$pvc]%%$'\t'*}
+    current=$(kubectl get pv "$pv" -o json) || return
+    if ! jq -e '
+      .metadata.deletionTimestamp == null and ((.metadata.ownerReferences // []) | length == 0)
+    ' <<< "$current" >/dev/null; then
+      echo "Unsafe PV ownership or deletion for $pvc." >&2
+      return 1
+    fi
+  done
+  verify_release_database_secret || return
+  secret_identity=$(kubectl get secret "$DB_SECRET_NAME" --namespace "$NAMESPACE" -o json |
+    jq -ce 'select(.metadata.deletionTimestamp == null) | [.metadata.uid, .data["db-secret"]]') || return
+
+  # Foreground cascading plus --wait includes controller-owned pods, allowing
+  # their normal termination grace periods before any replacement is installed.
+  helm uninstall "$HELM_RELEASE" --namespace "$NAMESPACE" \
+    --cascade=foreground --wait --timeout 30m || return
+
+  # Check retained identities both before creating workloads and after install.
+  for phase in before-install after-install; do
+    for pvc in "${pvcs[@]}"; do
+      pv=${volume_identities[$pvc]%%$'\t'*}
+      current=$(kubectl get "pvc/$pvc" "pv/$pv" --namespace "$NAMESPACE" -o json) || return
+      if ! jq -e 'all(.items[];
+        .metadata.deletionTimestamp == null and ((.metadata.ownerReferences // []) | length == 0)
+      )' <<< "$current" >/dev/null; then
+        echo "Unsafe retained storage for $pvc ($phase)." >&2
+        return 1
+      fi
+      current=$(verify_release_volume "$pvc" "${pvc_uids[$pvc]}") || return
+      [[ "$current" == "${volume_identities[$pvc]}" ]] || {
+        echo "Storage identity changed for $pvc ($phase)." >&2
+        return 1
+      }
+    done
+    verify_release_database_secret || return
+    current=$(kubectl get secret "$DB_SECRET_NAME" --namespace "$NAMESPACE" -o json |
+      jq -ce 'select(.metadata.deletionTimestamp == null) | [.metadata.uid, .data["db-secret"]]') || return
+    [[ "$current" == "$secret_identity" ]] || {
+      echo "Database secret identity or credentials changed ($phase)." >&2
+      return 1
+    }
+    if [[ "$phase" == before-install ]]; then
+      helm install "$@" || return
+    fi
+  done
+}
+
 release_helm() {
   local postgres_version_ref=${POSTGRES_IMAGE#cardanofoundation/cardano-rosetta-java-postgres:}
   local chart storage_values
-  local -a storage_args=()
-  chart=$(mktemp -d "$RUNNER_TEMP/release-chart.XXXXXX")
-  cp -a "$DEPLOY_DIR/helm/cardano-rosetta-java/." "$chart/"
-  # Keep dependency-build logs out of helm template's YAML output.
-  helm dependency build "$chart" >&2
-  if [[ "$1" == upgrade ]]; then
-    # Preserve the installed claim configuration, including when a PVC was expanded.
-    # A fresh install instead uses the candidate chart's shipped K3s defaults.
+  local -a storage_args=() helm_args=()
+  chart=$(mktemp -d "$RUNNER_TEMP/release-chart.XXXXXX") || return
+  cp -a "$DEPLOY_DIR/helm/cardano-rosetta-java/." "$chart/" || return
+  if [[ "$1" == reinstall || "${K8S_UPGRADE:-false}" == true ]]; then
+    # Preserve installed storage on reinstall; fresh installs use chart defaults.
     storage_values=$(helm get values "$HELM_RELEASE" --namespace "$NAMESPACE" --all --output json |
       jq -ce '.global.storage') || return
     storage_args=(--set-json "global.storage=$storage_values")
   fi
-  helm "$@" "$HELM_RELEASE" "$chart" \
+  # Keep dependency-build logs out of helm template's YAML output.
+  helm dependency build "$chart" >&2 || return
+  helm_args=("$HELM_RELEASE" "$chart" \
     --namespace "$NAMESPACE" \
     --values "$chart/values-k3s.yaml" \
     --set-string global.network=mainnet \
@@ -162,13 +231,19 @@ release_helm() {
     --set-string rosetta-api.env.removeSpentUtxos=false \
     --set-string rosetta-api.env.tokenRegistryEnabled="$TOKEN_REGISTRY_ENABLED" \
     --set-string rosetta-api.env.tokenRegistryBaseUrl="$TOKEN_REGISTRY_BASE_URL" \
-    --set-string yaci-indexer.env.removeSpentUtxos=false
+    --set-string yaci-indexer.env.removeSpentUtxos=false)
+  if [[ "$1" == reinstall ]]; then
+    shift
+    reinstall_helm_release "$@" "${helm_args[@]}"
+  else
+    helm "$@" "${helm_args[@]}"
+  fi
 }
 
 verify_and_prefetch_k8s_target() {
   local rendered rendered_objects image
   rendered="$RUNNER_TEMP/release-test-k8s-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.yaml"
-  release_helm template > "$rendered"
+  K8S_UPGRADE=${1:-false} release_helm template > "$rendered"
 
   rendered_objects=$(kubectl create \
     --dry-run=client \

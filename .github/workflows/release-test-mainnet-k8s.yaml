@@ -73,7 +73,9 @@ jobs:
         with:
           ref: ${{ github.workflow_sha }}
           path: .release-automation
-          sparse-checkout: .github/scripts
+          sparse-checkout: |
+            .github/scripts
+            tests/legacy-load-tests
           persist-credentials: false
 
       - &checkout_target
@@ -180,7 +182,7 @@ jobs:
         run: |
           set -euo pipefail
           source "$RELEASE_SCRIPTS/release_test_k8s.sh"
-          verify_and_prefetch_k8s_target
+          verify_and_prefetch_k8s_target true
 
       - name: Validate projected K8s cleanup space
         env:
@@ -215,7 +217,7 @@ jobs:
     steps:
       - *checkout_automation
       - *checkout_target
-      - name: Prepare K8s upgrade
+      - name: Prepare K8s reinstall with existing data
         run: |
           set -euo pipefail
           source "$RELEASE_SCRIPTS/release_test_k8s.sh"
@@ -226,15 +228,15 @@ jobs:
         id: mutation
         run: echo "started=true" >> "$GITHUB_OUTPUT"
 
-      - name: Upgrade K8s to pre-release
+      - name: Reinstall K8s pre-release with existing data
         run: |
           set -euo pipefail
           source "$RELEASE_SCRIPTS/release_test_k8s.sh"
-          release_helm upgrade
+          release_helm reinstall
 
-      - name: Wait for upgraded K8s deployment to reach LIVE
+      - name: Wait for reinstalled K8s deployment to reach LIVE
         env:
-          PHASE: Upgraded K8s deployment
+          PHASE: Reinstalled K8s deployment
           SYNC_TIMEOUT_SECONDS: "72000"
         run: &wait_for_k8s |
           set -euo pipefail
@@ -242,7 +244,7 @@ jobs:
           wait_for_k8s_target_live
 
   clean-resync:
-    # Recover only after a successful upgrade or a failure beyond the mutation boundary.
+    # Recover only after a successful reinstall or a failure beyond the mutation boundary.
     if: ${{ always() && !cancelled() && needs.preflight.result == 'success' && (needs.upgrade.result == 'success' || (needs.upgrade.result == 'failure' && needs.upgrade.outputs.mutation_started == 'true')) }}
     needs:
       - preflight
