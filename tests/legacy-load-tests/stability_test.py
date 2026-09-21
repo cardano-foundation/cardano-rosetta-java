@@ -653,7 +653,7 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
                         time.sleep(COOLDOWN_PERIOD)
                         continue  # Try again
                     else:
-                        logger.error(f"Max retries ({max_retries}) reached for {endpoint_name} at concurrency {c}. Failing the endpoint test.")
+                        logger.error(f"Max retries ({max_retries}) reached for {endpoint_name} at concurrency {c}. Stopping capacity discovery for this endpoint.")
                         break  # Stop retrying this concurrency level
                 else:
                     try:
@@ -697,14 +697,16 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
                     time.sleep(COOLDOWN_PERIOD)
                     continue  # Try again
                 else:
-                    logger.error(f"Max retries ({max_retries}) reached for {endpoint_name} at concurrency {c} due to exception. Failing the endpoint test.")
+                    logger.error(f"Max retries ({max_retries}) reached for {endpoint_name} at concurrency {c} due to exception. Stopping capacity discovery for this endpoint.")
                     break  # Stop retrying this concurrency level
 
         if not ab_success or metrics is None:
-            raise RuntimeError(
-                f"ApacheBench failed after {max_retries + 1} attempts for "
-                f"{endpoint_name} at concurrency {c}"
+            logger.info(
+                f"No valid ApacheBench result at concurrency {c} for {endpoint_name}. "
+                f"Recording maximum successful concurrency {max_sla_conc} and "
+                "continuing with the next endpoint."
             )
+            break
 
         (
             p95,

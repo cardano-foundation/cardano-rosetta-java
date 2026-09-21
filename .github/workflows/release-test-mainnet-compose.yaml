@@ -79,7 +79,9 @@ jobs:
         with:
           ref: ${{ github.workflow_sha }}
           path: .release-automation
-          sparse-checkout: .github/scripts
+          sparse-checkout: |
+            .github/scripts
+            tests/legacy-load-tests
           persist-credentials: false
 
       - &checkout_target
