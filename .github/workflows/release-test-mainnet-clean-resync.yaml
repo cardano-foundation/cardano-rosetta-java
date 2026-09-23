@@ -1,0 +1,347 @@
+name: Mainnet clean resync
+
+run-name: Mainnet clean resync - ${{ inputs.deployment }} - ${{ inputs.release_tag || inputs.target_image_tag }}
+
+on:
+  workflow_call:
+    inputs:
+      deployment:
+        required: true
+        type: string
+      target_api_image:
+        required: true
+        type: string
+      target_cardano_node_image:
+        required: true
+        type: string
+      target_image_tag:
+        required: true
+        type: string
+      target_indexer_image:
+        required: true
+        type: string
+      target_mithril_image:
+        required: true
+        type: string
+      target_postgres_image:
+        required: true
+        type: string
+      target_source_sha:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      deployment:
+        description: Mainnet deployment to reset and synchronize
+        required: true
+        type: choice
+        options:
+          - kubernetes
+          - docker-compose
+      release_tag:
+        description: Existing non-draft 2.x GitHub release tag
+        required: true
+        type: string
+      confirmation:
+        description: Type clean-resync to confirm destructive data reset
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mainnet-clean-resync-${{ inputs.deployment }}
+  cancel-in-progress: false
+
+env:
+  RELEASE_SCRIPTS: ${{ github.workspace }}/.release-automation/.github/scripts
+
+jobs:
+  target:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      api_image: ${{ inputs.target_api_image || steps.images.outputs.api_image }}
+      cardano_node_image: ${{ inputs.target_cardano_node_image || steps.images.outputs.cardano_node_image }}
+      deployment: ${{ inputs.deployment }}
+      image_tag: ${{ inputs.target_image_tag || steps.release.outputs.image_tag }}
+      indexer_image: ${{ inputs.target_indexer_image || steps.images.outputs.indexer_image }}
+      mithril_image: ${{ inputs.target_mithril_image || steps.images.outputs.mithril_image }}
+      postgres_image: ${{ inputs.target_postgres_image || steps.images.outputs.postgres_image }}
+      source_sha: ${{ inputs.target_source_sha || steps.source.outputs.source_sha }}
+    steps:
+      - name: Validate invocation
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+          DEPLOYMENT: ${{ inputs.deployment }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          TARGET_SOURCE_SHA: ${{ inputs.target_source_sha }}
+        run: |
+          set -euo pipefail
+          case "$DEPLOYMENT" in
+            kubernetes|docker-compose) ;;
+            *) echo "deployment must be kubernetes or docker-compose." >&2; exit 1 ;;
+          esac
+          if [[ -n "$RELEASE_TAG" && -n "$TARGET_SOURCE_SHA" ]] ||
+             [[ -z "$RELEASE_TAG" && -z "$TARGET_SOURCE_SHA" ]]; then
+            echo "Provide either a manual release_tag or the immutable workflow_call target." >&2
+            exit 1
+          fi
+          if [[ -n "$RELEASE_TAG" && "$CONFIRMATION" != clean-resync ]]; then
+            echo "Manual dispatch requires the exact confirmation: clean-resync" >&2
+            exit 1
+          fi
+
+      - name: Accept immutable target from prerelease testing
+        if: inputs.target_source_sha != ''
+        env:
+          API_IMAGE: ${{ inputs.target_api_image }}
+          CARDANO_NODE_IMAGE: ${{ inputs.target_cardano_node_image }}
+          IMAGE_TAG: ${{ inputs.target_image_tag }}
+          INDEXER_IMAGE: ${{ inputs.target_indexer_image }}
+          MITHRIL_IMAGE: ${{ inputs.target_mithril_image }}
+          POSTGRES_IMAGE: ${{ inputs.target_postgres_image }}
+          SOURCE_SHA: ${{ inputs.target_source_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "target_source_sha must be a full Git commit SHA." >&2
+            exit 1
+          }
+          [[ "$IMAGE_TAG" =~ ^2\.[0-9]+\.[0-9]+(-pre-release)?$ ]] || {
+            echo "target_image_tag must identify a supported 2.x release image." >&2
+            exit 1
+          }
+          for image in \
+            "$API_IMAGE" "$CARDANO_NODE_IMAGE" "$INDEXER_IMAGE" "$MITHRIL_IMAGE" "$POSTGRES_IMAGE"; do
+            [[ "$image" =~ ^cardanofoundation/cardano-rosetta-java-[a-z-]+:[A-Za-z0-9_.-]+@sha256:[0-9a-f]{64}$ ]] || {
+              echo "Target image is not an immutable cardano-rosetta-java reference: $image" >&2
+              exit 1
+            }
+          done
+
+      - name: Check out manual target release
+        if: inputs.release_tag != ''
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: cardano-foundation/cardano-rosetta-java
+          fetch-depth: 0
+          ref: refs/tags/${{ inputs.release_tag }}
+          path: .release-target
+          persist-credentials: false
+
+      - name: Validate manual target release
+        if: inputs.release_tag != ''
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^2\.[0-9]+\.[0-9]+$ ]] || {
+            echo "release_tag must identify a 2.x GitHub release." >&2
+            exit 1
+          }
+          release=$(gh api "repos/cardano-foundation/cardano-rosetta-java/releases/tags/${RELEASE_TAG}")
+          [[ "$(jq -r '.draft' <<< "$release")" == false ]] || {
+            echo "$RELEASE_TAG is a draft release." >&2
+            exit 1
+          }
+          if [[ "$(jq -r '.prerelease' <<< "$release")" == true ]]; then
+            image_tag="${RELEASE_TAG}-pre-release"
+          else
+            image_tag="$RELEASE_TAG"
+          fi
+          echo "image_tag=$image_tag" >> "$GITHUB_OUTPUT"
+          echo "Manual target: $RELEASE_TAG using image tag $image_tag."
+
+      - name: Resolve manual target source
+        if: inputs.release_tag != ''
+        id: source
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          set -euo pipefail
+          source_sha=$(git -C .release-target rev-parse "refs/tags/${RELEASE_TAG}^{commit}")
+          [[ "$(git -C .release-target rev-parse HEAD)" == "$source_sha" ]] || {
+            echo "Release tag and checkout do not identify the same source commit." >&2
+            exit 1
+          }
+          echo "source_sha=$source_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Check out immutable image resolver
+        if: inputs.release_tag != ''
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: .release-automation
+          sparse-checkout: .github/scripts/release_test_images.sh
+          sparse-checkout-cone-mode: false
+          persist-credentials: false
+
+      - name: Set up Docker Buildx for manual image inspection
+        if: inputs.release_tag != ''
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Resolve manual target images
+        if: inputs.release_tag != ''
+        id: images
+        working-directory: .release-target
+        env:
+          IMAGE_TAG: ${{ steps.release.outputs.image_tag }}
+        run: |
+          set -euo pipefail
+          source "$GITHUB_WORKSPACE/.release-automation/.github/scripts/release_test_images.sh"
+          resolve_release_images "$IMAGE_TAG"
+
+  clean-resync-kubernetes:
+    if: needs.target.outputs.deployment == 'kubernetes'
+    needs: target
+    runs-on: [mainnet-server-colo2]
+    timeout-minutes: 5760
+    env:
+      API_IMAGE: ${{ needs.target.outputs.api_image }}
+      CARDANO_NODE_IMAGE: ${{ needs.target.outputs.cardano_node_image }}
+      DB_SECRET_NAME: rosetta-db-secret
+      DEPLOY_DIR: ${{ github.workspace }}/.release-target
+      EXPECTED_HOST: zur2-s-d-100.colo2.cf-systems.internal
+      EXPECTED_KUBE_SYSTEM_UID: 241a420f-223d-4a5f-bd98-3fb032657d6f
+      HELM_RELEASE: rosetta
+      INDEXER_IMAGE: ${{ needs.target.outputs.indexer_image }}
+      K8S_MIN_FREE_GIB: "1100"
+      K8S_STORAGE_ROOT: /var/lib/rancher/k3s/storage
+      KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+      MITHRIL_IMAGE: ${{ needs.target.outputs.mithril_image }}
+      NAMESPACE: cardano
+      NODE_PVC: node-data-rosetta-cardano-node-0
+      POSTGRES_IMAGE: ${{ needs.target.outputs.postgres_image }}
+      POSTGRES_PVC: pg-data-rosetta-postgresql-0
+      PRERELEASE_TAG: ${{ needs.target.outputs.image_tag }}
+      TOKEN_REGISTRY_BASE_URL: http://zur2-s-d-100.colo2.cf-systems.internal:8080/api
+      TOKEN_REGISTRY_ENABLED: "true"
+    steps:
+      - name: Check out immutable clean-resync automation
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: .release-automation
+          sparse-checkout: .github/scripts
+          persist-credentials: false
+
+      - &checkout_target
+        name: Check out immutable release source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: cardano-foundation/cardano-rosetta-java
+          ref: ${{ needs.target.outputs.source_sha }}
+          path: .release-target
+          persist-credentials: false
+
+      - name: Validate K8s target before reset
+        run: |
+          set -euo pipefail
+          for command in curl docker findmnt git helm jq k3s kubectl mktemp realpath stat sudo; do
+            command -v "$command"
+          done
+          sudo -n true
+          [[ "$K8S_STORAGE_ROOT" != "/" && ! -L "$K8S_STORAGE_ROOT" &&
+             "$(realpath -e "$K8S_STORAGE_ROOT")" == "$K8S_STORAGE_ROOT" ]] || {
+            echo "K8S_STORAGE_ROOT must be a canonical, non-root directory." >&2
+            exit 1
+          }
+          test -r "$KUBECONFIG"
+          source "$RELEASE_SCRIPTS/release_test_runtime.sh"
+          source "$RELEASE_SCRIPTS/release_test_k8s.sh"
+          require_release_host
+          verify_release_cluster
+          verify_and_prefetch_k8s_target
+
+      - name: Reset K8s data and install target
+        run: |
+          set -euo pipefail
+          source "$RELEASE_SCRIPTS/release_test_k8s.sh"
+          verify_release_cluster
+          verify_release_database_secret
+          reset_current_k8s_release_data
+          verify_release_database_secret
+          release_helm install --create-namespace
+
+      - name: Wait for clean K8s resync to reach LIVE
+        env:
+          PHASE: Clean K8s resync
+          SYNC_TIMEOUT_SECONDS: "259200"
+        run: |
+          set -euo pipefail
+          source "$RELEASE_SCRIPTS/release_test_k8s.sh"
+          wait_for_k8s_target_live
+
+  clean-resync-docker-compose:
+    if: needs.target.outputs.deployment == 'docker-compose'
+    needs: target
+    runs-on: [rosetta-server-colo2]
+    timeout-minutes: 5760
+    env:
+      API_IMAGE: ${{ needs.target.outputs.api_image }}
+      CARDANO_NODE_DIR: /opt/cardano-rosetta-java/mainnet/node_data
+      CARDANO_NODE_IMAGE: ${{ needs.target.outputs.cardano_node_image }}
+      COMPOSE_BASE_ENV: .env.docker-compose
+      COMPOSE_MIN_FREE_GIB: "1100"
+      DATA_ROOT: /opt/cardano-rosetta-java/mainnet
+      DB_PATH: /opt/cardano-rosetta-java/mainnet/sql_data
+      DEPLOY_DIR: ${{ github.workspace }}/.release-target
+      EXPECTED_HOST: zur2-s-d-115.colo2.cf-systems.internal
+      INDEXER_IMAGE: ${{ needs.target.outputs.indexer_image }}
+      MITHRIL_IMAGE: ${{ needs.target.outputs.mithril_image }}
+      NETWORK: mainnet
+      POSTGRES_IMAGE: ${{ needs.target.outputs.postgres_image }}
+      PRERELEASE_TAG: ${{ needs.target.outputs.image_tag }}
+      PROJECT_NAME: cardano-rosetta-java
+      RELEASE_VERSION: ${{ needs.target.outputs.image_tag }}
+      REMOVE_SPENT_UTXOS: "false"
+      TOKEN_REGISTRY_BASE_URL: http://zur2-s-d-115.colo2.cf-systems.internal:8080/api
+      TOKEN_REGISTRY_ENABLED: "true"
+      TOKEN_REGISTRY_HOSTNAME: zur2-s-d-115.colo2.cf-systems.internal
+    steps:
+      - name: Check out immutable clean-resync automation
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          path: .release-automation
+          sparse-checkout: .github/scripts
+          persist-credentials: false
+
+      - *checkout_target
+
+      - name: Validate Compose target before reset
+        run: |
+          set -euo pipefail
+          for command in curl docker find findmnt git jq realpath stat sudo; do
+            command -v "$command"
+          done
+          docker compose version
+          sudo -n true
+          [[ ! -L "$DATA_ROOT" && "$(realpath -e "$DATA_ROOT")" == "$DATA_ROOT" ]] || {
+            echo "Mainnet data root must be a canonical directory." >&2
+            exit 1
+          }
+          source "$RELEASE_SCRIPTS/release_test_runtime.sh"
+          source "$RELEASE_SCRIPTS/release_test_compose.sh"
+          require_release_host
+          verify_and_prefetch_compose_target
+
+      - name: Reset Compose data and install target
+        run: |
+          set -euo pipefail
+          source "$RELEASE_SCRIPTS/release_test_compose.sh"
+          reset_current_compose_release_data
+          release_compose up --detach --pull never --no-build
+
+      - name: Wait for clean Compose resync to reach LIVE
+        env:
+          PHASE: Clean Compose resync
+          SYNC_TIMEOUT_SECONDS: "259200"
+        run: |
+          set -euo pipefail
+          source "$RELEASE_SCRIPTS/release_test_compose.sh"
+          wait_for_compose_target_live

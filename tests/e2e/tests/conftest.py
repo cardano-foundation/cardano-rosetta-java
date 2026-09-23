@@ -12,6 +12,7 @@ from e2e.test_utils.transaction_orchestrator import TransactionOrchestrator
 from e2e.test_utils.signing_handler import SigningHandler
 from e2e.test_utils.utxo_selector import UtxoSelector
 from e2e.test_utils.log_formatter import SwissDesignFormatter, Style # Import Style too
+from e2e.prepare_wallet import resolve_drep, resolve_proposal, resolve_stake_pool
 
 # Load environment variables
 load_dotenv()
@@ -155,38 +156,49 @@ def utxo_selector():
 
 @pytest.fixture(scope="session")
 def stake_pool_hash():
-    """Get the stake pool HASH from environment variables."""
-    pool_hash = os.getenv("STAKE_POOL_HASH")
-    if not pool_hash:
-        pytest.skip("STAKE_POOL_HASH environment variable is required for stake delegation tests")
+    """A stake pool to delegate to, discovered on-chain unless pinned."""
+    pool_hash, reason = resolve_stake_pool()
+    if reason:
+        pytest.skip(reason)
     logger.info(f"Using Stake Pool Hash: {pool_hash}")
     return pool_hash
 
 
 @pytest.fixture(scope="session")
 def drep_key_hash_id():
-    """Get the DRep key hash ID from environment variables."""
-    drep_id = os.getenv("DREP_KEY_HASH_ID")
-    if not drep_id:
-        pytest.skip("DREP_KEY_HASH_ID environment variable is required for vote delegation tests")
+    """An active key DRep, discovered on-chain unless pinned.
+
+    A DRep registration expires, so holding one in configuration guarantees it
+    goes stale; DREP_KEY_HASH_ID exists only to pin a specific one.
+    """
+    drep_id, reason = resolve_drep(is_script=False)
+    if reason:
+        pytest.skip(reason)
+    logger.info(f"Using key DRep: {drep_id}")
     return drep_id
 
 
 @pytest.fixture(scope="session")
 def drep_script_hash_id():
-    """Get the DRep script hash ID from environment variables."""
-    drep_id = os.getenv("DREP_SCRIPT_HASH_ID")
-    if not drep_id:
-        pytest.skip("DREP_SCRIPT_HASH_ID environment variable is required for vote delegation tests")
+    """An active script-based DRep, discovered on-chain unless pinned."""
+    drep_id, reason = resolve_drep(is_script=True)
+    if reason:
+        pytest.skip(reason)
+    logger.info(f"Using script DRep: {drep_id}")
     return drep_id
 
 
 @pytest.fixture(scope="session")
 def pool_governance_proposal_id():
-    """Get the governance proposal ID from environment variables."""
-    proposal_id = os.environ.get("POOL_GOVERNANCE_PROPOSAL_ID")
-    if not proposal_id:
-        pytest.skip("POOL_GOVERNANCE_PROPOSAL_ID environment variable is required for pool governance vote tests")
+    """An open proposal a stake pool can vote on, discovered unless pinned.
+
+    Pools vote on only some action types, and on parameter changes only when the
+    security-relevant group is touched, so being open is not by itself enough.
+    """
+    proposal_id, reason = resolve_proposal()
+    if reason:
+        pytest.skip(reason)
+    logger.info(f"Using governance proposal: {proposal_id}")
     return proposal_id
 
 

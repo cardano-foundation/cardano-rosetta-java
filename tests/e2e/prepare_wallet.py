@@ -22,6 +22,7 @@ Usage:
 import os
 import re
 import sys
+from functools import lru_cache
 
 import requests as http_requests
 from dotenv import load_dotenv
@@ -60,6 +61,8 @@ MNEMONIC = os.getenv("TEST_WALLET_MNEMONIC")
 # --- Constants ---
 MIN_ADA_ONLY_UTXOS = 11
 MIN_ADA_FOR_FEES = 5_000_000  # 5 ADA in lovelace
+# 500 ADA pool deposit plus headroom for the rest of the suite.
+MIN_E2E_ADA_ONLY_LOVELACE = 525_000_000
 SPLIT_OUTPUT_LOVELACE = 25_000_000  # 25 ADA per split output
 SPLIT_NUM_OUTPUTS = 12
 SPLIT_FEE_HEADROOM = 2_000_000  # ~2 ADA headroom for fees
@@ -183,8 +186,9 @@ def select_ada_utxos(all_utxos, required_lovelace: int, max_count: int = MAX_INP
 
 
 def analyze_utxos(utxos):
-    """Analyze Blockfrost UTXOs. Returns (ada_only_count, with_tokens_count, has_fee_utxo, total_lovelace)."""
+    """Analyze Blockfrost UTXOs."""
     ada_only_count = 0
+    ada_only_lovelace = 0
     with_tokens_count = 0
     has_fee_utxo = False
     total_lovelace = 0
@@ -195,15 +199,227 @@ def analyze_utxos(utxos):
         total_lovelace += lovelace
         if len(units) == 1 and units[0] == "lovelace":
             ada_only_count += 1
+            ada_only_lovelace += lovelace
             if lovelace >= MIN_ADA_FOR_FEES:
                 has_fee_utxo = True
         else:
             with_tokens_count += 1
 
-    return ada_only_count, with_tokens_count, has_fee_utxo, total_lovelace
+    return (
+        ada_only_count,
+        ada_only_lovelace,
+        with_tokens_count,
+        has_fee_utxo,
+        total_lovelace,
+    )
 
 
 # ── Commands ────────────────────────────────────────────────────────────────
+
+
+# Governance action types that stake pool operators can vote on (CIP-1694).
+SPO_VOTABLE_ACTIONS = {
+    "hard_fork_initiation",
+    "new_committee",
+    "no_confidence",
+    "info_action",
+    "parameter_change",
+}
+
+# Pool votes only count for parameter changes touching the security-relevant
+# group, so a proposal changing anything else is unusable for the pool vote test.
+SECURITY_RELEVANT_PARAMS = {
+    "maxBlockBodySize",
+    "maxTxSize",
+    "maxBlockHeaderSize",
+    "maxValueSize",
+    "maxBlockExecutionUnits",
+    "maxTxExecutionUnits",
+    "txFeePerByte",
+    "txFeeFixed",
+    "utxoCostPerByte",
+    "govActionDeposit",
+    "minFeeRefScriptCostPerByte",
+    "minPoolCost",
+}
+
+
+def spo_can_vote(detail: dict) -> bool:
+    """Whether a stake pool can cast a meaningful vote on this proposal."""
+    action = detail.get("governance_type")
+    if action not in SPO_VOTABLE_ACTIONS:
+        return False
+    if action != "parameter_change":
+        return True
+    changed = set()
+    for entry in (detail.get("governance_description") or {}).get("contents") or []:
+        if isinstance(entry, dict):
+            changed |= set(entry)
+    return bool(changed & SECURITY_RELEVANT_PARAMS)
+
+
+@lru_cache(maxsize=1)
+def find_active_dreps() -> dict:
+    """Discover an active, unexpired key DRep and script DRep.
+
+    The list endpoint already carries has_script, retired and expired, so the
+    scan costs one request per hundred DReps and runs to the end of the list.
+    With no candidate cap, "not found" cannot mean "stopped looking".
+
+    Returns {"key": hex|None, "script": hex|None}.
+    """
+    key_hex = script_hex = None
+    page = 1
+    while not (key_hex and script_hex):
+        dreps = blockfrost_get("governance/dreps", count=100, page=page, order="desc")
+        if not dreps:
+            break
+        for entry in dreps:
+            if entry.get("retired", False) or entry.get("expired", False):
+                continue
+            has_script = entry.get("has_script", False)
+            if has_script and script_hex:
+                continue
+            if not has_script and key_hex:
+                continue
+            raw_hex = entry.get("hex", "")
+            prefix = "23" if has_script else "22"
+            clean = raw_hex[2:] if raw_hex.startswith(prefix) else raw_hex
+            if has_script:
+                script_hex = clean
+            else:
+                key_hex = clean
+        page += 1
+    return {"key": key_hex, "script": script_hex}
+
+
+@lru_cache(maxsize=1)
+def find_spo_votable_proposal() -> str | None:
+    """Discover an open governance proposal a stake pool can vote on.
+
+    The list carries governance_type, so actions no pool can vote on are dropped
+    before spending a request on their detail. The remaining candidates are few,
+    so the scan runs to the end of the list rather than to a page cap.
+    """
+    page = 1
+    while True:
+        proposals = blockfrost_get("governance/proposals", count=100, page=page, order="desc")
+        if not proposals:
+            return None
+        for entry in proposals:
+            if entry.get("governance_type") not in SPO_VOTABLE_ACTIONS:
+                continue
+            tx_hash = entry.get("tx_hash", "")
+            cert_index = entry.get("cert_index", 0)
+            detail = blockfrost_get(f"governance/proposals/{tx_hash}/{cert_index}")
+            is_open = not any([
+                detail.get("enacted_epoch"),
+                detail.get("dropped_epoch"),
+                detail.get("expired_epoch"),
+            ])
+            if is_open and spo_can_vote(detail):
+                return f"{tx_hash}{int(cert_index):02x}"
+        page += 1
+
+
+def find_stake_pool() -> str | None:
+    """Discover a stake pool hash usable for the delegation tests."""
+    pools = blockfrost_get("pools", count=1, page=1, order="asc")
+    if not pools:
+        return None
+    return blockfrost_get(f"pools/{pools[0]}").get("hex", pools[0])
+
+
+def drep_unusable_reason(hex_hash: str, is_script: bool) -> str | None:
+    """Why this DRep cannot back a vote delegation test, or None when it can.
+
+    Shared with the pytest suite, so the pre-flight table and the test skips can
+    never disagree about the same value.
+    """
+    label = "script" if is_script else "key"
+    if not hex_hash:
+        return f"DRep {label} hash is not set; run prepare_wallet.py lookup"
+    if len(hex_hash) != 56:
+        return f"expected a 28-byte hex hash, got {len(hex_hash)} chars"
+    try:
+        info = blockfrost_get(f"governance/dreps/{drep_bech32(hex_hash, is_script=is_script)}")
+    except Exception as exc:
+        return f"on-chain lookup failed: {exc}"
+    if not info.get("active"):
+        return "not active on-chain"
+    if info.get("expired"):
+        return "expired on-chain; run prepare_wallet.py lookup for a current one"
+    if is_script and not info.get("has_script"):
+        return "not a script-based DRep"
+    return None
+
+
+def proposal_unusable_reason(proposal_id: str) -> str | None:
+    """Why this governance proposal cannot back the pool vote test, or None."""
+    if not proposal_id:
+        return "POOL_GOVERNANCE_PROPOSAL_ID is not set; run prepare_wallet.py lookup"
+    if len(proposal_id) < 66:
+        return f"expected tx hash plus cert index, got {len(proposal_id)} chars"
+    try:
+        info = blockfrost_get(
+            f"governance/proposals/{proposal_id[:64]}/{int(proposal_id[64:], 16)}"
+        )
+    except Exception as exc:
+        return f"on-chain lookup failed: {exc}"
+    enacted = info.get("enacted_epoch")
+    dropped = info.get("dropped_epoch")
+    expired = info.get("expired_epoch")
+    if any([enacted, dropped, expired]):
+        return f"closed (enacted={enacted} dropped={dropped} expired={expired})"
+    if not spo_can_vote(info):
+        return f"open but not SPO-votable ({info.get('governance_type')})"
+    return None
+
+
+def resolve_drep(is_script: bool) -> tuple[str | None, str | None]:
+    """The DRep hash to test with, or the reason there is none.
+
+    Discovery is the default because a DRep's registration expires: pinning it
+    in configuration guarantees it goes stale. Setting the environment variable
+    overrides discovery for reproducibility, and a pinned value that no longer
+    works is reported rather than silently replaced.
+    """
+    name = "DREP_SCRIPT_HASH_ID" if is_script else "DREP_KEY_HASH_ID"
+    kind = "script-based " if is_script else ""
+    pinned = (os.getenv(name) or "").strip()
+    if pinned:
+        reason = drep_unusable_reason(pinned, is_script=is_script)
+        return (None, f"{name} is pinned but {reason}") if reason else (pinned, None)
+
+    value = find_active_dreps()["script" if is_script else "key"]
+    if value:
+        return value, None
+    return None, f"no active {kind}DRep exists on {NETWORK}"
+
+
+def resolve_proposal() -> tuple[str | None, str | None]:
+    """The governance proposal to vote on, or the reason there is none."""
+    pinned = (os.getenv("POOL_GOVERNANCE_PROPOSAL_ID") or "").strip()
+    if pinned:
+        reason = proposal_unusable_reason(pinned)
+        return (None, f"POOL_GOVERNANCE_PROPOSAL_ID is pinned but {reason}") if reason else (pinned, None)
+
+    found = find_spo_votable_proposal()
+    if found:
+        return found, None
+    return None, f"no open SPO-votable proposal exists on {NETWORK}"
+
+
+def resolve_stake_pool() -> tuple[str | None, str | None]:
+    """The stake pool hash to delegate to, or the reason there is none."""
+    pinned = (os.getenv("STAKE_POOL_HASH") or "").strip()
+    if pinned:
+        return pinned, None
+    try:
+        found = find_stake_pool()
+    except Exception as exc:
+        return None, f"stake pool discovery failed: {exc}"
+    return (found, None) if found else (None, f"no stake pool found on {NETWORK}")
 
 
 def cmd_check():
@@ -245,7 +461,13 @@ def cmd_check():
         console.print(f"[bold red]FAIL:[/] No UTXOs found for {address}")
         sys.exit(1)
 
-    ada_only_count, with_tokens_count, has_fee_utxo, total_lovelace = analyze_utxos(utxos)
+    (
+        ada_only_count,
+        ada_only_lovelace,
+        with_tokens_count,
+        has_fee_utxo,
+        total_lovelace,
+    ) = analyze_utxos(utxos)
 
     utxo_table = Table(box=box.SIMPLE_HEAVY, title="Wallet UTXOs")
     utxo_table.add_column("UTXO", style="dim")
@@ -271,6 +493,11 @@ def cmd_check():
     check_table.add_column("Detail", style="dim")
 
     row("ADA-only UTXOs", ada_only_count >= MIN_ADA_ONLY_UTXOS, f"{ada_only_count}/{MIN_ADA_ONLY_UTXOS}")
+    row(
+        "E2E suite funds",
+        ada_only_lovelace >= MIN_E2E_ADA_ONLY_LOVELACE,
+        f"{ada_only_lovelace / 1e6:.2f}/{MIN_E2E_ADA_ONLY_LOVELACE / 1e6:.2f} ADA-only",
+    )
     row("Token bundle UTXO", with_tokens_count >= 1, "found" if with_tokens_count >= 1 else "missing")
     row("Fee UTXO (>= 5 ADA)", has_fee_utxo, "found" if has_fee_utxo else "missing")
 
@@ -291,106 +518,52 @@ def cmd_check():
             warn("Stake key", f"lookup error: {exc}")
 
     # ── 4. On-chain state: pool from cert ──
-    pool_cert = require_env("POOL_REGISTRATION_CERT")
-    if pool_cert and is_hex(pool_cert) and len(pool_cert) >= 60:
+    pool_cert = (os.getenv("POOL_REGISTRATION_CERT") or "").strip()
+    if not pool_cert:
+        warn("POOL_REGISTRATION_CERT", "not set; certificate test is statically skipped")
+    elif is_hex(pool_cert) and len(pool_cert) >= 60:
         # Extract pool key hash from cert CBOR (first 581c = 28-byte hash)
-        try:
-            idx = pool_cert.find("581c")
-            if idx >= 0:
-                cert_pool_hash = pool_cert[idx + 4 : idx + 4 + 56]
-                current_epoch = blockfrost_get("epochs/latest").get("epoch", 0)
-                pool_bech32 = bech32_encode("pool", bytes.fromhex(cert_pool_hash))
-                # Check if pool is in the retiring list
-                retiring_epoch = None
-                for page in range(1, 5):
-                    retiring = blockfrost_get("pools/retiring", count=100, page=page)
-                    if not retiring:
-                        break
-                    for p in retiring:
-                        if p.get("pool_id") == pool_bech32:
-                            retiring_epoch = p.get("epoch")
-                            break
-                    if retiring_epoch:
-                        break
-
-                if retiring_epoch:
-                    if current_epoch >= retiring_epoch:
-                        row("Pool from cert", True, f"{cert_pool_hash[:16]}... retired at epoch {retiring_epoch} (re-registrable)")
-                    else:
-                        warn("Pool from cert", f"{cert_pool_hash[:16]}... retiring at epoch {retiring_epoch}, current={current_epoch} (still active!)")
+        idx = pool_cert.find("581c")
+        if idx < 0:
+            row("POOL_REGISTRATION_CERT", True, f"{len(pool_cert)} hex chars")
+        else:
+            cert_pool_hash = pool_cert[idx + 4 : idx + 4 + 56]
+            # The pool endpoint answers 200 for a retired pool too, since it
+            # serves the last known record, so registration state is read from
+            # the ordered update history instead.
+            try:
+                updates = blockfrost_get(f"pools/{cert_pool_hash}/updates", count=100)
+            except Exception as exc:
+                status = getattr(getattr(exc, "response", None), "status_code", None)
+                if status == 404:
+                    row("Pool from cert", True, f"{cert_pool_hash[:16]}... never registered (fresh)")
                 else:
-                    # Not in retiring list — check if it exists at all
-                    try:
-                        api.pool(cert_pool_hash)
-                        warn("Pool from cert", f"{cert_pool_hash[:16]}... active on-chain (not retired)")
-                    except ApiError as exc:
-                        if getattr(exc, "status_code", None) == 404:
-                            row("Pool from cert", True, "not on-chain (fresh)")
-                        else:
-                            row("Pool from cert", True, f"{len(pool_cert)} hex chars")
-            else:
-                row("POOL_REGISTRATION_CERT", True, f"{len(pool_cert)} hex chars")
-        except Exception as exc:
-            row("POOL_REGISTRATION_CERT", True, f"{len(pool_cert)} hex chars (lookup: {exc})")
-    elif pool_cert:
+                    warn("Pool from cert", f"{cert_pool_hash[:16]}... lookup failed: {exc}")
+                updates = None
+
+            if updates is not None:
+                last_action = updates[-1].get("action") if updates else None
+                if last_action == "registered":
+                    warn("Pool from cert", f"{cert_pool_hash[:16]}... currently registered; "
+                                           "the retirement test cleans it up")
+                else:
+                    row("Pool from cert", True, f"{cert_pool_hash[:16]}... not registered "
+                                                f"(last action: {last_action or 'none'})")
+    else:
         row("POOL_REGISTRATION_CERT", False, "not valid even-length hex")
 
-    # ── 5. .env governance: stake pool ──
-    pool_hash = require_env("STAKE_POOL_HASH")
-    if pool_hash and is_hex(pool_hash):
-        try:
-            api.pool(pool_hash)
-            row("STAKE_POOL_HASH", True, f"{pool_hash[:16]}... (on-chain)")
-        except ApiError as exc:
-            if getattr(exc, "status_code", None) == 404:
-                row("STAKE_POOL_HASH", False, "not found on-chain")
-            else:
-                row("STAKE_POOL_HASH", False, f"lookup error: {exc}")
-    elif pool_hash:
-        row("STAKE_POOL_HASH", False, "not valid hex")
-
-    # ── 6. .env governance: DReps ──
-    drep_key_hash = require_env("DREP_KEY_HASH_ID")
-    if drep_key_hash:
-        try:
-            drep_id = drep_bech32(drep_key_hash, is_script=False)
-            drep_info = blockfrost_get(f"governance/dreps/{drep_id}")
-            active = drep_info.get("active", False)
-            expired = drep_info.get("expired", False)
-            detail = f"{drep_key_hash[:16]}... active={active} expired={expired}"
-            row("DREP_KEY_HASH_ID", active and not expired, detail)
-        except Exception as exc:
-            row("DREP_KEY_HASH_ID", False, f"not found/error: {exc}")
-
-    drep_script_hash = require_env("DREP_SCRIPT_HASH_ID")
-    if drep_script_hash:
-        try:
-            drep_id = drep_bech32(drep_script_hash, is_script=True)
-            drep_info = blockfrost_get(f"governance/dreps/{drep_id}")
-            active = drep_info.get("active", False)
-            expired = drep_info.get("expired", False)
-            has_script = drep_info.get("has_script", False)
-            detail = f"{drep_script_hash[:16]}... active={active} expired={expired} script={has_script}"
-            row("DREP_SCRIPT_HASH_ID", active and not expired and has_script, detail)
-        except Exception as exc:
-            row("DREP_SCRIPT_HASH_ID", False, f"not found/error: {exc}")
-
-    # ── 7. .env governance: proposal ──
-    proposal_id = require_env("POOL_GOVERNANCE_PROPOSAL_ID")
-    if proposal_id and len(proposal_id) >= 66:
-        try:
-            tx_hash = proposal_id[:64]
-            cert_index = int(proposal_id[64:], 16)
-            info = blockfrost_get(f"governance/proposals/{tx_hash}/{cert_index}")
-
-            enacted = info.get("enacted_epoch")
-            dropped = info.get("dropped_epoch")
-            expired = info.get("expired_epoch")
-            is_open = not any([enacted, dropped, expired])
-            status = "open" if is_open else f"closed(enacted={enacted} dropped={dropped} expired={expired})"
-            row("POOL_GOVERNANCE_PROPOSAL_ID", is_open, f"{proposal_id[:16]}... {status}")
-        except Exception as exc:
-            row("POOL_GOVERNANCE_PROPOSAL_ID", False, f"not found/error: {exc}")
+    # ── 5. Governance values, resolved the way the suite resolves them ──
+    for name, (value, reason) in (
+        ("STAKE_POOL_HASH", resolve_stake_pool()),
+        ("DREP_KEY_HASH_ID", resolve_drep(is_script=False)),
+        ("DREP_SCRIPT_HASH_ID", resolve_drep(is_script=True)),
+        ("POOL_GOVERNANCE_PROPOSAL_ID", resolve_proposal()),
+    ):
+        if value:
+            source = "pinned" if os.getenv(name) else "discovered"
+            row(name, True, f"{value[:16]}... ({source})")
+        else:
+            warn(name, f"{reason}; the dependent test will be skipped")
 
     vote = os.getenv("POOL_VOTE_CHOICE", "yes")
     row("POOL_VOTE_CHOICE", vote in ("yes", "no", "abstain"), vote)
@@ -402,6 +575,9 @@ def cmd_check():
         hints = []
         if ada_only_count < MIN_ADA_ONLY_UTXOS:
             hints.append(f"Need {MIN_ADA_ONLY_UTXOS - ada_only_count} more ADA-only UTXOs → [bold]uv run prepare_wallet.py split[/]")
+        if ada_only_lovelace < MIN_E2E_ADA_ONLY_LOVELACE:
+            missing_ada = (MIN_E2E_ADA_ONLY_LOVELACE - ada_only_lovelace) / 1e6
+            hints.append(f"Need {missing_ada:.2f} more ADA in ADA-only UTXOs")
         if with_tokens_count < 1:
             hints.append("Need 1 token UTXO → [bold]uv run prepare_wallet.py mint[/]")
         gov_fails = [e for e in errors if e.startswith("DREP_") or e.startswith("POOL_GOVERNANCE")]
@@ -514,95 +690,33 @@ def cmd_mint():
 
 
 def cmd_lookup():
-    """Look up governance values for .env using the Blockfrost REST API."""
+    """Show the governance values the suite would discover on this network."""
     console.print(f"\nLooking up [bold]{NETWORK}[/] network governance data...\n")
 
     table = Table(title="Governance Values", box=box.ROUNDED, show_lines=True)
     table.add_column("Variable", style="bold", no_wrap=True)
     table.add_column("Value", style="cyan", overflow="fold")
 
-    # 1. Stake pool
-    try:
-        pools = blockfrost_get("pools", count=1, page=1, order="asc")
-        if pools:
-            pool_info = blockfrost_get(f"pools/{pools[0]}")
-            table.add_row("STAKE_POOL_HASH", pool_info.get("hex", pools[0]))
-        else:
-            table.add_row("STAKE_POOL_HASH", "[red]No pools found[/]")
-    except Exception as e:
-        table.add_row("STAKE_POOL_HASH", f"[red]Error: {e}[/]")
+    with console.status("Resolving on-chain values..."):
+        rows = [
+            ("STAKE_POOL_HASH", resolve_stake_pool()),
+            ("DREP_KEY_HASH_ID", resolve_drep(is_script=False)),
+            ("DREP_SCRIPT_HASH_ID", resolve_drep(is_script=True)),
+            ("POOL_GOVERNANCE_PROPOSAL_ID", resolve_proposal()),
+        ]
 
-    # 2. DReps — newest first (order=desc), cap checks to avoid slow N+1
-    try:
-        key_hex, script_hex = None, None
-        checked = 0
-        max_checks = 200
-        with console.status("Searching for active DReps...") as status:
-            for page in range(1, 100):
-                dreps = blockfrost_get("governance/dreps", count=100, page=page, order="desc")
-                if not dreps:
-                    break
-                for d in dreps:
-                    if checked >= max_checks:
-                        break
-                    checked += 1
-                    drep_id = d.get("drep_id", "")
-                    status.update(f"Checking DRep {checked}/{max_checks}...")
-                    detail = blockfrost_get(f"governance/dreps/{drep_id}")
-                    if not detail.get("active", False) or detail.get("expired", False):
-                        continue
-                    raw_hex = detail.get("hex", "")
-                    has_script = detail.get("has_script", False)
-                    # Strip credential type prefix (22=key, 23=script)
-                    expected_prefix = "23" if has_script else "22"
-                    clean_hex = raw_hex[2:] if raw_hex.startswith(expected_prefix) else raw_hex
-                    if has_script and not script_hex:
-                        script_hex = clean_hex
-                    elif not has_script and not key_hex:
-                        key_hex = clean_hex
-                    if key_hex and script_hex:
-                        break
-                if key_hex and script_hex or checked >= max_checks:
-                    break
-
-        table.add_row("DREP_KEY_HASH_ID", key_hex or f"[red]Not found (checked {checked})[/]")
-        table.add_row("DREP_SCRIPT_HASH_ID", script_hex or f"[red]Not found (checked {checked})[/]")
-    except Exception as e:
-        table.add_row("DREP_KEY_HASH_ID", f"[red]Error: {e}[/]")
-        table.add_row("DREP_SCRIPT_HASH_ID", f"[red]Error: {e}[/]")
-
-    # 3. Governance proposals — newest first, find an open one
-    try:
-        found_proposal = None
-        checked = 0
-        with console.status("Searching for open proposals...") as status:
-            for page in range(1, 10):
-                proposals = blockfrost_get("governance/proposals", count=100, page=page, order="desc")
-                if not proposals:
-                    break
-                for p in proposals:
-                    checked += 1
-                    tx_hash = p.get("tx_hash", "")
-                    cert_index = p.get("cert_index", 0)
-                    status.update(f"Checking proposal {checked}...")
-                    detail = blockfrost_get(f"governance/proposals/{tx_hash}/{cert_index}")
-                    if not any([detail.get("enacted_epoch"), detail.get("dropped_epoch"), detail.get("expired_epoch")]):
-                        found_proposal = f"{tx_hash}{int(cert_index):02d}"
-                        break
-                if found_proposal:
-                    break
-        if found_proposal:
-            table.add_row("POOL_GOVERNANCE_PROPOSAL_ID", found_proposal)
-        else:
-            table.add_row("POOL_GOVERNANCE_PROPOSAL_ID", f"[red]No open proposals found (checked {checked})[/]")
-    except Exception as e:
-        table.add_row("POOL_GOVERNANCE_PROPOSAL_ID", f"[red]Error: {e}[/]")
-
-    table.add_row("POOL_VOTE_CHOICE", "yes")
+    for name, (value, reason) in rows:
+        table.add_row(name, value or f"[red]{reason}[/]")
+    table.add_row("POOL_VOTE_CHOICE", os.getenv("POOL_VOTE_CHOICE", "yes"))
 
     console.print(table)
-    console.print("\n[dim]Copy the values above into your .env file.[/]")
-    console.print("[dim]POOL_REGISTRATION_CERT needs to be generated separately (pool-specific).[/]")
+    console.print(
+        "\n[dim]The suite resolves these the same way at run time; set one only to "
+        "pin it.[/]"
+    )
+    console.print(
+        "[dim]POOL_REGISTRATION_CERT needs to be generated separately (pool-specific).[/]"
+    )
 
 
 # ── Main ────────────────────────────────────────────────────────────────────

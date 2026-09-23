@@ -62,7 +62,7 @@ def parse_args():
     parser.add_argument('--sla', dest='sla_threshold', type=int, default=1000,
                         help='SLA threshold in milliseconds')
     parser.add_argument('--error-threshold', dest='error_threshold', type=float, default=1.0,
-                        help='Threshold for non-2xx errors (percentage, e.g., 1.0 means 1%%)')
+                        help='Threshold for combined HTTP and transport errors (percentage, e.g., 1.0 means 1%%)')
     
     # Misc options
     parser.add_argument('--no-header', dest='no_header', action='store_true',
@@ -176,6 +176,7 @@ def get_ab_command(endpoint_path, concurrency, json_file):
     """
     cmd = [
         "ab",
+        "-l",
         "-t", str(TEST_DURATION),
         "-c", str(concurrency),
         "-p", json_file,
@@ -194,16 +195,14 @@ def log_command(cmd, endpoint_name, concurrency):
         f.write("-" * 80 + "\n")
 
 def parse_ab_output(ab_stdout: str):
-    """
-    Given the raw output from `ab`, parse out the 95% and 99% lines and additional metrics.
-    Returns a tuple with various metrics. If not found, returns large defaults.
-    """
-    p95 = 999999
-    p99 = 999999
-    complete_requests = 0
-    requests_per_sec = 0.0
-    mean_time = 0.0
+    """Parse the required latency, throughput, and failure metrics from ApacheBench."""
+    p95 = None
+    p99 = None
+    complete_requests = None
+    requests_per_sec = None
+    mean_time = None
     non_2xx_responses = 0
+    failed_requests = None
 
     # Parse each metric
     for line in ab_stdout.splitlines():
@@ -228,17 +227,62 @@ def parse_ab_output(ab_stdout: str):
             if len(parts) >= 4:
                 requests_per_sec = float(parts[3])
         # Parse Mean time per request (first occurrence)
-        elif "Time per request:" in line and "mean" in line:
+        elif "Time per request:" in line and "mean" in line and mean_time is None:
             parts = line.split()
             if len(parts) >= 4:
                 mean_time = float(parts[3])
-        # Parse Non-2xx responses
+        # Parse HTTP and transport failures independently.
         elif "Non-2xx responses:" in line:
             parts = line.split()
             if len(parts) >= 3:
                 non_2xx_responses = int(parts[2])
+        elif "Failed requests:" in line:
+            parts = line.split()
+            if len(parts) >= 3:
+                failed_requests = int(parts[2])
 
-    return p95, p99, complete_requests, requests_per_sec, mean_time, non_2xx_responses
+    required = {
+        "95th percentile": p95,
+        "99th percentile": p99,
+        "complete requests": complete_requests,
+        "requests per second": requests_per_sec,
+        "mean time per request": mean_time,
+        "failed requests": failed_requests,
+    }
+    missing = [name for name, value in required.items() if value is None]
+    if missing:
+        raise ValueError(f"Incomplete ApacheBench output; missing: {', '.join(missing)}")
+    if complete_requests <= 0 or requests_per_sec <= 0:
+        raise ValueError("ApacheBench completed without positive request and throughput metrics")
+    if p95 < 0 or p99 < p95:
+        raise ValueError("ApacheBench returned invalid latency percentiles")
+    if (
+        non_2xx_responses < 0
+        or failed_requests < 0
+        or non_2xx_responses + failed_requests > complete_requests
+    ):
+        raise ValueError("ApacheBench returned inconsistent failure counts")
+
+    return (
+        p95,
+        p99,
+        complete_requests,
+        requests_per_sec,
+        mean_time,
+        non_2xx_responses,
+        failed_requests,
+    )
+
+
+def calculate_error_rate(
+    complete_requests: int,
+    non_2xx_responses: int,
+    failed_requests: int,
+) -> float:
+    """Return the combined HTTP and transport failure percentage."""
+    if complete_requests <= 0:
+        raise ValueError("Complete requests must be positive")
+    return ((non_2xx_responses + failed_requests) / complete_requests) * 100
 
 ###############################################################################
 # PAYLOAD GENERATORS
@@ -547,6 +591,8 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
         max_retries = MAX_RETRIES
         retry_count = 0
         ab_success = False
+        metrics = None
+        box_width = 80
 
         while retry_count <= max_retries and not ab_success:
             # Execute ab command using Popen for real-time output in verbose mode
@@ -557,7 +603,6 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
                 
                 # Read stdout line by line
                 if VERBOSE:
-                    box_width = 80
                     logger.debug("┌" + "─" * (box_width - 2) + "┐")
                     logger.debug("│ AB OUTPUT" + " " * (box_width - 12) + "│")
                     logger.debug("├" + "─" * (box_width - 2) + "┤")
@@ -608,10 +653,30 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
                         time.sleep(COOLDOWN_PERIOD)
                         continue  # Try again
                     else:
-                        logger.warning(f"Max retries ({max_retries}) reached for {endpoint_name} at concurrency {c}. Moving to next concurrency level.")
+                        logger.error(f"Max retries ({max_retries}) reached for {endpoint_name} at concurrency {c}. Failing the endpoint test.")
                         break  # Stop retrying this concurrency level
                 else:
-                    ab_success = True  # Command succeeded
+                    try:
+                        metrics = parse_ab_output(ab_output)
+                    except ValueError as error:
+                        logger.error(
+                            f"Could not parse ApacheBench output at concurrency {c} "
+                            f"for {endpoint_name}: {error}"
+                        )
+                        retry_count += 1
+                        if retry_count <= max_retries:
+                            logger.info(
+                                f"Retrying in {COOLDOWN_PERIOD} seconds... "
+                                f"(attempt {retry_count}/{max_retries})"
+                            )
+                            time.sleep(COOLDOWN_PERIOD)
+                            continue
+                        logger.error(
+                            f"Max retries ({max_retries}) reached for {endpoint_name} "
+                            f"at concurrency {c} due to invalid output."
+                        )
+                        break
+                    ab_success = True
                     
             except FileNotFoundError:
                 # Make sure to close the box if open
@@ -632,22 +697,33 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
                     time.sleep(COOLDOWN_PERIOD)
                     continue  # Try again
                 else:
-                    logger.warning(f"Max retries ({max_retries}) reached for {endpoint_name} at concurrency {c} due to exception. Moving to next concurrency level.")
+                    logger.error(f"Max retries ({max_retries}) reached for {endpoint_name} at concurrency {c} due to exception. Failing the endpoint test.")
                     break  # Stop retrying this concurrency level
 
-        # If we didn't succeed after all retries, move to the next concurrency level
-        if not ab_success:
-            break
+        if not ab_success or metrics is None:
+            raise RuntimeError(
+                f"ApacheBench failed after {max_retries + 1} attempts for "
+                f"{endpoint_name} at concurrency {c}"
+            )
 
-        # Parse p95, p99 and additional metrics from the captured stdout
-        p95, p99, complete_requests, requests_per_sec, mean_time, non_2xx_responses = parse_ab_output(ab_output)
+        (
+            p95,
+            p99,
+            complete_requests,
+            requests_per_sec,
+            mean_time,
+            non_2xx_responses,
+            failed_requests,
+        ) = metrics
 
-        # Calculate error rate as a percentage
-        error_rate = 0.0
-        if complete_requests > 0:
-            error_rate = (non_2xx_responses / complete_requests) * 100
+        # ApacheBench reports HTTP and transport failures separately. Apply
+        # the configured error threshold to their combined rate.
+        error_rate = calculate_error_rate(
+            complete_requests,
+            non_2xx_responses,
+            failed_requests,
+        )
 
-        # Check both SLA and error threshold
         meets_sla = (p95 < SLA_THRESHOLD) and (p99 < SLA_THRESHOLD)
         meets_error_threshold = error_rate <= ERROR_THRESHOLD
         meets_sla_str = "Yes" if meets_sla else "No"
@@ -696,6 +772,7 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
         logger.debug(f"  Requests/sec: {requests_per_sec}")
         logger.debug(f"  Mean Time/Request: {mean_time}ms")
         logger.debug(f"  Non-2xx Responses: {non_2xx_responses}")
+        logger.debug(f"  Failed Requests: {failed_requests}")
         logger.debug(f"  Error Rate: {error_rate:.2f}%")
         logger.debug(f"  Meets Error Threshold: {meets_error_threshold_str}")
 
@@ -711,7 +788,11 @@ def test_endpoint(endpoint_name, endpoint_path, payload_func, csv_row):
             if not meets_sla:
                 logger.info(f"SLA threshold of {SLA_THRESHOLD}ms exceeded at concurrency {c}. Stopping tests for {endpoint_name}.")
             if not meets_error_threshold:
-                logger.info(f"Error threshold of {ERROR_THRESHOLD}% exceeded at concurrency {c} (actual: {error_rate:.2f}%). Stopping tests for {endpoint_name}.")
+                logger.info(
+                    f"Combined HTTP and transport error threshold of {ERROR_THRESHOLD}% "
+                    f"exceeded at concurrency {c} (actual: {error_rate:.2f}%). "
+                    f"Stopping tests for {endpoint_name}."
+                )
             break
 
     return max_sla_conc, best_p95, best_p99, best_non_2xx, best_error_rate, best_requests_per_sec
