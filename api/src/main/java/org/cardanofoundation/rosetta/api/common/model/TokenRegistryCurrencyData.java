@@ -1,12 +1,12 @@
 package org.cardanofoundation.rosetta.api.common.model;
 
+import java.math.BigDecimal;
+import javax.annotation.Nullable;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import javax.annotation.Nullable;
-import java.math.BigDecimal;
 
 /**
  * Domain object representing token registry currency metadata.

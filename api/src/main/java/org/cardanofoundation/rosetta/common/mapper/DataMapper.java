@@ -1,16 +1,18 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
+import java.util.Objects;
+import javax.annotation.Nullable;
+
 import lombok.RequiredArgsConstructor;
-import org.cardanofoundation.rosetta.api.common.mapper.TokenRegistryMapper;
-import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
-import org.cardanofoundation.rosetta.common.util.Constants;
+
+import org.springframework.stereotype.Component;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.CurrencyMetadataResponse;
 import org.openapitools.client.model.CurrencyResponse;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.Nullable;
-import java.util.Objects;
+import org.cardanofoundation.rosetta.api.common.mapper.TokenRegistryMapper;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
+import org.cardanofoundation.rosetta.common.util.Constants;
 
 @Component
 @RequiredArgsConstructor

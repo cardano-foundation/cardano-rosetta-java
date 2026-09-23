@@ -87,7 +87,7 @@ class LedgerBlockServiceImplTest {
 
     val invalidTransaction = new InvalidTransactionEntity();
     invalidTransaction.setTxHash("txHash1");
-    
+
     val transactionInfo = new LedgerBlockServiceImpl.TransactionInfo(
             Collections.emptyList(), // utxos
             Collections.emptyList(), // stakeRegistrations

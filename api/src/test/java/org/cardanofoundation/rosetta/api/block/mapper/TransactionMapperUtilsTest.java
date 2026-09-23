@@ -1,6 +1,18 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.*;
+
 import org.assertj.core.api.Assertions;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.openapitools.client.model.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
@@ -8,16 +20,6 @@ import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.util.Constants;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.openapitools.client.model.*;
-
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anySet;
@@ -74,10 +76,10 @@ class TransactionMapperUtilsTest {
         newAmt(3, 33, false),
         newAmt(4, 41, true)
     );
-    
+
     // Create metadata map for the cached method
     Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createMetadataMapForAmounts(amtList);
-    
+
     // when
     OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(true, amtList, metadataMap);
     // then
@@ -101,10 +103,10 @@ class TransactionMapperUtilsTest {
     List<Amt> amtList = Arrays.asList(
         newAmt(1, 11, true),
         newAmt(2, 21, true));
-    
+
     // Create metadata map for the cached method
     Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createMetadataMapForAmounts(amtList);
-    
+
     // when
     OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(true, amtList, metadataMap);
     // then
@@ -117,10 +119,10 @@ class TransactionMapperUtilsTest {
     String policyId = "testPolicyId";
     String assetName = "testAsset";
     String subject = policyId + "746573744173736574";  // hex encoding of "testAsset"
-    
+
     // Create Asset object for the request
     AssetFingerprint assetFingerprint = AssetFingerprint.of(policyId, assetName);
-    
+
     // Mock token registry response with full metadata
     TokenRegistryCurrencyData currencyMetadata = TokenRegistryCurrencyData.builder()
         .policyId(policyId)
@@ -136,30 +138,30 @@ class TransactionMapperUtilsTest {
 
     Map<AssetFingerprint, TokenRegistryCurrencyData> tokenMetadataMap = new HashMap<>();
     tokenMetadataMap.put(assetFingerprint, currencyMetadata);
-    
+
     List<Amt> amtList = Arrays.asList(
         newAmtWithCustomName(policyId, assetName, false)
     );
-    
+
     // when
     OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(false, amtList, tokenMetadataMap);
-    
+
     // then
     assertNotNull(operationMetadata);
     List<TokenBundleItem> tokenBundle = operationMetadata.getTokenBundle();
     assertEquals(1, tokenBundle.size());
-    
+
     TokenBundleItem item = tokenBundle.get(0);
     assertEquals(policyId, item.getPolicyId());
     assertEquals(1, item.getTokens().size());
-    
+
     Amount amount = item.getTokens().get(0);
     assertNotNull(amount.getCurrency());
 
     CurrencyResponse currency = amount.getCurrency();
     assertEquals(assetName, currency.getSymbol());
     assertEquals(6, currency.getDecimals());
-    
+
     // Verify metadata injection
     org.openapitools.client.model.CurrencyMetadataResponse responseMetadata = currency.getMetadata();
     assertNotNull(responseMetadata);
@@ -180,9 +182,9 @@ class TransactionMapperUtilsTest {
     // given - token registry returns fallback metadata with only policyId
     String policyId = "testPolicyId";
     String assetName = "testAsset";
-    
+
     AssetFingerprint assetFingerprint = AssetFingerprint.of(policyId, assetName);
-    
+
     // Mock service to return fallback metadata (service always returns something now)
     TokenRegistryCurrencyData fallbackMetadata = TokenRegistryCurrencyData.builder()
         .policyId(policyId)
@@ -191,30 +193,30 @@ class TransactionMapperUtilsTest {
 
     Map<AssetFingerprint, TokenRegistryCurrencyData> tokenMetadataMap = new HashMap<>();
     tokenMetadataMap.put(assetFingerprint, fallbackMetadata);
-    
+
     List<Amt> amtList = Arrays.asList(
         newAmtWithCustomName(policyId, assetName, false)
     );
-    
+
     // when
     OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(false, amtList, tokenMetadataMap);
-    
+
     // then
     assertNotNull(operationMetadata);
     List<TokenBundleItem> tokenBundle = operationMetadata.getTokenBundle();
     assertEquals(1, tokenBundle.size());
-    
+
     TokenBundleItem item = tokenBundle.get(0);
     assertEquals(policyId, item.getPolicyId());
     assertEquals(1, item.getTokens().size());
-    
+
     Amount amount = item.getTokens().get(0);
     assertNotNull(amount.getCurrency());
 
     CurrencyResponse currency = amount.getCurrency();
     assertEquals(assetName, currency.getSymbol());
     assertEquals(0, currency.getDecimals()); // Default when no metadata
-    
+
     // Verify fallback metadata is present with at least policyId
     org.openapitools.client.model.CurrencyMetadataResponse currencyMetadata = currency.getMetadata();
     assertNotNull(currencyMetadata);
@@ -229,9 +231,9 @@ class TransactionMapperUtilsTest {
     // given
     String policyId = "testPolicyId";
     String assetName = "testAsset";
-    
+
     AssetFingerprint assetFingerprint = AssetFingerprint.of(policyId, assetName);
-    
+
     // Mock service to return fallback metadata
     TokenRegistryCurrencyData fallbackMetadata = TokenRegistryCurrencyData.builder()
         .policyId(policyId)
@@ -240,7 +242,7 @@ class TransactionMapperUtilsTest {
 
     Map<AssetFingerprint, TokenRegistryCurrencyData> tokenMetadataMap = new HashMap<>();
     tokenMetadataMap.put(assetFingerprint, fallbackMetadata);
-    
+
     List<Amt> amtList = Arrays.asList(
         Amt.builder()
             .policyId(policyId)
@@ -248,18 +250,18 @@ class TransactionMapperUtilsTest {
             .unit(policyId + assetName)
             .build()
     );
-    
+
     // when - test spent=true
     OperationMetadata operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(true, amtList, tokenMetadataMap);
-    
+
     // then
     assertNotNull(operationMetadata);
     Amount amount = operationMetadata.getTokenBundle().get(0).getTokens().get(0);
     assertEquals("-1000", amount.getValue()); // Negative for spent
-    
-    // when - test spent=false  
+
+    // when - test spent=false
     operationMetadata = transactionMapperUtils.mapToOperationMetaDataWithCache(false, amtList, createMetadataMapForAmounts(amtList));
-    
+
     // then
     assertNotNull(operationMetadata);
     amount = operationMetadata.getTokenBundle().get(0).getTokens().get(0);

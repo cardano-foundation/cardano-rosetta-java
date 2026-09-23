@@ -1,7 +1,17 @@
 package org.cardanofoundation.rosetta.api.search.service;
 
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import javax.annotation.Nullable;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import org.cardanofoundation.rosetta.api.account.service.AddressHistoryService;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
@@ -13,14 +23,6 @@ import org.cardanofoundation.rosetta.api.search.model.Currency;
 import org.cardanofoundation.rosetta.api.search.model.Operator;
 import org.cardanofoundation.rosetta.common.spring.OffsetBasedPageRequest;
 import org.cardanofoundation.rosetta.common.spring.SimpleOffsetBasedPageRequest;
-import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import javax.annotation.Nullable;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
 
 @Slf4j
 @Service

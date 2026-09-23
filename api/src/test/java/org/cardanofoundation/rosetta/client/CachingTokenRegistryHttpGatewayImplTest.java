@@ -1,25 +1,27 @@
 package org.cardanofoundation.rosetta.client;
 
-import com.google.common.cache.Cache;
-import org.cardanofoundation.rosetta.client.model.domain.TokenCacheEntry;
-import org.cardanofoundation.rosetta.client.model.domain.TokenMetadata;
-import org.cardanofoundation.rosetta.client.model.domain.TokenProperty;
-import org.cardanofoundation.rosetta.client.model.domain.TokenPropertyNumber;
-import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.*;
+
+import com.google.common.cache.Cache;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import org.cardanofoundation.rosetta.client.model.domain.TokenCacheEntry;
+import org.cardanofoundation.rosetta.client.model.domain.TokenMetadata;
+import org.cardanofoundation.rosetta.client.model.domain.TokenProperty;
+import org.cardanofoundation.rosetta.client.model.domain.TokenPropertyNumber;
+import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -118,7 +120,7 @@ class CachingTokenRegistryHttpGatewayImplTest {
         void getTokenMetadataBatch_WhenSubjectsIsNull_ThrowsException() {
             assertThatThrownBy(() -> tokenRegistryHttpGateway.getTokenMetadataBatch(null))
                     .isInstanceOf(NullPointerException.class);
-            
+
             verifyNoInteractions(tokenMetadataCache, httpClient);
         }
 
@@ -135,7 +137,7 @@ class CachingTokenRegistryHttpGatewayImplTest {
             Set<String> subjects = Set.of(testSubject, testSubject2);
             TokenSubject cached1 = createTestTokenSubject(testSubject, "FLDT", "FLDT", 6L);
             TokenSubject cached2 = createTestTokenSubject(testSubject2, "MIN", "MIN", 6L);
-            
+
             when(tokenMetadataCache.getIfPresent(testSubject)).thenReturn(TokenCacheEntry.found(cached1));
             when(tokenMetadataCache.getIfPresent(testSubject2)).thenReturn(TokenCacheEntry.found(cached2));
 
@@ -165,11 +167,11 @@ class CachingTokenRegistryHttpGatewayImplTest {
             // Verify HTTP request was made
             ArgumentCaptor<HttpRequest> requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
             verify(httpClient).send(requestCaptor.capture(), any(HttpResponse.BodyHandler.class));
-            
+
             HttpRequest capturedRequest = requestCaptor.getValue();
             assertThat(capturedRequest.uri().toString()).isEqualTo("https://tokens.cardano.org/api/v2/subjects/query");
             assertThat(capturedRequest.method()).isEqualTo("POST");
-            
+
             verify(tokenMetadataCache).put(eq(testSubject), any(TokenCacheEntry.class));
         }
 
@@ -177,7 +179,7 @@ class CachingTokenRegistryHttpGatewayImplTest {
         void getTokenMetadataBatch_WhenHttpError_ReturnsPartialResults() throws Exception {
             Set<String> subjects = Set.of(testSubject, testSubject2);
             TokenSubject cached1 = createTestTokenSubject(testSubject, "FLDT", "FLDT", 6L);
-            
+
             when(tokenMetadataCache.getIfPresent(testSubject)).thenReturn(TokenCacheEntry.found(cached1));
             when(tokenMetadataCache.getIfPresent(testSubject2)).thenReturn(null);
             when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
@@ -206,7 +208,7 @@ class CachingTokenRegistryHttpGatewayImplTest {
             // Should only process the valid subject
             ArgumentCaptor<HttpRequest> requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
             verify(httpClient).send(requestCaptor.capture(), any(HttpResponse.BodyHandler.class));
-            
+
             // Verify cache was checked for all subjects (implementation doesn't filter)
             verify(tokenMetadataCache).getIfPresent(testSubject);
             verify(tokenMetadataCache).getIfPresent(eq(null));
@@ -246,7 +248,7 @@ class CachingTokenRegistryHttpGatewayImplTest {
             assertThat(result).hasSize(2);
             assertThat(result.get(testSubject)).isPresent();
             assertThat(result.get("nonexistent_subject")).isEqualTo(Optional.empty());
-            
+
             // Verify both subjects were cached (found as TokenCacheEntry.found, not found as TokenCacheEntry.notFound)
             verify(tokenMetadataCache).put(eq(testSubject), argThat(entry -> entry.isFound()));
             verify(tokenMetadataCache).put(eq("nonexistent_subject"), argThat(entry -> !entry.isFound()));
@@ -255,7 +257,7 @@ class CachingTokenRegistryHttpGatewayImplTest {
         @Test
         void getTokenMetadataBatch_WhenNotFoundTokenIsCached_SkipsRegistryCall() throws Exception {
             Set<String> subjects = Set.of("nonexistent_subject");
-            
+
             // Token is cached as not found
             when(tokenMetadataCache.getIfPresent("nonexistent_subject")).thenReturn(TokenCacheEntry.notFound());
 
@@ -263,7 +265,7 @@ class CachingTokenRegistryHttpGatewayImplTest {
 
             assertThat(result).hasSize(1);
             assertThat(result.get("nonexistent_subject")).isEqualTo(Optional.empty());
-            
+
             // Verify no HTTP call was made since we had cached not-found result
             verifyNoInteractions(httpClient);
         }
@@ -318,7 +320,7 @@ class CachingTokenRegistryHttpGatewayImplTest {
         void getTokenMetadataBatch_WhenIOException_ReturnsPartialResults() throws Exception {
             Set<String> subjects = Set.of(testSubject, testSubject2);
             TokenSubject cached1 = createTestTokenSubject(testSubject, "FLDT", "FLDT", 6L);
-            
+
             when(tokenMetadataCache.getIfPresent(testSubject)).thenReturn(TokenCacheEntry.found(cached1));
             when(tokenMetadataCache.getIfPresent(testSubject2)).thenReturn(null);
             when(httpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))

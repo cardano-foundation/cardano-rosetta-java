@@ -1,13 +1,11 @@
 package org.cardanofoundation.rosetta.client;
 
-import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
-import org.springframework.lang.Nullable;
-
-import javax.validation.constraints.NotNull;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import javax.validation.constraints.NotNull;
+
+import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
 
 /**
  * Gateway for interacting with the Cardano Token Registry API

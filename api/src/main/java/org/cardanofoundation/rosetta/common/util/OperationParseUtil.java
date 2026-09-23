@@ -1,13 +1,22 @@
 package org.cardanofoundation.rosetta.common.util;
 
+import java.math.BigInteger;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
+
+import lombok.extern.slf4j.Slf4j;
+
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.Bech32;
 import com.bloxbean.cardano.client.transaction.spec.Withdrawal;
 import com.bloxbean.cardano.client.util.HexUtil;
-import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.NotNull;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.openapitools.client.model.AccountIdentifier;
+import org.openapitools.client.model.Operation;
+
 import org.cardanofoundation.rosetta.api.block.model.domain.GovernancePoolVote;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
@@ -15,13 +24,6 @@ import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRegistrationC
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRetirement;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessPoolRegistrationReturn;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.ProcessWithdrawalReturn;
-import org.openapitools.client.model.AccountIdentifier;
-import org.openapitools.client.model.Operation;
-
-import java.math.BigInteger;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 
 @Slf4j
 public class OperationParseUtil {

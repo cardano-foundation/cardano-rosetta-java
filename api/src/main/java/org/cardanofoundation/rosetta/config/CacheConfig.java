@@ -1,13 +1,14 @@
 package org.cardanofoundation.rosetta.config;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import org.cardanofoundation.rosetta.client.model.domain.TokenCacheEntry;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
+import org.cardanofoundation.rosetta.client.model.domain.TokenCacheEntry;
 
 import static java.util.concurrent.TimeUnit.HOURS;
 

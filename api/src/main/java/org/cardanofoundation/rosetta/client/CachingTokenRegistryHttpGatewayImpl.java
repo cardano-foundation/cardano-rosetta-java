@@ -1,19 +1,5 @@
 package org.cardanofoundation.rosetta.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Stopwatch;
-import com.google.common.cache.Cache;
-import jakarta.annotation.PostConstruct;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.client.model.domain.TokenCacheEntry;
-import org.cardanofoundation.rosetta.client.model.domain.TokenRegistryBatchRequest;
-import org.cardanofoundation.rosetta.client.model.domain.TokenRegistryBatchResponse;
-import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -21,6 +7,22 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.*;
+import jakarta.annotation.PostConstruct;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Stopwatch;
+import com.google.common.cache.Cache;
+
+import org.cardanofoundation.rosetta.client.model.domain.TokenCacheEntry;
+import org.cardanofoundation.rosetta.client.model.domain.TokenRegistryBatchRequest;
+import org.cardanofoundation.rosetta.client.model.domain.TokenRegistryBatchResponse;
+import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -50,7 +52,7 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
     @PostConstruct
     public void init() {
         batchEndpointUrl = tokenRegistryBaseUrl + "/v2/subjects/query";
-        log.info("TokenRegistryHttpGatewayImpl initialized with enabled: {}, batchEndpointUrl: {}, httpRequestTimeoutSeconds: {}", 
+        log.info("TokenRegistryHttpGatewayImpl initialized with enabled: {}, batchEndpointUrl: {}, httpRequestTimeoutSeconds: {}",
                 enabled, batchEndpointUrl, httpRequestTimeoutSeconds);
     }
 
@@ -170,15 +172,15 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
 
     List<String> buildPropertiesList() {
         List<String> properties = new ArrayList<>();
-        
+
         // Add all properties except logo (conditionally)
         properties.add("name");
-        properties.add("description");  
+        properties.add("description");
         properties.add("ticker");
         properties.add("decimals");
         properties.add("url");
         properties.add("version");
-        
+
         // Only add logo if enabled
         if (logoFetchEnabled) {
             properties.add("logo");
@@ -186,7 +188,7 @@ public class CachingTokenRegistryHttpGatewayImpl implements TokenRegistryHttpGat
         } else {
             log.debug("Logo fetching disabled - excluding logo property from request");
         }
-        
+
         return properties;
     }
 

@@ -1,5 +1,20 @@
 package org.cardanofoundation.rosetta.api.common.service;
 
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.Base64;
+import java.util.HexFormat;
+
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.openapitools.client.model.*;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
@@ -11,23 +26,9 @@ import org.cardanofoundation.rosetta.client.model.domain.TokenMetadata;
 import org.cardanofoundation.rosetta.client.model.domain.TokenProperty;
 import org.cardanofoundation.rosetta.client.model.domain.TokenPropertyNumber;
 import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.openapitools.client.model.*;
-
-import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
-
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.Base64;
-import java.util.HexFormat;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.*;
@@ -448,7 +449,7 @@ class TokenRegistryServiceImplTest {
             // given
             AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
             Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
-            
+
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenThrow(new RuntimeException("Gateway error"));
 
@@ -481,7 +482,7 @@ class TokenRegistryServiceImplTest {
             // given
             AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
             Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
-            
+
             when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
                 .thenReturn(Map.of());
 
@@ -986,85 +987,85 @@ class TokenRegistryServiceImplTest {
     private TokenSubject createCompleteTokenSubject() {
         TokenSubject tokenSubject = mock(TokenSubject.class);
         when(tokenSubject.getSubject()).thenReturn(SUBJECT);
-        
+
         TokenMetadata tokenMetadata = mock(TokenMetadata.class);
         when(tokenSubject.getMetadata()).thenReturn(tokenMetadata);
-        
+
         // Mandatory fields
         TokenProperty name = mock(TokenProperty.class);
         when(name.getValue()).thenReturn("Test Token");
         when(tokenMetadata.getName()).thenReturn(name);
-        
+
         TokenProperty description = mock(TokenProperty.class);
         when(description.getValue()).thenReturn("Test Description");
         when(tokenMetadata.getDescription()).thenReturn(description);
-        
+
         // Optional fields
         TokenProperty ticker = mock(TokenProperty.class);
         when(ticker.getValue()).thenReturn("TST");
         when(tokenMetadata.getTicker()).thenReturn(ticker);
-        
+
         TokenProperty url = mock(TokenProperty.class);
         when(url.getValue()).thenReturn("https://test.com");
         when(tokenMetadata.getUrl()).thenReturn(url);
-        
+
         TokenProperty logo = mock(TokenProperty.class);
         when(logo.getValue()).thenReturn("89504e47");
         when(logo.getSource()).thenReturn("CIP_26");
         when(tokenMetadata.getLogo()).thenReturn(logo);
-        
+
         TokenPropertyNumber version = mock(TokenPropertyNumber.class);
         when(version.getValue()).thenReturn(1L);
         when(tokenMetadata.getVersion()).thenReturn(version);
-        
+
         TokenPropertyNumber decimals = mock(TokenPropertyNumber.class);
         when(decimals.getValue()).thenReturn(6L);
         when(tokenMetadata.getDecimals()).thenReturn(decimals);
-        
+
         return tokenSubject;
     }
 
     private TokenSubject createMinimalTokenSubject() {
         TokenSubject tokenSubject = mock(TokenSubject.class);
         when(tokenSubject.getSubject()).thenReturn(SUBJECT);
-        
+
         TokenMetadata tokenMetadata = mock(TokenMetadata.class);
         when(tokenSubject.getMetadata()).thenReturn(tokenMetadata);
-        
+
         // Only mandatory fields
         TokenProperty name = mock(TokenProperty.class);
         when(name.getValue()).thenReturn("Minimal Token");
         when(tokenMetadata.getName()).thenReturn(name);
-        
+
         TokenProperty description = mock(TokenProperty.class);
         when(description.getValue()).thenReturn("Minimal Description");
         when(tokenMetadata.getDescription()).thenReturn(description);
-        
+
         // Optional fields are null
         when(tokenMetadata.getTicker()).thenReturn(null);
         when(tokenMetadata.getUrl()).thenReturn(null);
         when(tokenMetadata.getLogo()).thenReturn(null);
         when(tokenMetadata.getVersion()).thenReturn(null);
         when(tokenMetadata.getDecimals()).thenReturn(null);
-        
+
         return tokenSubject;
     }
 
     private TokenSubject createTokenSubjectWithLogo(String source, String value) {
         TokenSubject tokenSubject = mock(TokenSubject.class);
         when(tokenSubject.getSubject()).thenReturn(SUBJECT);
-        
+
         TokenMetadata tokenMetadata = mock(TokenMetadata.class);
         when(tokenSubject.getMetadata()).thenReturn(tokenMetadata);
-        
+
         TokenProperty name = mock(TokenProperty.class);
         when(name.getValue()).thenReturn("Test Token");
         when(tokenMetadata.getName()).thenReturn(name);
-        
+
         TokenProperty description = mock(TokenProperty.class);
         when(description.getValue()).thenReturn("Test Description");
         when(tokenMetadata.getDescription()).thenReturn(description);
-        
+
         if (source != null && value != null) {
             TokenProperty logo = mock(TokenProperty.class);
             when(logo.getValue()).thenReturn(value);
@@ -1073,45 +1074,45 @@ class TokenRegistryServiceImplTest {
         } else {
             when(tokenMetadata.getLogo()).thenReturn(null);
         }
-        
+
         return tokenSubject;
     }
 
     private TokenSubject createTokenSubjectWithCustomLogo(TokenProperty logoProperty) {
         TokenSubject tokenSubject = mock(TokenSubject.class);
         when(tokenSubject.getSubject()).thenReturn(SUBJECT);
-        
+
         TokenMetadata tokenMetadata = mock(TokenMetadata.class);
         when(tokenSubject.getMetadata()).thenReturn(tokenMetadata);
-        
+
         TokenProperty name = mock(TokenProperty.class);
         when(name.getValue()).thenReturn("Test Token");
         when(tokenMetadata.getName()).thenReturn(name);
-        
+
         TokenProperty description = mock(TokenProperty.class);
         when(description.getValue()).thenReturn("Test Description");
         when(tokenMetadata.getDescription()).thenReturn(description);
-        
+
         when(tokenMetadata.getLogo()).thenReturn(logoProperty);
-        
+
         return tokenSubject;
     }
 
     private TokenSubject createTokenSubjectWithNullDecimals() {
         TokenSubject tokenSubject = mock(TokenSubject.class);
         when(tokenSubject.getSubject()).thenReturn(SUBJECT);
-        
+
         TokenMetadata tokenMetadata = mock(TokenMetadata.class);
         when(tokenSubject.getMetadata()).thenReturn(tokenMetadata);
-        
+
         TokenProperty name = mock(TokenProperty.class);
         when(name.getValue()).thenReturn("Test Token");
         when(tokenMetadata.getName()).thenReturn(name);
-        
+
         TokenProperty description = mock(TokenProperty.class);
         when(description.getValue()).thenReturn("Test Description");
         when(tokenMetadata.getDescription()).thenReturn(description);
-        
+
         when(tokenMetadata.getDecimals()).thenReturn(null);
 
         return tokenSubject;

@@ -1,8 +1,18 @@
 package org.cardanofoundation.rosetta.api.common.service;
 
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
+import javax.validation.constraints.NotNull;
+
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Service;
+import org.openapitools.client.model.*;
+
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
@@ -15,14 +25,6 @@ import org.cardanofoundation.rosetta.client.model.domain.TokenProperty;
 import org.cardanofoundation.rosetta.client.model.domain.TokenPropertyNumber;
 import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
 import org.cardanofoundation.rosetta.common.util.Constants;
-import org.openapitools.client.model.*;
-import org.springframework.stereotype.Service;
-
-import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
 import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
@@ -97,22 +99,22 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
     @Override
     public Set<AssetFingerprint> extractAssetsFromBlockTx(@NonNull BlockTx blockTx) {
         Set<AssetFingerprint> allAssetFingerprints = new HashSet<>();
-        
+
         // Collect assets from inputs
         Optional.ofNullable(blockTx.getInputs()).ifPresent(inputs ->
             inputs.forEach(input ->
                 Optional.ofNullable(input.getAmounts()).ifPresent(amounts ->
                     allAssetFingerprints.addAll(extractAssetsFromAmounts(amounts)))));
-        
+
         // Collect assets from outputs
         Optional.ofNullable(blockTx.getOutputs()).ifPresent(outputs ->
             outputs.forEach(output ->
                 Optional.ofNullable(output.getAmounts()).ifPresent(amounts ->
                     allAssetFingerprints.addAll(extractAssetsFromAmounts(amounts)))));
-        
+
         return allAssetFingerprints;
     }
-    
+
     @Override
     public Set<AssetFingerprint> extractAssetsFromAmounts(@NonNull List<Amt> amounts) {
         return amounts.stream()
@@ -125,7 +127,7 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
             })
             .collect(Collectors.toSet());
     }
-    
+
     @Override
     public Set<AssetFingerprint> extractAssetsFromBlockTransactions(@NotNull List<BlockTransaction> transactions) {
         if (transactions.isEmpty()) {
@@ -141,7 +143,7 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
 
         return allAssetFingerprints;
     }
-    
+
     @Override
     public Set<AssetFingerprint> extractAssetsFromOperations(@NotNull List<Operation> operations) {
         if (operations.isEmpty()) {

@@ -1,8 +1,8 @@
 package org.cardanofoundation.rosetta.common.enumeration;
 
-import lombok.Getter;
-
 import java.util.Arrays;
+
+import lombok.Getter;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.*;
 

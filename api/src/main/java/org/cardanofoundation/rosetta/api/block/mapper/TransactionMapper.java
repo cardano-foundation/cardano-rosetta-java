@@ -1,8 +1,9 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
+import java.util.Map;
+import javax.annotation.Nullable;
+
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
-import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
-import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -13,11 +14,10 @@ import org.openapitools.client.model.OperationStatus;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.entity.*;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
 import org.cardanofoundation.rosetta.common.util.Constants;
-
-import javax.annotation.Nullable;
-import java.util.Map;
 
 @Mapper(config = BaseMapper.class, uses = {TransactionMapperUtils.class})
 public interface TransactionMapper {

@@ -1,13 +1,14 @@
 package org.cardanofoundation.rosetta.api.account.model.repository;
 
-import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
-import org.cardanofoundation.rosetta.api.account.model.entity.UtxoId;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
+import org.cardanofoundation.rosetta.api.account.model.entity.UtxoId;
 
 /**
  * Repository for address UTXO operations using JPA.
@@ -64,7 +65,7 @@ public interface AddressUtxoRepository extends JpaRepository<AddressUtxoEntity, 
       SELECT DISTINCT ti.spentTxHash
       FROM TxInputEntity ti
       INNER JOIN AddressUtxoEntity au ON (
-          ti.txHash = au.txHash AND 
+          ti.txHash = au.txHash AND
           ti.outputIndex = au.outputIndex
       )
       WHERE au.ownerAddr = :address OR au.ownerStakeAddr = :address

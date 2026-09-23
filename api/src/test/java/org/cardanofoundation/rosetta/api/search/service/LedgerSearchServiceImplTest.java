@@ -1,27 +1,27 @@
 package org.cardanofoundation.rosetta.api.search.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
+
+import org.springframework.data.domain.Page;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
 import org.cardanofoundation.rosetta.api.account.service.AddressHistoryService;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxInputRepository;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
 import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
-import org.cardanofoundation.rosetta.common.exception.ApiException;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.cardanofoundation.rosetta.api.search.model.Operator;
-import org.springframework.data.domain.Page;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -185,12 +185,12 @@ class LedgerSearchServiceImplTest {
         void shouldHandleAddressSearchWithManyUtxos() {
             // Given
             String address = "addr1_test_address_with_many_utxos";
-            
+
             // Create a list with more than 10000 UTXOs (to trigger temp table usage)
             List<String> manyUtxos = new ArrayList<>();
             IntStream.range(0, 15000)
                     .forEach(i -> manyUtxos.add("tx_hash_" + i));
-            
+
             when(addressHistoryService.findCompleteTransactionHistoryByAddress(address))
                     .thenReturn(manyUtxos);
 
@@ -225,12 +225,12 @@ class LedgerSearchServiceImplTest {
             // Given
             String address = "addr1_test_address";
             String txHash = "single_tx_hash";
-            
+
             // Create a list that when combined with txHash will be very large
             List<String> manyUtxos = new ArrayList<>();
             IntStream.range(0, 20000)
                     .forEach(i -> manyUtxos.add("tx_hash_" + i));
-            
+
             when(addressHistoryService.findCompleteTransactionHistoryByAddress(address))
                     .thenReturn(manyUtxos);
 
@@ -264,12 +264,12 @@ class LedgerSearchServiceImplTest {
         void shouldHandleVeryLargeDatasetsGracefully() {
             // Given
             String address = "addr1_test_address";
-            
+
             // Create a list with 50000 UTXOs (well above temp table threshold)
             List<String> veryLargeList = new ArrayList<>();
             IntStream.range(0, 50000)
                     .forEach(i -> veryLargeList.add("tx_hash_" + i));
-            
+
             when(addressHistoryService.findCompleteTransactionHistoryByAddress(address))
                     .thenReturn(veryLargeList);
 
@@ -301,10 +301,10 @@ class LedgerSearchServiceImplTest {
         void shouldHandleSmallNumberOfUtxosWithoutValidationIssues() {
             // Given
             String address = "addr1_test_address";
-            
+
             // Create a small list of UTXOs
             List<String> smallList = List.of("tx_hash_1", "tx_hash_2", "tx_hash_3");
-            
+
             when(addressHistoryService.findCompleteTransactionHistoryByAddress(address))
                     .thenReturn(smallList);
 
@@ -337,7 +337,7 @@ class LedgerSearchServiceImplTest {
         void shouldHandleEmptyUtxoSetWithoutValidationIssues() {
             // Given
             String address = "addr1_test_address_with_no_utxos";
-            
+
             when(addressHistoryService.findCompleteTransactionHistoryByAddress(address))
                     .thenReturn(List.of());
 

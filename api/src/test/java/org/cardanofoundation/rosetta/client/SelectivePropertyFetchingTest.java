@@ -1,9 +1,10 @@
 package org.cardanofoundation.rosetta.client;
 
-import org.cardanofoundation.rosetta.client.model.domain.TokenRegistryBatchRequest;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
+import org.cardanofoundation.rosetta.client.model.domain.TokenRegistryBatchRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,7 +30,7 @@ class SelectivePropertyFetchingTest {
     void tokenRegistryBatchRequest_SupportsAllKnownProperties() {
         // Given
         List<String> allKnownProperties = List.of("name", "description", "ticker", "decimals", "url", "version", "logo");
-        
+
         TokenRegistryBatchRequest request = TokenRegistryBatchRequest.builder()
                 .subjects(List.of("subject1", "subject2"))
                 .properties(allKnownProperties)

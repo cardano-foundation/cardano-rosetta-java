@@ -1,14 +1,14 @@
 package org.cardanofoundation.rosetta.client;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import org.cardanofoundation.rosetta.client.model.domain.TokenCacheEntry;
-import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
-import org.junit.jupiter.api.Test;
-
 import java.net.http.HttpClient;
 import java.util.List;
-import java.util.Optional;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
+import org.junit.jupiter.api.Test;
+
+import org.cardanofoundation.rosetta.client.model.domain.TokenCacheEntry;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -23,12 +23,12 @@ class TokenRegistryPropertiesFetchTest {
         // Given
         HttpClient httpClient = mock(HttpClient.class);
         Cache<String, TokenCacheEntry> cache = CacheBuilder.newBuilder().maximumSize(100).build();
-        
+
         TestableTokenRegistryGateway gateway = new TestableTokenRegistryGateway(httpClient, cache, true);
-        
+
         // When
         List<String> properties = gateway.buildPropertiesList();
-        
+
         // Then
         assertThat(properties).contains("name", "description", "ticker", "decimals", "url", "version", "logo");
     }
@@ -38,12 +38,12 @@ class TokenRegistryPropertiesFetchTest {
         // Given
         HttpClient httpClient = mock(HttpClient.class);
         Cache<String, TokenCacheEntry> cache = CacheBuilder.newBuilder().maximumSize(100).build();
-        
+
         TestableTokenRegistryGateway gateway = new TestableTokenRegistryGateway(httpClient, cache, false);
-        
+
         // When
         List<String> properties = gateway.buildPropertiesList();
-        
+
         // Then
         assertThat(properties).contains("name", "description", "ticker", "decimals", "url", "version");
         assertThat(properties).doesNotContain("logo");
@@ -70,11 +70,11 @@ class TokenRegistryPropertiesFetchTest {
             properties.add("decimals");
             properties.add("url");
             properties.add("version");
-            
+
             if (testLogoFetchEnabled) {
                 properties.add("logo");
             }
-            
+
             return properties;
         }
     }

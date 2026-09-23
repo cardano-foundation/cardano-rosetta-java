@@ -1,7 +1,19 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
+import java.math.BigInteger;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 import jakarta.validation.constraints.NotNull;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
+import org.openapitools.client.model.*;
+import org.openapitools.client.model.CurrencyResponse;
+
+import org.junit.jupiter.api.Test;
+
 import org.cardanofoundation.rosetta.api.BaseMapperSetup;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
@@ -9,16 +21,6 @@ import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
-import org.junit.jupiter.api.Test;
-import org.openapitools.client.model.*;
-import org.openapitools.client.model.CurrencyResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.math.BigInteger;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.IntStream;
-import java.util.stream.LongStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.SUCCESS_OPERATION_STATUS;
