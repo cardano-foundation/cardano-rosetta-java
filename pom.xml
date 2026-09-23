@@ -31,6 +31,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <version.spring-boot>3.5.13</version.spring-boot>
         <version.postgresql>42.7.13</version.postgresql>
+        <version.spotless-maven-plugin>3.10.2</version.spotless-maven-plugin>
         <version.springdoc-openapi-ui>1.8.0</version.springdoc-openapi-ui>
         <version.openapi-generator-maven-plugin>6.4.0</version.openapi-generator-maven-plugin>
         <version.maven-compiler-plugin>3.15.0</version.maven-compiler-plugin>
@@ -247,6 +248,29 @@
                 <configuration>
                     <dotGitDirectory>${project.basedir}/.git</dotGitDirectory>
                     <generateGitPropertiesFile>true</generateGitPropertiesFile>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${version.spotless-maven-plugin}</version>
+                <configuration>
+                    <java>
+                        <includes>
+                            <include>src/main/java/**/*.java</include>
+                            <include>src/test/java/**/*.java</include>
+                        </includes>
+                        <excludes>
+                            <!-- checked-in jOOQ code generated from the DB schema -->
+                            <exclude>src/main/java/**/jooq/**</exclude>
+                        </excludes>
+                        <removeUnusedImports/>
+                        <importOrder>
+                            <order>java|jakarta|javax,lombok,org.springframework|, ,org.junit,org.cardanofoundation,\#</order>
+                        </importOrder>
+                        <trimTrailingWhitespace/>
+                        <endWithNewline/>
+                    </java>
                 </configuration>
             </plugin>
         </plugins>
