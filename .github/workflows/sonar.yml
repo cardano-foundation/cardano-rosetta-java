@@ -54,7 +54,7 @@ jobs:
         run: >
           mvn -s $GITHUB_WORKSPACE/.github/workflows/maven-settings.xml
           --batch-mode clean verify
-          org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+          org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar
           -Dsonar.host.url=https://sonarcloud.io
           -Dsonar.organization=cardano-foundation
           -Dsonar.projectKey=cardano-foundation_cardano-rosetta-java
