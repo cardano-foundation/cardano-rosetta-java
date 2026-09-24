@@ -1,0 +1,5 @@
+    assert response.status_code == 200
+    assert tx is not None
+    assert len(ops) >= 2, f"Expected multiple votes, got {len(ops)}"
+    assert len(credentials) == len(ops), "Expected distinct pool credentials per vote"
+    assert len(actions) == 1, f"Expected same governance action, got {len(actions)}"
