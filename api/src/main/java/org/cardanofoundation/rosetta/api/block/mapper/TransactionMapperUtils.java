@@ -7,7 +7,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
 
 import lombok.RequiredArgsConstructor;
 
@@ -229,14 +228,9 @@ public class TransactionMapperUtils {
     return dataMapper.mapAmount(
             dataMapper.mapValue(amount.getQuantity().toString(), spent),
             symbol,
-            getDecimalsWithFallback(metadata),
+            metadata.getDecimals(),
             metadata
     );
-  }
-
-  private static int getDecimalsWithFallback(@NotNull TokenRegistryCurrencyData metadata) {
-    return Optional.ofNullable(metadata.getDecimals())
-            .orElse(0);
   }
 
 }
