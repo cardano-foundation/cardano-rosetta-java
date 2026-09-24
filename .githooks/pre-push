@@ -1,33 +1,48 @@
 #!/usr/bin/env bash
 #
-# Blocks a push when any Java file in the repository fails the Spotless check.
+# Blocks a push when any Java file in a pushed commit fails the Spotless check.
 # This is the same check CI runs, so a push that passes here passes the
 # "Check formatting (Spotless)" step in CI.
 #
-# Enable once per clone:   git config core.hooksPath .githooks
+# Each pushed commit is checked out into a temporary worktree, so the check
+# sees exactly what is pushed - not uncommitted or untracked local files.
+#
+# Enabled by the first local Maven build, or manually:  git config core.hooksPath .githooks
 # Fix violations with:     mvn spotless:apply
 # Bypass (not recommended; CI still enforces it):  git push --no-verify
 
 set -uo pipefail
 
-# Nothing to check when the push only deletes remote refs.
-pushes_commits=false
+# Tips of the pushed refs; ref deletions (all-zero sha) have nothing to check.
+shas=()
 while read -r _local_ref local_sha _remote_ref _remote_sha; do
-  [[ "$local_sha" =~ ^0+$ ]] || pushes_commits=true
+  [[ "$local_sha" =~ ^0+$ ]] && continue
+  [[ " ${shas[*]-} " == *" $local_sha "* ]] || shas+=("$local_sha")
 done
-$pushes_commits || exit 0
+[ ${#shas[@]} -eq 0 ] && exit 0
 
 if ! command -v mvn >/dev/null 2>&1; then
   echo "[spotless] 'mvn' not found on PATH - skipping the formatting check (CI still enforces it)." >&2
   exit 0
 fi
 
-if ! mvn -q spotless:check >/tmp/spotless-pre-push.log 2>&1; then
-  echo "" >&2
-  echo "[spotless] Push blocked: Java files are not formatted." >&2
-  grep -E '\.java' /tmp/spotless-pre-push.log | sed -E 's/^\[ERROR\] *//' | sort -u | head -20 | sed 's/^/    /' >&2
-  echo "" >&2
-  echo "  Run:  mvn spotless:apply   then commit the result and push again." >&2
-  exit 1
-fi
+tmp=$(mktemp -d)
+cleanup() {
+  git worktree remove --force "$tmp/wt" >/dev/null 2>&1
+  rm -rf "$tmp"
+}
+trap cleanup EXIT
+
+for sha in "${shas[@]}"; do
+  git worktree add -q --detach "$tmp/wt" "$sha" || exit 1
+  if ! mvn -q -f "$tmp/wt/pom.xml" spotless:check >"$tmp/spotless.log" 2>&1; then
+    echo "" >&2
+    echo "[spotless] Push blocked: Java files in $(git log -1 --format='%h %s' "$sha") are not formatted." >&2
+    grep -E '\.java' "$tmp/spotless.log" | sed -E 's/^\[ERROR\] *//' | sort -u | head -20 | sed 's/^/    /' >&2
+    echo "" >&2
+    echo "  Run:  mvn spotless:apply   then commit the result and push again." >&2
+    exit 1
+  fi
+  git worktree remove --force "$tmp/wt"
+done
 exit 0
