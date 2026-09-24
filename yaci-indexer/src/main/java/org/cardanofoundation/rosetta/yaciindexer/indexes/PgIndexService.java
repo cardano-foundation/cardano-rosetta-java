@@ -1,16 +1,5 @@
 package org.cardanofoundation.rosetta.yaciindexer.indexes;
 
-import com.bloxbean.cardano.yaci.store.core.service.SyncStatusService;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Profile;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-
-import org.springframework.beans.factory.annotation.Value;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
@@ -23,6 +12,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import com.bloxbean.cardano.yaci.store.core.service.SyncStatusService;
 
 /**
  * PostgreSQL implementation of the Rosetta index lifecycle service.

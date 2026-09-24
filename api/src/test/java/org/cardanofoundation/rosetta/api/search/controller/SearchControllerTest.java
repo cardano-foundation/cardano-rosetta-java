@@ -11,8 +11,8 @@ import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.NetworkIdentifier;
 import org.openapitools.client.model.SearchTransactionsRequest;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
 import org.cardanofoundation.rosetta.api.network.service.NetworkService;
@@ -22,8 +22,8 @@ import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.testgenerator.common.TestConstants;
 
 import static org.cardanofoundation.rosetta.testgenerator.common.TestConstants.TEST_ACCOUNT_ADDRESS;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -50,7 +50,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
       searchApi.offlineMode = true;
 
       // When & Then
-      assertThrows(ExceptionFactory.notSupportedInOfflineMode().getClass(), 
+      assertThrows(ExceptionFactory.notSupportedInOfflineMode().getClass(),
           () -> searchApi.searchTransactions(request));
     }
   }

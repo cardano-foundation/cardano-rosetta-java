@@ -1,25 +1,26 @@
 package org.cardanofoundation.rosetta.api.common.service;
 
-import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
-import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
-import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
-import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
-import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
+import java.math.BigDecimal;
+import java.util.*;
+
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.openapitools.client.model.*;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.openapitools.client.model.*;
 
-import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
-
-import java.math.BigDecimal;
-import java.util.*;
+import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
+import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 

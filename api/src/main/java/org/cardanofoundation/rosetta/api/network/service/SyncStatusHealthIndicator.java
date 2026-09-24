@@ -1,12 +1,14 @@
 package org.cardanofoundation.rosetta.api.network.service;
 
+import javax.annotation.Nullable;
+
 import lombok.RequiredArgsConstructor;
-import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
+
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.Nullable;
+import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
 
 /**
  * Custom readiness health indicator that reports the API service readiness based on

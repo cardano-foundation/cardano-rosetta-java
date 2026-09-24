@@ -2,16 +2,16 @@ package org.cardanofoundation.rosetta.api.common.model.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.IdClass;
 import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
+import javax.annotation.Nullable;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import javax.annotation.Nullable;
 
 /**
  * Read-only entity mapping to yaci-store assets-ext CIP-68 on-chain reference NFT metadata

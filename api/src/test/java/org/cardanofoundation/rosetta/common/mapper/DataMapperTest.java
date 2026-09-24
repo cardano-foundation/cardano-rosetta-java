@@ -1,17 +1,19 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
-import org.cardanofoundation.rosetta.api.common.mapper.TokenRegistryMapper;
-import org.cardanofoundation.rosetta.api.common.mapper.TokenRegistryMapperImpl;
-import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
+import java.math.BigDecimal;
+
+import org.springframework.test.util.ReflectionTestUtils;
+import org.openapitools.client.model.Amount;
+import org.openapitools.client.model.LogoType;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.openapitools.client.model.Amount;
-import org.openapitools.client.model.LogoType;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import java.math.BigDecimal;
+import org.cardanofoundation.rosetta.api.common.mapper.TokenRegistryMapper;
+import org.cardanofoundation.rosetta.api.common.mapper.TokenRegistryMapperImpl;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

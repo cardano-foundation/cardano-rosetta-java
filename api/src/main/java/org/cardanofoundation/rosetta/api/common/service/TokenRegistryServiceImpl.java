@@ -1,7 +1,16 @@
 package org.cardanofoundation.rosetta.api.common.service;
 
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.validation.constraints.NotNull;
+
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Service;
+import org.openapitools.client.model.*;
+
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
@@ -9,15 +18,6 @@ import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.common.util.Constants;
-
-import lombok.NonNull;
-
-import org.openapitools.client.model.*;
-import org.springframework.stereotype.Service;
-
-import javax.validation.constraints.NotNull;
-import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
 import static org.cardanofoundation.rosetta.common.util.Constants.LOVELACE;

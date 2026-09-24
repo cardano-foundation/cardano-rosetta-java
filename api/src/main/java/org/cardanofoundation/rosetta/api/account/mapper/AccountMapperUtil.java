@@ -1,6 +1,16 @@
 package org.cardanofoundation.rosetta.api.account.mapper;
 
+import java.math.BigInteger;
+import java.util.*;
+import javax.annotation.Nullable;
+
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.stereotype.Component;
+import org.mapstruct.Context;
+import org.mapstruct.Named;
+import org.openapitools.client.model.*;
+
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
@@ -8,14 +18,6 @@ import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.util.Constants;
-import org.mapstruct.Context;
-import org.mapstruct.Named;
-import org.openapitools.client.model.*;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nullable;
-import java.math.BigInteger;
-import java.util.*;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;

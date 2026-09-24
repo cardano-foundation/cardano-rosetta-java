@@ -1,7 +1,8 @@
 package org.cardanofoundation.rosetta.api.network.service;
 
-import jakarta.validation.constraints.NotNull;
 import java.util.List;
+import jakarta.validation.constraints.NotNull;
+
 import org.openapitools.client.model.Peer;
 
 /**

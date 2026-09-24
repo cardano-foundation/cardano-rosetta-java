@@ -4,15 +4,15 @@ import java.time.Clock;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
-import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
-import org.cardanofoundation.rosetta.api.common.service.TokenQueryService;
-
-import org.cardanofoundation.rosetta.api.common.service.TokenQueryServiceImpl;
-import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.mockito.Mockito;
+
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
+import org.cardanofoundation.rosetta.api.common.service.TokenQueryService;
+import org.cardanofoundation.rosetta.api.common.service.TokenQueryServiceImpl;
 
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.when;

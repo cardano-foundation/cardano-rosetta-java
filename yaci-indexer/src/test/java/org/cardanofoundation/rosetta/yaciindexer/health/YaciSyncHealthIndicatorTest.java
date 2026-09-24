@@ -1,18 +1,19 @@
 package org.cardanofoundation.rosetta.yaciindexer.health;
 
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.Status;
 import com.bloxbean.cardano.yaci.store.common.domain.HealthStatus;
 import com.bloxbean.cardano.yaci.store.common.domain.SyncStatus;
 import com.bloxbean.cardano.yaci.store.core.service.HealthService;
 import com.bloxbean.cardano.yaci.store.core.service.SyncStatusService;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.Status;
 
 import org.cardanofoundation.rosetta.yaciindexer.indexes.IndexLifecycleState;
 import org.cardanofoundation.rosetta.yaciindexer.indexes.IndexService;

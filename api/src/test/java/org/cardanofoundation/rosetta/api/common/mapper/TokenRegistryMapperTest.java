@@ -1,14 +1,16 @@
 package org.cardanofoundation.rosetta.api.common.mapper;
 
-import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
+import java.math.BigDecimal;
+
+import org.openapitools.client.model.CurrencyMetadataResponse;
+import org.openapitools.client.model.LogoType;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.openapitools.client.model.CurrencyMetadataResponse;
-import org.openapitools.client.model.LogoType;
 
-import java.math.BigDecimal;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

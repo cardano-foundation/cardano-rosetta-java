@@ -1,17 +1,18 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
+import java.util.Collections;
+import java.util.List;
+
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.Map;
 import co.nstant.in.cbor.model.UnicodeString;
 import co.nstant.in.cbor.model.UnsignedInteger;
-import org.assertj.core.api.Assertions;
-import org.cardanofoundation.rosetta.common.util.Constants;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
 import org.openapitools.client.model.*;
 
-import java.util.Collections;
-import java.util.List;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
+import org.cardanofoundation.rosetta.common.util.Constants;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -436,21 +437,21 @@ class CborMapToOperationTest {
             Map operationMap = new Map();
             Map metadataMap = new Map();
             Map poolGovernanceVoteParamsMap = new Map();
-            
+
             // Test the concatenated governance action string: 64-char tx_id + 2-char hex index
             String testTxId = "abc123def456789012345678901234567890123456789012345678901234abcd";
             String testIndexHex = "0a"; // hex for 10
             String concatenatedGovAction = testTxId + testIndexHex;
-            
+
             poolGovernanceVoteParamsMap.put(key(Constants.GOVERNANCE_ACTION_HASH), new UnicodeString(concatenatedGovAction));
-            
+
             metadataMap.put(key("poolGovernanceVoteParams"), poolGovernanceVoteParamsMap);
             operationMap.put(key(Constants.METADATA), metadataMap);
 
             Operation expected = new Operation();
             OperationMetadata metadata = new OperationMetadata();
             PoolGovernanceVoteParams poolGovVoteParams = new PoolGovernanceVoteParams();
-            
+
             // The method should reconstruct this format using GovActionParamsUtil.formatGovActionString
             String expectedGovActionHash = org.cardanofoundation.rosetta.common.util.GovActionParamsUtil
                     .formatGovActionString(testTxId, 10);
@@ -478,9 +479,9 @@ class CborMapToOperationTest {
             String testTxId = "abcdef12345678901234567890123456789012345678901234567890123456ef"; // 64 chars
             String testIndexHex = "63"; // hex for 99 (max allowed)
             String concatenatedGovAction = testTxId + testIndexHex;
-            
+
             metadataMap.put(key(Constants.GOVERNANCE_ACTION_HASH), new UnicodeString(concatenatedGovAction));
-            
+
             PoolGovernanceVoteParams poolGovVoteParams = new PoolGovernanceVoteParams();
 
             // Act
@@ -501,9 +502,9 @@ class CborMapToOperationTest {
             String expectedTxId = "40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc";
             String expectedIndexHex = "00";
             int expectedIndex = 0; // hex "00" = decimal 0
-            
+
             metadataMap.put(key(Constants.GOVERNANCE_ACTION_HASH), new UnicodeString(realGovActionString));
-            
+
             PoolGovernanceVoteParams poolGovVoteParams = new PoolGovernanceVoteParams();
 
             // Act
@@ -514,7 +515,7 @@ class CborMapToOperationTest {
                     .formatGovActionString(expectedTxId, expectedIndex);
             assertThat(poolGovVoteParams.getGovernanceActionHash())
                     .isEqualTo(expectedGovActionHash);
-            
+
             // Additional verification - ensure the parsed components are correct
             assertThat(expectedTxId).hasSize(64);
             assertThat(expectedIndex).isEqualTo(0);
@@ -525,9 +526,9 @@ class CborMapToOperationTest {
             // Arrange
             Map metadataMap = new Map();
             String invalidGovActionString = "40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9"; // 63 chars
-            
+
             metadataMap.put(key(Constants.GOVERNANCE_ACTION_HASH), new UnicodeString(invalidGovActionString));
-            
+
             PoolGovernanceVoteParams poolGovVoteParams = new PoolGovernanceVoteParams();
 
             // Act
@@ -542,9 +543,9 @@ class CborMapToOperationTest {
             // Arrange
             Map metadataMap = new Map();
             String invalidGovActionString = "40c2a42fe324759a640dcfddbc69ef2e3b7fe5a998af8d6660359772bf44c9dc000"; // 67 chars
-            
+
             metadataMap.put(key(Constants.GOVERNANCE_ACTION_HASH), new UnicodeString(invalidGovActionString));
-            
+
             PoolGovernanceVoteParams poolGovVoteParams = new PoolGovernanceVoteParams();
 
             // Act
@@ -559,9 +560,9 @@ class CborMapToOperationTest {
             // Arrange
             Map metadataMap = new Map();
             String emptyGovActionString = "";
-            
+
             metadataMap.put(key(Constants.GOVERNANCE_ACTION_HASH), new UnicodeString(emptyGovActionString));
-            
+
             PoolGovernanceVoteParams poolGovVoteParams = new PoolGovernanceVoteParams();
 
             // Act

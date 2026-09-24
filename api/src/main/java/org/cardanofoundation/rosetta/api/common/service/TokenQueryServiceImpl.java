@@ -1,18 +1,5 @@
 package org.cardanofoundation.rosetta.api.common.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
-import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
-import org.cardanofoundation.rosetta.api.common.model.entity.MetadataReferenceNftEntity;
-import org.cardanofoundation.rosetta.api.common.model.entity.TokenMetadataEntity;
-import org.cardanofoundation.rosetta.api.common.model.repository.MetadataReferenceNftRepository;
-import org.cardanofoundation.rosetta.api.common.model.repository.TokenMetadataRepository;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,6 +9,21 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
+import org.cardanofoundation.rosetta.api.common.model.entity.MetadataReferenceNftEntity;
+import org.cardanofoundation.rosetta.api.common.model.entity.TokenMetadataEntity;
+import org.cardanofoundation.rosetta.api.common.model.repository.MetadataReferenceNftRepository;
+import org.cardanofoundation.rosetta.api.common.model.repository.TokenMetadataRepository;
 
 /**
  * Read-only service for querying token metadata from CIP-26 and CIP-68 tables

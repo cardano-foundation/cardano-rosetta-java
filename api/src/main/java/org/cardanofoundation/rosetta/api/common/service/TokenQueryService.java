@@ -1,10 +1,10 @@
 package org.cardanofoundation.rosetta.api.common.service;
 
-import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
-import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
-
 import java.util.Collection;
 import java.util.Map;
+
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 
 /**
  * Read-only access to merged token metadata from the yaci-store assets-ext tables

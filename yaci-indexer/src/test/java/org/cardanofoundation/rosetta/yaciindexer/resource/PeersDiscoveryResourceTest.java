@@ -1,21 +1,22 @@
 package org.cardanofoundation.rosetta.yaciindexer.resource;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import org.springframework.test.util.ReflectionTestUtils;
 import com.bloxbean.cardano.yaci.core.protocol.peersharing.messages.PeerAddress;
-import org.cardanofoundation.rosetta.yaciindexer.domain.model.PeerAddressDto;
-import org.cardanofoundation.rosetta.yaciindexer.service.PeerDiscoveryManager;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import org.cardanofoundation.rosetta.yaciindexer.domain.model.PeerAddressDto;
+import org.cardanofoundation.rosetta.yaciindexer.service.PeerDiscoveryManager;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -69,17 +70,17 @@ class PeersDiscoveryResourceTest {
 
             // Then
             assertThat(result).hasSize(3);
-            
+
             // First peer (IPv4)
             assertThat(result.get(0).getType()).isEqualTo("IPv4");
             assertThat(result.get(0).getAddress()).isEqualTo("192.168.1.100");
             assertThat(result.get(0).getPort()).isEqualTo(30000);
-            
+
             // Second peer (IPv4)
             assertThat(result.get(1).getType()).isEqualTo("IPv4");
             assertThat(result.get(1).getAddress()).isEqualTo("10.0.0.50");
             assertThat(result.get(1).getPort()).isEqualTo(30001);
-            
+
             // Third peer (IPv6)
             assertThat(result.get(2).getType()).isEqualTo("IPv6");
             assertThat(result.get(2).getAddress()).isEqualTo("2001:db8::1");
@@ -142,14 +143,14 @@ class PeersDiscoveryResourceTest {
 
             // Then
             assertThat(result).hasSize(4);
-            
+
             long ipv4Count = result.stream()
                     .filter(dto -> "IPv4".equals(dto.getType()))
                     .count();
             long ipv6Count = result.stream()
                     .filter(dto -> "IPv6".equals(dto.getType()))
                     .count();
-            
+
             assertThat(ipv4Count).isEqualTo(2);
             assertThat(ipv6Count).isEqualTo(2);
         }
