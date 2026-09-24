@@ -70,6 +70,27 @@ Make sure to follow the [Google style guide for Java](https://google.github.io/s
 
 In general regarding code style, just take a look at the existing sources and make your code look like them.
 
+#### Formatting (Spotless)
+
+Formatting is enforced with [Spotless](https://github.com/diffplug/spotless). It currently manages imports (removes unused ones and orders them into the project's groups), trims trailing whitespace and ensures a final newline. It doesn't reformat code bodies. CI fails a pull request when `spotless:check` fails.
+
+```bash
+mvn spotless:apply    # format all modules
+mvn spotless:check    # verify, as CI does
+```
+
+To catch this locally, the repository ships git hooks in `.githooks/`. Your first Maven build (any phase, e.g. `mvn validate`) enables them by setting `core.hooksPath` in the clone's git config. The step is skipped when the `CI` environment variable is set. To enable them without building:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+- `pre-commit` checks the staged Java files and blocks the commit if they aren't formatted.
+- `commit-msg` blocks commit messages that don't follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) (`type(scope): description`, with `!` for breaking changes). Messages git generates, such as `Merge ...` and `Revert "..."`, are allowed.
+- `pre-push` runs the full `spotless:check`, the same check CI runs, on each pushed commit (checked out into a temporary worktree, so uncommitted local edits don't hide unformatted commits) and blocks the push if it fails.
+
+The Spotless checks take a couple of seconds. If a hook blocks you, run `mvn spotless:apply`, re-stage and try again.
+
 ### Creating a pull request
 
 Thank you for contributing your changes by opening a pull requests! To get something merged we usually require:

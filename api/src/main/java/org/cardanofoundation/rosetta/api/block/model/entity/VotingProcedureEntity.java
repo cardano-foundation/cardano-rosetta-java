@@ -1,15 +1,15 @@
 package org.cardanofoundation.rosetta.api.block.model.entity;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import javax.annotation.Nullable;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import javax.annotation.Nullable;
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
  * JPA Entity representing a voting procedure record from the voting_procedure table.

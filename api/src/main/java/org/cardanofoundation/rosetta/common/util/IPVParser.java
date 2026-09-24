@@ -1,13 +1,14 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import com.bloxbean.cardano.client.util.HexUtil;
-import lombok.experimental.UtilityClass;
-import org.apache.commons.lang3.ObjectUtils;
-
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+
+import lombok.experimental.UtilityClass;
+
+import com.bloxbean.cardano.client.util.HexUtil;
+import org.apache.commons.lang3.ObjectUtils;
 
 @UtilityClass
 public class IPVParser {

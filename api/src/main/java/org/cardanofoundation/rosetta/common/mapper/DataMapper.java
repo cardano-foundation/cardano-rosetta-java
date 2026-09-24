@@ -1,22 +1,39 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
+import java.util.Objects;
+import javax.annotation.Nullable;
+
 import lombok.RequiredArgsConstructor;
-import org.cardanofoundation.rosetta.api.common.mapper.TokenRegistryMapper;
-import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
-import org.cardanofoundation.rosetta.common.util.Constants;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.CurrencyMetadataResponse;
 import org.openapitools.client.model.CurrencyResponse;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.Nullable;
-import java.util.Objects;
+import org.cardanofoundation.rosetta.api.common.mapper.TokenRegistryMapper;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
+import org.cardanofoundation.rosetta.common.util.Constants;
 
 @Component
 @RequiredArgsConstructor
 public class DataMapper {
 
   private final TokenRegistryMapper tokenRegistryMapper;
+
+  /**
+   * Controls whether token-registry enrichment fields ({@code subject}, {@code name},
+   * {@code description}, {@code ticker}, {@code url}, {@code logo}, {@code version}) are
+   * serialized into {@code Currency.metadata}. When {@code false} (the default), only
+   * {@code policyId} is exposed.
+   * <p>
+   * This flag does <em>not</em> affect {@code Currency.decimals} — decimals is a mandatory
+   * cross-chain Rosetta field and always reflects the value resolved by {@code
+   * TokenQueryService} (defaulting to {@code 0} when no CIP-26/CIP-68 data exists for the
+   * token).
+   */
+  @Value("${cardano.rosetta.TOKEN_REGISTRY_ENABLED:false}")
+  private boolean tokenRegistryEnabled;
 
   /**
    * Basic mapping if a value is spent or not.
@@ -50,17 +67,33 @@ public class DataMapper {
     Amount amount = new Amount();
     amount.setValue(value);
 
-    // Convert domain metadata to response metadata (without decimals field) for serialization
-    CurrencyMetadataResponse metadataResponse = metadata != null ? tokenRegistryMapper.toCurrencyMetadataResponse(metadata) : null;
-
     amount.setCurrency(CurrencyResponse.builder()
         .symbol(symbol)
         .decimals(decimals)
-        .metadata(metadataResponse)
+        .metadata(toMetadataResponse(metadata))
         .build()
     );
 
     return amount;
+  }
+
+  /**
+   * Projects the domain-layer metadata onto the serialization-layer response. When token
+   * registry enrichment is enabled, emits the full set of known fields; otherwise emits
+   * only {@code policyId} so consumers can still identify the native asset by its minting
+   * policy without leaking registry-sourced enrichment.
+   */
+  @Nullable
+  private CurrencyMetadataResponse toMetadataResponse(@Nullable TokenRegistryCurrencyData metadata) {
+    if (metadata == null) {
+      return null;
+    }
+    if (tokenRegistryEnabled) {
+      return tokenRegistryMapper.toCurrencyMetadataResponse(metadata);
+    }
+    return CurrencyMetadataResponse.builder()
+        .policyId(metadata.getPolicyId())
+        .build();
   }
 
 }

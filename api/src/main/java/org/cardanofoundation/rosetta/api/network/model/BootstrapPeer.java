@@ -16,7 +16,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class BootstrapPeer {
   @JsonProperty("address")
   private String address;
-  
+
   @JsonProperty("port")
   private Integer port;
 }

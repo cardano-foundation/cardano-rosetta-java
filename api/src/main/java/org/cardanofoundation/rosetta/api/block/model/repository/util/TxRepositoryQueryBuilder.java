@@ -1,27 +1,29 @@
 package org.cardanofoundation.rosetta.api.block.model.repository.util;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigInteger;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import javax.annotation.Nullable;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.jooq.*;
+import org.jooq.impl.DSL;
+
 import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TransactionSizeEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 import org.cardanofoundation.rosetta.api.search.model.Currency;
 import org.cardanofoundation.rosetta.common.spring.OffsetBasedPageRequest;
-import org.jooq.*;
-import org.jooq.impl.DSL;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nullable;
-import java.math.BigInteger;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 import static org.cardanofoundation.rosetta.api.jooq.Tables.*;
 
@@ -108,14 +110,14 @@ public class TxRepositoryQueryBuilder {
                                       @Nullable Currency currency,
                                       CurrencyConditionBuilder currencyConditionBuilder) {
         Condition orCondition = null;
-        
+
         // For OR logic: include transactions that match tx hash OR address hash
         if (txHashes != null && !txHashes.isEmpty()) {
             orCondition = TRANSACTION.TX_HASH.in(txHashes);
         }
 
         if (addressHashes != null && !addressHashes.isEmpty()) {
-            orCondition = orCondition == null 
+            orCondition = orCondition == null
                     ? TRANSACTION.TX_HASH.in(addressHashes)
                     : orCondition.or(TRANSACTION.TX_HASH.in(addressHashes));
         }
@@ -133,7 +135,7 @@ public class TxRepositoryQueryBuilder {
         }
 
         if (currency != null) {
-            orCondition = orCondition == null 
+            orCondition = orCondition == null
                     ? currencyConditionBuilder.buildCurrencyCondition(currency)
                     : orCondition.or(currencyConditionBuilder.buildCurrencyCondition(currency));
         }

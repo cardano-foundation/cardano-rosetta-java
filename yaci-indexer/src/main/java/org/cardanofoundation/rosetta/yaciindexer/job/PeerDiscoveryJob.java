@@ -1,14 +1,16 @@
 package org.cardanofoundation.rosetta.yaciindexer.job;
 
+import java.util.Optional;
 import jakarta.annotation.PostConstruct;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.yaciindexer.service.PeerDiscoveryManager;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import org.cardanofoundation.rosetta.yaciindexer.service.PeerDiscoveryManager;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
 

@@ -3,7 +3,6 @@ package org.cardanofoundation.rosetta.api.account.mapper;
 import java.util.List;
 import java.util.Map;
 
-import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -13,6 +12,7 @@ import org.openapitools.client.model.AccountCoinsResponse;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
 

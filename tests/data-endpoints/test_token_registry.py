@@ -1,24 +1,21 @@
 """
-Tests for token registry metadata enrichment (v1.4.0).
+Tests for token metadata enrichment.
 
 These tests validate:
 * Policy identifiers are surfaced for configured tokens
 * Metadata enrichment is consistent across account, block, and search endpoints
 * Logo formats (base64 vs URL) for CIP-26 vs CIP-68 tokens
-* Rosetta metadata matches the upstream metadata server (weekly parity check)
+* Rosetta metadata matches the expected values in network_test_data.yaml
 """
 
 import base64
 import os
-from functools import lru_cache
 from typing import Dict, List, Tuple
 
 import allure
 import pytest
-import requests
 
 
-TOKEN_REGISTRY_BASE_URL = os.environ.get("TOKEN_REGISTRY_BASE_URL")
 TOKEN_REGISTRY_LOGO_FETCH = os.environ.get("TOKEN_REGISTRY_LOGO_FETCH", "false").lower() == "true"
 
 
@@ -28,46 +25,6 @@ def tokens_config(network_data):
     tokens = network_data.get("tokens_in_registry")
     assert tokens, "network_test_data.yaml must define tokens_in_registry for the configured network"
     return tokens
-
-
-@pytest.fixture
-def token_registry_base_url(has_token_registry):
-    """Validate and return token registry base URL from environment."""
-    if not has_token_registry:
-        pytest.skip("Token registry not enabled")
-    assert TOKEN_REGISTRY_BASE_URL, "TOKEN_REGISTRY_BASE_URL environment variable must be set"
-    return TOKEN_REGISTRY_BASE_URL.rstrip("/")
-
-
-@lru_cache(maxsize=None)
-def _registry_metadata(base_url: str, subject: str) -> Dict | None:
-    """Fetch token metadata from upstream registry by subject ID.
-
-    Registry v2 API returns: {"subject": {"metadata": {"name": {"value": "...", "source": "CIP_26"}, ...}}}
-    Extracts metadata and unwraps {value, source} structure to just values.
-
-    Returns: Simplified metadata dict with unwrapped values, or None if subject not found (404).
-    Raises: HTTPError for other request failures (network issues, 500, etc).
-    """
-    response = requests.get(f"{base_url}/v2/subjects/{subject}", timeout=60)
-
-    if response.status_code == 404:
-        return None
-
-    response.raise_for_status()
-    raw = response.json()
-    metadata = raw.get("subject", {}).get("metadata", {})
-
-    simple: Dict[str, object] = {}
-    for key, field_obj in metadata.items():
-        if key in {"subject", "policy"}:
-            continue
-        if isinstance(field_obj, dict) and "value" in field_obj:
-            simple[key] = field_obj["value"]
-        elif not isinstance(field_obj, (dict, list)):
-            simple[key] = field_obj
-
-    return simple
 
 
 def _fetch_token_from_account(client, network: str, token: Dict) -> Tuple[Dict | None, Dict | None]:
@@ -381,63 +338,17 @@ class TestTokenRegistryLogos:
 
 
 @allure.feature("Token Registry")
-@allure.story("Metadata Parity")
-class TestTokenRegistryParity:
-    """Weekly parity check between Rosetta enrichment and metadata registry source."""
+@allure.story("Metadata Reference")
+class TestTokenMetadataReference:
+    """Validate token metadata against network_test_data.yaml."""
 
     @pytest.mark.weekly
     @pytest.mark.requires_token_registry
-    def test_rosetta_metadata_matches_registry(self, client, network, tokens_config, token_registry_base_url, has_token_registry):
+    def test_rosetta_metadata_matches_reference(self, client, network, tokens_config, has_token_registry):
         if not has_token_registry:
             pytest.skip("Token registry not enabled")
 
         for token in tokens_config:
-            currency, rosetta_metadata = _fetch_token_from_account(client, network, token)
-            registry_metadata = _registry_metadata(token_registry_base_url, token["subject"])
-
+            currency, metadata = _fetch_token_from_account(client, network, token)
             assert currency is not None, f"Token {token['ticker']} not found"
-            assert registry_metadata is not None, (
-                f"Registry missing subject {token['subject']} at {token_registry_base_url}"
-            )
-
-            for field in ("name", "description", "ticker", "url"):
-                registry_value = registry_metadata.get(field)
-                if registry_value is not None:
-                    assert rosetta_metadata.get(field) == registry_value, (
-                        f"Field '{field}' mismatch between Rosetta and registry for {token['ticker']}"
-                    )
-
-            registry_decimals = registry_metadata.get("decimals")
-            if registry_decimals is not None:
-                assert currency.get("decimals") == int(registry_decimals), (
-                    f"Decimals mismatch between Rosetta and registry for {token['ticker']}: "
-                    f"rosetta={currency.get('decimals')}, registry={registry_decimals}"
-                )
-
-            registry_logo = registry_metadata.get("logo")
-            rosetta_logo = rosetta_metadata.get("logo")
-
-            if TOKEN_REGISTRY_LOGO_FETCH:
-                if registry_logo:
-                    assert isinstance(rosetta_logo, dict), "Rosetta logo metadata missing or not a dict"
-                    # Rosetta normalises CIP-26 logos from hex (as stored in the registry) to
-                    # standard base64 before returning them to callers. Convert the registry's
-                    # raw hex value to base64 before comparing so the parity check is meaningful.
-                    expected_logo = registry_logo
-                    if token.get("logo_format") == "base64" and isinstance(registry_logo, str):
-                        try:
-                            expected_logo = base64.b64encode(bytes.fromhex(registry_logo)).decode()
-                        except ValueError:
-                            pass  # Not valid hex — compare as-is
-                    assert rosetta_logo.get("value") == expected_logo, (
-                        f"Logo value mismatch between Rosetta and registry for {token['ticker']}: "
-                        f"rosetta={rosetta_logo.get('value')[:50]}..., registry={expected_logo[:50] if isinstance(expected_logo, str) else expected_logo}..."
-                    )
-                else:
-                    assert rosetta_logo is None or rosetta_logo == {}, (
-                        f"Rosetta should have no logo when registry has none for {token['ticker']}"
-                    )
-            else:
-                assert rosetta_logo is None or rosetta_logo == {}, (
-                    "Logo metadata should be absent when TOKEN_REGISTRY_LOGO_FETCH is disabled"
-                )
+            _verify_all_metadata_fields_match(currency, metadata, token)
