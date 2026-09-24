@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+#
+# Blocks a push when any Java file in the repository fails the Spotless check.
+# This is the same check CI runs, so a push that passes here passes the
+# "Check formatting (Spotless)" step in CI.
+#
+# Enable once per clone:   git config core.hooksPath .githooks
+# Fix violations with:     mvn spotless:apply
+# Bypass (not recommended; CI still enforces it):  git push --no-verify
+
+set -uo pipefail
+
+# Nothing to check when the push only deletes remote refs.
+pushes_commits=false
+while read -r _local_ref local_sha _remote_ref _remote_sha; do
+  [[ "$local_sha" =~ ^0+$ ]] || pushes_commits=true
+done
+$pushes_commits || exit 0
+
+if ! command -v mvn >/dev/null 2>&1; then
+  echo "[spotless] 'mvn' not found on PATH - skipping the formatting check (CI still enforces it)." >&2
+  exit 0
+fi
+
+if ! mvn -q spotless:check >/tmp/spotless-pre-push.log 2>&1; then
+  echo "" >&2
+  echo "[spotless] Push blocked: Java files are not formatted." >&2
+  grep -E '\.java' /tmp/spotless-pre-push.log | sed -E 's/^\[ERROR\] *//' | sort -u | head -20 | sed 's/^/    /' >&2
+  echo "" >&2
+  echo "  Run:  mvn spotless:apply   then commit the result and push again." >&2
+  exit 1
+fi
+exit 0

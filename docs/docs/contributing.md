@@ -70,6 +70,26 @@ Make sure to follow the [Google style guide for Java](https://google.github.io/s
 
 In general regarding code style, just take a look at the existing sources and make your code look like them.
 
+#### Formatting (Spotless)
+
+Formatting is enforced with [Spotless](https://github.com/diffplug/spotless). It currently manages imports (removes unused ones and orders them into the project's groups), trims trailing whitespace and ensures a final newline. It doesn't reformat code bodies. CI fails a pull request when `spotless:check` fails.
+
+```bash
+mvn spotless:apply    # format all modules
+mvn spotless:check    # verify, as CI does
+```
+
+To catch this locally, enable the repository's git hooks once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+- `pre-commit` checks the staged Java files and blocks the commit if they aren't formatted.
+- `pre-push` runs the full `spotless:check`, the same check CI runs, and blocks the push if it fails.
+
+Both take a couple of seconds. If a hook blocks you, run `mvn spotless:apply`, re-stage and try again.
+
 ### Creating a pull request
 
 Thank you for contributing your changes by opening a pull requests! To get something merged we usually require:
