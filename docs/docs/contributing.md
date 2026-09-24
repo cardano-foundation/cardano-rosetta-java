@@ -86,9 +86,10 @@ git config core.hooksPath .githooks
 ```
 
 - `pre-commit` checks the staged Java files and blocks the commit if they aren't formatted.
+- `commit-msg` blocks commit messages that don't follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) (`type(scope): description`, with `!` for breaking changes). Messages git generates, such as `Merge ...` and `Revert "..."`, are allowed.
 - `pre-push` runs the full `spotless:check`, the same check CI runs, and blocks the push if it fails.
 
-Both take a couple of seconds. If a hook blocks you, run `mvn spotless:apply`, re-stage and try again.
+The Spotless checks take a couple of seconds. If a hook blocks you, run `mvn spotless:apply`, re-stage and try again.
 
 ### Creating a pull request
 

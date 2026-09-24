@@ -37,7 +37,7 @@ mvn clean package
 ```bash
 mvn spotless:apply    # run before committing; CI fails on unformatted code
 mvn spotless:check    # what CI runs
-git config core.hooksPath .githooks   # once per clone: pre-commit/pre-push hooks enforce the check
+git config core.hooksPath .githooks   # once per clone: pre-commit/pre-push enforce Spotless, commit-msg enforces Conventional Commits
 ```
 
 ### Docker Compose Commands
