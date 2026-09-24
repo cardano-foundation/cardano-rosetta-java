@@ -1,0 +1,3 @@
+    assert response.status_code == 200
+    assert len(txs) > 0, "Hex symbol search should return transactions"
+        assert hex_symbol.lower() in currencies_in_tx, (

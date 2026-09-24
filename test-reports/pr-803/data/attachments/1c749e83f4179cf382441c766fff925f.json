@@ -1,0 +1,88 @@
+{
+  "status_code": 200,
+  "body": {
+    "block": {
+      "block_identifier": {
+        "index": 2607339,
+        "hash": "65f7bf47f772e305b9c106cd7aa8d81773dd19a274c31b346bad45091b08b72d"
+      },
+      "parent_block_identifier": {
+        "index": 2607338,
+        "hash": "efe2910867d28262cc508946ad6bb6fdd2c93688481c71fe6f0a140a9e22b1ee"
+      },
+      "timestamp": 1724139395000,
+      "transactions": [
+        {
+          "transaction_identifier": {
+            "hash": "0be0e15ab4cc14ddcd688d17d0ad596c45a7df8a88e8e1d6cb02ba54083c8620"
+          },
+          "operations": [
+            {
+              "operation_identifier": {
+                "index": 0
+              },
+              "type": "input",
+              "status": "success",
+              "account": {
+                "address": "addr_test1qpr3gs29ctptm7qm5qf3vlu6ajkmralmxr93ewx2snjmmd7g0vyzwr7rkehszwkhxhs0t5ss37qtpehp94ahu8g8x5msqrfec4"
+              },
+              "amount": {
+                "value": "-1808715",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "fa7cc9d32ecc82755d8c20016fff53deeed9d4c7eb023d761e109d14c7a7e050:1"
+                },
+                "coin_action": "coin_spent"
+              }
+            },
+            {
+              "operation_identifier": {
+                "index": 1,
+                "network_index": 0
+              },
+              "related_operations": [
+                {
+                  "index": 0
+                }
+              ],
+              "type": "output",
+              "status": "success",
+              "account": {
+                "address": "addr_test1qp8zrwzlmz7f27k3a7syh48vnq69mgqrjd85q25mapnwhacxj7dczm2t5exhwe893s33ftwtektdasvvxsq59788ly8slg2nz2"
+              },
+              "amount": {
+                "value": "1639562",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "0be0e15ab4cc14ddcd688d17d0ad596c45a7df8a88e8e1d6cb02ba54083c8620:0"
+                },
+                "coin_action": "coin_created"
+              }
+            }
+          ],
+          "metadata": {
+            "size": 116,
+            "scriptSize": 0
+          }
+        }
+      ],
+      "metadata": {
+        "transactionsCount": 1,
+        "createdBy": "8ed5ab11e76094fa2a2ab29fc3a57498d07e68f6fde6f326162eea88",
+        "size": 220,
+        "epochNo": 162,
+        "slotNo": 68456195
+      }
+    }
+  }
+}

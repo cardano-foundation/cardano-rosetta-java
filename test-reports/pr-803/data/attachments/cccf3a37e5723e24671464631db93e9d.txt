@@ -1,0 +1,7 @@
+    assert response.status_code == 200
+    assert "block_identifier" in data
+    assert data["block_identifier"]["index"] >= 0
+    assert "balances" in data
+    assert isinstance(data["balances"], list)
+    assert len(data["balances"]) >= 1
+    assert data["balances"][0]["currency"]["symbol"] == "ADA"
