@@ -79,7 +79,7 @@ mvn spotless:apply    # format all modules
 mvn spotless:check    # verify, as CI does
 ```
 
-To catch this locally, enable the repository's git hooks once per clone:
+To catch this locally, the repository ships git hooks in `.githooks/`. Your first Maven build (any phase, e.g. `mvn validate`) enables them by setting `core.hooksPath` in the clone's git config. The step is skipped when the `CI` environment variable is set. To enable them without building:
 
 ```bash
 git config core.hooksPath .githooks
