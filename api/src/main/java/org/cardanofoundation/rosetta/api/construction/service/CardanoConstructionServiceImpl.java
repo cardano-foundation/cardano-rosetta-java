@@ -7,6 +7,7 @@ import co.nstant.in.cbor.model.MajorType;
 import co.nstant.in.cbor.model.UnicodeString;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.ByronAddress;
+import com.bloxbean.cardano.client.address.Credential;
 import com.bloxbean.cardano.client.common.cbor.CborSerializationUtil;
 import com.bloxbean.cardano.client.common.model.Network;
 import com.bloxbean.cardano.client.crypto.Blake2bUtil;
@@ -46,6 +47,7 @@ import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.time.OfflineSlotService;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.cardanofoundation.rosetta.common.util.HexUtils;
 import org.cardanofoundation.rosetta.common.util.OperationParseUtil;
 import org.cardanofoundation.rosetta.common.util.ValidateParseUtil;
 import org.openapitools.client.model.*;
@@ -71,6 +73,10 @@ import static org.cardanofoundation.rosetta.common.util.Constants.*;
 @RequiredArgsConstructor
 public class CardanoConstructionServiceImpl implements CardanoConstructionService {
 
+  private static final int SCRIPT_HASH_HEX_LENGTH = 56;
+  private static final int RAW_KEY_HEX_LENGTH = 64;
+  private static final int EXTENDED_KEY_HEX_LENGTH = 128;
+
   private final LedgerBlockService ledgerBlockService;
   private final ProtocolParamService protocolParamService;
   private final TransactionOperationParser transactionOperationParser;
@@ -85,6 +91,9 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
 
   @Value("${cardano.rosetta.OFFLINE_MODE}")
   private boolean offlineMode;
+
+  @Value("${cardano.rosetta.CIP113_BASE_SCRIPT_HASH:}")
+  private String cip113BaseScriptHash;
 
   @Override
   public TransactionParsed parseTransaction(Network network, String transaction, boolean signed) {
@@ -597,11 +606,58 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
         address = AddressProvider
                 .getEntAddress(getHdPublicKeyFromRosettaKey(publicKey), networkEnum.getNetwork()).getAddress();
         break;
+      case CIP_113:
+        log.debug("Deriving CIP-113 address");
+        address = getCip113Address(publicKey, networkEnum);
+        break;
       default:
         log.error("Invalid address type: {}", addressType);
         throw ExceptionFactory.invalidAddressTypeError();
     }
     return address;
+  }
+
+  private String getCip113Address(PublicKey publicKey, NetworkEnum networkEnum) {
+    byte[] paymentScriptHash = getConfiguredProgrammableLogicBaseScriptHash();
+    byte[] stakingKeyHash = getValidatedCip113PublicKey(publicKey).getKeyHash();
+
+    return AddressProvider.getBaseAddress(
+            Credential.fromScript(paymentScriptHash),
+            Credential.fromKey(stakingKeyHash),
+            networkEnum.getNetwork()).toBech32();
+  }
+
+  private byte[] getConfiguredProgrammableLogicBaseScriptHash() {
+    String scriptHash = Optional.ofNullable(cip113BaseScriptHash)
+            .map(String::trim)
+            .orElse("");
+
+    if (scriptHash.isEmpty()) {
+      throw ExceptionFactory.cip113PlbScriptHashNotConfigured();
+    }
+    if (scriptHash.length() != SCRIPT_HASH_HEX_LENGTH || !HexUtils.isHexString(scriptHash)) {
+      throw ExceptionFactory.cip113PlbScriptHashInvalid();
+    }
+
+    return decodeHexString(scriptHash);
+  }
+
+  private HdPublicKey getValidatedCip113PublicKey(PublicKey publicKey) {
+    if (publicKey.getCurveType() != null
+        && publicKey.getCurveType() != CurveType.EDWARDS25519) {
+      log.error("Unsupported public key curve type: {}", publicKey.getCurveType());
+      throw ExceptionFactory.invalidPublicKeyFormat();
+    }
+
+    String hexBytes = publicKey.getHexBytes();
+    if (hexBytes == null
+        || !HexUtils.isHexString(hexBytes)
+        || (hexBytes.length() != RAW_KEY_HEX_LENGTH && hexBytes.length() != EXTENDED_KEY_HEX_LENGTH)) {
+      log.error("Invalid CIP-113 public key hex bytes");
+      throw ExceptionFactory.invalidPublicKeyFormat();
+    }
+
+    return getHdPublicKeyFromRosettaKey(publicKey);
   }
 
   public HdPublicKey getHdPublicKeyFromRosettaKey(PublicKey publicKey) {
