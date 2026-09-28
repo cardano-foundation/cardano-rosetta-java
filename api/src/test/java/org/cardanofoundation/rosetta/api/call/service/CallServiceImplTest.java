@@ -6,6 +6,7 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.CallRequest;
 import org.openapitools.client.model.CallResponse;
 import org.openapitools.client.model.NetworkIdentifier;
@@ -94,8 +95,8 @@ class CallServiceImplTest {
   private String resolve(String network, String inputAddress) {
     CallResponse response = underTest.resolveSmartWalletAddress(request(network, address(inputAddress)));
     Map<String, Object> result = (Map<String, Object>) response.getResult();
-    Map<String, Object> accountIdentifier = (Map<String, Object>) result.get("account_identifier");
-    return (String) accountIdentifier.get("address");
+    AccountIdentifier accountIdentifier = (AccountIdentifier) result.get("account_identifier");
+    return accountIdentifier.getAddress();
   }
 
   private ApiException resolveError(String network, Map<String, Object> parameters) {
