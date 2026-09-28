@@ -376,6 +376,68 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     assertThat(opInto.getMetadata().getDepositAmount()).isNull();
   }
 
+  @Test
+  void mapToRosettaTransaction_Test_zeroWithdrawalIsFiltered() {
+    //given
+    BlockTx from = newTran();
+    from.setWithdrawals(List.of(Withdrawal.builder()
+        .amount(BigInteger.ZERO)
+        .stakeAddress("stake_addr1_for_zero_withdraw")
+        .build()));
+    //when
+    Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
+    Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
+    //then
+    assertThat(into.getOperations()).hasSize(2); //input + output only, zero withdrawal dropped
+    assertThat(into.getOperations())
+        .noneMatch(op -> op.getType().equals(OperationType.WITHDRAWAL.getValue()));
+
+    Operation outputOp = into.getOperations().stream()
+        .filter(f -> f.getType().equals(Constants.OUTPUT))
+        .findFirst()
+        .orElseThrow();
+    assertThat(outputOp.getOperationIdentifier().getIndex()).isEqualTo(1); //no gap left behind
+    assertThat(outputOp.getRelatedOperations()).hasSize(1);
+    assertThat(outputOp.getRelatedOperations().getFirst().getIndex()).isZero();
+  }
+
+  @Test
+  void mapToRosettaTransaction_Test_zeroAndNonZeroWithdrawalsFiltered() {
+    //given
+    BlockTx from = newTran();
+    from.setWithdrawals(List.of(
+        Withdrawal.builder()
+            .amount(BigInteger.ZERO)
+            .stakeAddress("stake_addr1_for_zero_withdraw")
+            .build(),
+        Withdrawal.builder()
+            .amount(BigInteger.TWO)
+            .stakeAddress("stake_addr1_for_withdraw")
+            .build()));
+    //when
+    Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap = createTestMetadataMap();
+    Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
+    //then
+    assertThat(into.getOperations()).hasSize(3); //input, surviving withdrawal, output
+
+    List<Operation> withdrawalOps = into.getOperations().stream()
+        .filter(f -> f.getType().equals(OperationType.WITHDRAWAL.getValue()))
+        .toList();
+    assertThat(withdrawalOps).hasSize(1);
+    Operation withdrawalOp = withdrawalOps.getFirst();
+    assertThat(withdrawalOp.getOperationIdentifier().getIndex()).isEqualTo(1);
+    assertThat(withdrawalOp.getAccount().getAddress()).isEqualTo("stake_addr1_for_withdraw");
+    assertThat(withdrawalOp.getMetadata().getWithdrawalAmount().getValue()).isEqualTo("-2");
+
+    Operation outputOp = into.getOperations().stream()
+        .filter(f -> f.getType().equals(Constants.OUTPUT))
+        .findFirst()
+        .orElseThrow();
+    assertThat(outputOp.getOperationIdentifier().getIndex()).isEqualTo(2);
+    assertThat(outputOp.getRelatedOperations()).hasSize(1);
+    assertThat(outputOp.getRelatedOperations().getFirst().getIndex()).isZero();
+  }
+
 
   private static Amount amountActual(String value) {
     return Amount.builder()
