@@ -256,6 +256,24 @@ class CallServiceImplTest {
       assertCode(resolveError(PREPROD, address(BYRON_HEADER_UNDER_SHELLEY_HRP)),
           RosettaErrorType.CIP113_ADDRESS_TYPE_NOT_SUPPORTED);
     }
+
+    @Test
+    void icarusStyleByronAddressIsRejected() {
+      // Real Icarus-format (Ae2-prefixed) mainnet address, lifted from
+      // postmanTests/rosetta-java.postman_collection.json. Icarus and Daedalus addresses
+      // differ only in derivation scheme, not wire format, so this exercises the same
+      // Byron-era rejection path as any other Byron address.
+      assertCode(resolveError(MAINNET, address("Ae2tdPwUPEZC6WJfVQxTNN2tWw4skGrN6zRVukvxJmTFy1nYkVGQBuURU3L")),
+          RosettaErrorType.CIP113_ADDRESS_TYPE_NOT_SUPPORTED);
+    }
+
+    @Test
+    void icarusStyleTestnetByronAddressIsRejected() {
+      // Checksum-valid testnet-style Byron address (2cWKMJ... prefix, the historical
+      // ITN/testnet-faucet Icarus address format).
+      assertCode(resolveError(PREPROD, address("2cWKMJemoBakRJh43zNuFrkjApyUVVjQn2eFkjfSdfye4JLzfK9zSngUSvTT1P4TNWB79")),
+          RosettaErrorType.CIP113_ADDRESS_TYPE_NOT_SUPPORTED);
+    }
   }
 
   @Nested
