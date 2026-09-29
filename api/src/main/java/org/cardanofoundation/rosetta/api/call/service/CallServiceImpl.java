@@ -14,6 +14,7 @@ import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.services.Cip113AddressService;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
+import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.CallRequest;
 import org.openapitools.client.model.CallResponse;
 import org.springframework.stereotype.Service;
@@ -97,10 +98,8 @@ public class CallServiceImpl implements CallService {
         String smartWalletAddress = cip113AddressService.buildSmartWalletAddress(
                 configuredScriptHash, userCredential, network);
 
-        Map<String, Object> accountIdentifier = new LinkedHashMap<>();
-        accountIdentifier.put("address", smartWalletAddress);
         Map<String, Object> result = new LinkedHashMap<>();
-        result.put("account_identifier", accountIdentifier);
+        result.put("account_identifier", new AccountIdentifier(smartWalletAddress, null, null));
 
         CallResponse response = new CallResponse();
         response.setResult(result);
