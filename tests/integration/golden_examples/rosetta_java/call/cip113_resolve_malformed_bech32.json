@@ -1,0 +1,24 @@
+{
+  "test_name": "(-) cip113 resolve malformed bech32",
+  "description": "Negative test: a string that is not a Cardano address at all is rejected",
+  "network": "devkit",
+  "endpoint": "/call",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "method": "resolve_smart_wallet_addr",
+    "parameters": {
+      "address": "notanaddress"
+    }
+  },
+  "expected_error": {
+    "code": 5067,
+    "message": "Invalid address for resolve_smart_wallet_addr",
+    "retriable": false,
+    "details": {
+      "message": "The provided address is malformed or has an unknown era"
+    }
+  }
+}

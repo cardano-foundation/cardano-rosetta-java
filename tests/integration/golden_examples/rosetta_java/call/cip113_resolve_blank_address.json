@@ -1,0 +1,23 @@
+{
+  "test_name": "(-) cip113 resolve blank address parameter",
+  "description": "Negative test: a blank address parameter is rejected before any configuration or address checks",
+  "endpoint": "/call",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "method": "resolve_smart_wallet_addr",
+    "parameters": {
+      "address": "   "
+    }
+  },
+  "expected_error": {
+    "code": 5051,
+    "message": "Call parameter missing",
+    "retriable": false,
+    "details": {
+      "message": "Parameter 'address' must be a non-empty string"
+    }
+  }
+}
