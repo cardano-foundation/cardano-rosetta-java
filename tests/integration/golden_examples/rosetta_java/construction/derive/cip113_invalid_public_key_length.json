@@ -1,0 +1,23 @@
+{
+  "test_name": "(-) public key hash supplied as public key",
+  "description": "Negative test: CIP-113 does not accept a 28-byte Cardano key hash as a public key",
+  "network": "devkit",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "public_key": {
+      "hex_bytes": "BD49833C183D34A082DA395CD73B1C816F0271907A9F58620BCAC694",
+      "curve_type": "edwards25519"
+    },
+    "metadata": {
+      "address_type": "CIP-113"
+    }
+  },
+  "expected_error": {
+    "code": 4007,
+    "message": "Invalid public key format",
+    "retriable": false
+  }
+}
