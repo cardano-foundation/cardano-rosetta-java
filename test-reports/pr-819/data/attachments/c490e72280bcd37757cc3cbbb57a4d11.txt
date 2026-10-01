@@ -1,0 +1,7 @@
+    assert response.status_code == 200
+    assert len(txs) >= 1, f"Transaction {data['tx_hash']} not found via /search/transactions"
+    assert len(ops) >= 1, "No poolGovernanceVote operations found in search result"
+        assert is_hex(params["governance_action_hash"])
+        assert params["pool_credential"]["curve_type"] == "edwards25519"
+        assert is_hex(params["pool_credential"]["hex_bytes"], 56)
+        assert params["vote"] == variant
