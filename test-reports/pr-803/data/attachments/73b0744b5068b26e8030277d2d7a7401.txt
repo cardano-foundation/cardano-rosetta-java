@@ -1,8 +1,0 @@
-    assert response.status_code == 200
-    assert len(coins) > 0, "Account should have unspent UTXOs"
-    assert "coin_identifier" in coin
-    assert "amount" in coin
-    assert len(parts) == 2, "UTXO identifier must be tx_hash:output_index"
-    assert len(tx_hash) == 64, "Transaction hash must be 64 hex chars"
-    assert all(c in "0123456789abcdef" for c in tx_hash.lower())
-    assert output_index.isdigit(), "Output index must be numeric"
