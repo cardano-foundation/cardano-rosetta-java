@@ -204,7 +204,7 @@ Following the Rosetta specification, this endpoint returns an Enterprise address
 In addition to that, Cardano Rosetta Java allows the creation of Reward and Base addresses, which aren't supported in the Rosetta specification.
 Therefore, following optional parameters were added as metadata:
 
-- `address_type`: Either `Reward`, `Base` or `Enterprise`. It will default to `Enterprise` and will throw an error if any other value is provided.
+- `address_type`: Either `Reward`, `Base`, `Enterprise`, or `CIP-113`. It will default to `Enterprise` and will throw an error if any other value is provided. See the [Programmable Tokens guide](/docs/user-guides/programmable-tokens) for details on `CIP-113` smart wallet derivation.
 - `staking_credential`: The public key that will be used for creating a Base address. This field is only mandatory if the provided `address_type` is `Base`. It's ignored in other cases since the Reward and the Enterprise addresses are created with the public key already included in the request.
 
 #### Examples

@@ -209,3 +209,11 @@ Each staking operation requires specific metadata:
 | Stake Delegation         | `staking_credential` and `pool_key_hash`        |
 | Stake Key Deregistration | `staking_credential` (hex bytes and curve type) |
 | Withdrawal               | `staking_credential` and `amount`               |
+
+## Zero-Value Withdrawals
+
+Cardano has a "withdraw-zero" pattern: a withdrawal of exactly 0 ADA from a stake address, used purely to invoke that address's stake validator script without moving any funds. Plutus-based features (including [CIP-113 programmable tokens](/docs/core-concepts/programmable-tokens)) rely on this to run validation logic once per transaction.
+
+Because a zero-value withdrawal carries no balance information, `/block`, `/block/transaction`, and `/search/transactions` filter these operations out of their responses rather than surfacing them as ordinary `withdrawal` operations. Remaining operations are re-indexed so `operation_identifier.index` stays contiguous, and any `related_operations` references stay valid. This applies to any zero-value withdrawal, not just ones from CIP-113 transactions — it's a general property of the withdraw-zero pattern, independent of which script is being invoked.
+
+A non-zero withdrawal is unaffected and continues to appear normally.

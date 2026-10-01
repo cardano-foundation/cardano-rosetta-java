@@ -118,7 +118,41 @@ curl --location 'http://localhost:8082/call' \
 ```
 📚 For detailed information, please see the **[API page](/cardano-rosetta-java/api#tag/call/post/call)**.
 
-### 2.3 What to do when unparsed blocks are detected
+### 2.3 Resolve a CIP-113 smart wallet address
+
+The `/call` endpoint also exposes `resolve_smart_wallet_addr`, which resolves a supported Cardano address to its corresponding [CIP-113 programmable-token smart wallet address](/docs/user-guides/programmable-tokens) using the server's configured programmable logic base (PLB) script hash. This is unrelated to unparsed-block handling, but shares the same `/call` method-routing mechanism.
+
+#### Request
+
+```bash
+curl --location 'http://localhost:8082/call' \
+--header 'Content-Type: application/json' \
+--data '{
+  "network_identifier": {
+    "blockchain": "cardano",
+    "network": "preprod"
+  },
+  "method": "resolve_smart_wallet_addr",
+  "parameters": {
+    "address": "addr_test1vz75nqeurq7nfgyzmgu4e4emrjqk7qn3jpaf7krzp09vd9qdzamqp"
+  }
+}'
+```
+
+#### Response
+```json
+{
+    "result": {
+        "account_identifier": {
+            "address": "addr_test1zqvca3jpwpvrtd0fvexseqs55em0zg0zkr26hzs7e0qw6w9mgrc6v3au3rqm66mn3kuwke340kfxga82tl7kh2nke8asgpvgzg"
+        }
+    },
+    "idempotent": true
+}
+```
+📚 For detailed information, please see the **[API page](/cardano-rosetta-java/api#tag/call/post/call)**.
+
+### 2.4 What to do when unparsed blocks are detected
 When **yaci-core** encounters unparsed blocks, and you want to attempt parsing them again after resolving the issue (e.g. upgrading parser logic), follow these steps:
 
 1. **Upgrade `yaci-core`** to the latest version that supports parsing the problematic block(s).  
