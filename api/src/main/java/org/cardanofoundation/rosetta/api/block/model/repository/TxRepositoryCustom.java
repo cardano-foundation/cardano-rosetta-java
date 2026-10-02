@@ -1,13 +1,14 @@
 package org.cardanofoundation.rosetta.api.block.model.repository;
 
+import java.util.List;
+import java.util.Set;
+import javax.annotation.Nullable;
+
+import org.springframework.data.domain.Page;
+
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.search.model.Currency;
 import org.cardanofoundation.rosetta.common.spring.OffsetBasedPageRequest;
-import org.springframework.data.domain.Page;
-
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Set;
 
 public interface TxRepositoryCustom {
 

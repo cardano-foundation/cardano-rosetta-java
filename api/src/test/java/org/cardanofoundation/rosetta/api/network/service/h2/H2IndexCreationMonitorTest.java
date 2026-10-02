@@ -1,11 +1,12 @@
 package org.cardanofoundation.rosetta.api.network.service.h2;
 
-import org.cardanofoundation.rosetta.api.network.service.IndexCreationMonitor.IndexCreationProgress;
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
+import org.cardanofoundation.rosetta.api.network.service.IndexCreationMonitor.IndexCreationProgress;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

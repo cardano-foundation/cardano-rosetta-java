@@ -1,18 +1,20 @@
 package org.cardanofoundation.rosetta.api.network.service;
 
+import java.util.List;
+import java.util.Optional;
+import javax.annotation.Nullable;
+import javax.annotation.PostConstruct;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.openapitools.client.model.SyncStatus;
+
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.common.enumeration.SyncStage;
 import org.cardanofoundation.rosetta.common.time.OfflineSlotService;
-import org.openapitools.client.model.SyncStatus;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import javax.annotation.Nullable;
-import javax.annotation.PostConstruct;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Service responsible for calculating sync status based on blockchain tip

@@ -1,18 +1,19 @@
 package org.cardanofoundation.rosetta.api.block.model.domain;
 
+import java.util.Optional;
+import javax.annotation.Nullable;
+
+import lombok.*;
+
 import com.bloxbean.cardano.client.address.Credential;
 import com.bloxbean.cardano.client.transaction.spec.governance.Anchor;
 import com.bloxbean.cardano.client.transaction.spec.governance.Vote;
 import com.bloxbean.cardano.client.transaction.spec.governance.Voter;
 import com.bloxbean.cardano.client.transaction.spec.governance.actions.GovActionId;
-import lombok.*;
 import org.openapitools.client.model.GovVoteParams;
 import org.openapitools.client.model.GovVoteRationaleParams;
 import org.openapitools.client.model.PoolGovernanceVoteParams;
 import org.openapitools.client.model.PublicKey;
-
-import javax.annotation.Nullable;
-import java.util.Optional;
 
 import static com.bloxbean.cardano.client.crypto.Blake2bUtil.blake2bHash224;
 import static com.bloxbean.cardano.client.transaction.spec.governance.VoterType.STAKING_POOL_KEY_HASH;

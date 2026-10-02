@@ -1,10 +1,11 @@
 package org.cardanofoundation.rosetta.api.error.model.repository;
 
-import org.cardanofoundation.rosetta.api.error.model.entity.ErrorEntity;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import org.cardanofoundation.rosetta.api.error.model.entity.ErrorEntity;
 
 @Repository
 public interface ErrorRepository extends JpaRepository<ErrorEntity, Integer> {

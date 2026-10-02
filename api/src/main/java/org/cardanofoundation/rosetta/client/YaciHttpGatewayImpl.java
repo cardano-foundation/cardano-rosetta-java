@@ -6,6 +6,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
 import jakarta.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
@@ -18,9 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.cardanofoundation.rosetta.client.model.domain.DiscoveredPeer;
 import org.cardanofoundation.rosetta.client.model.domain.StakeAccountInfo;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-
-import java.util.Arrays;
-import java.util.List;
 
 @Service
 @Slf4j

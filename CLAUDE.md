@@ -33,6 +33,13 @@ cd api && mvn spring-boot:run
 mvn clean package
 ```
 
+### Formatting (Spotless)
+```bash
+mvn spotless:apply    # run before committing; CI fails on unformatted code
+mvn spotless:check    # what CI runs
+git config core.hooksPath .githooks   # set automatically by the first local mvn build (git-hooks profile, off when CI is set): pre-commit/pre-push enforce Spotless, commit-msg enforces Conventional Commits
+```
+
 ### Docker Compose Commands
 ```bash
 # Start all services (full stack)

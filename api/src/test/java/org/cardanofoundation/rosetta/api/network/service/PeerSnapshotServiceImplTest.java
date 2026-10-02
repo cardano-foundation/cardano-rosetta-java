@@ -1,15 +1,15 @@
 package org.cardanofoundation.rosetta.api.network.service;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.openapitools.client.model.Peer;
-
 import java.util.List;
 import java.util.Map;
 
+import org.openapitools.client.model.Peer;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class PeerSnapshotServiceImplTest {

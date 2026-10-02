@@ -1,20 +1,21 @@
 package org.cardanofoundation.rosetta.api.common.service;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.validation.constraints.NotNull;
+
+import lombok.NonNull;
+
+import org.openapitools.client.model.BlockTransaction;
+import org.openapitools.client.model.Operation;
+
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
-import org.openapitools.client.model.BlockTransaction;
-import org.openapitools.client.model.Operation;
-
-import lombok.NonNull;
-
-import javax.validation.constraints.NotNull;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Service for retrieving token metadata from the token registry.
@@ -43,21 +44,21 @@ public interface TokenRegistryService {
      * @return Set of unique Asset objects found across all transactions
      */
     Set<AssetFingerprint> extractAssetsFromBlockTransactions(@NotNull List<BlockTransaction> transactions);
-    
+
     /**
      * Extract assets from a list of Amt objects (utility method)
      * @param amounts List of amounts potentially containing native tokens
      * @return Set of unique Asset objects (excludes ADA/lovelace)
      */
     Set<AssetFingerprint> extractAssetsFromAmounts(@NonNull List<Amt> amounts);
-    
+
     /**
      * Extract assets from a list of Operation objects
      * @param operations List of operations potentially containing native tokens
      * @return Set of unique Asset objects found in operation amounts
      */
     Set<AssetFingerprint> extractAssetsFromOperations(@NotNull List<Operation> operations);
-    
+
     /**
      * Convenience method to extract assets and fetch metadata for a BlockTx in one call
      * @param blockTx The block transaction to process

@@ -218,7 +218,6 @@ jobs:
       POSTGRES_IMAGE: ${{ needs.target.outputs.postgres_image }}
       POSTGRES_PVC: pg-data-rosetta-postgresql-0
       PRERELEASE_TAG: ${{ needs.target.outputs.image_tag }}
-      TOKEN_REGISTRY_BASE_URL: http://zur2-s-d-100.colo2.cf-systems.internal:8080/api
       TOKEN_REGISTRY_ENABLED: "true"
     steps:
       - name: Check out immutable clean-resync automation
@@ -299,9 +298,7 @@ jobs:
       PROJECT_NAME: cardano-rosetta-java
       RELEASE_VERSION: ${{ needs.target.outputs.image_tag }}
       REMOVE_SPENT_UTXOS: "false"
-      TOKEN_REGISTRY_BASE_URL: http://zur2-s-d-115.colo2.cf-systems.internal:8080/api
       TOKEN_REGISTRY_ENABLED: "true"
-      TOKEN_REGISTRY_HOSTNAME: zur2-s-d-115.colo2.cf-systems.internal
     steps:
       - name: Check out immutable clean-resync automation
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4

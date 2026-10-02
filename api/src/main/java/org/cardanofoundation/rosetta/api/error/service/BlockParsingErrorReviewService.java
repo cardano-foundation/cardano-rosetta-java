@@ -1,19 +1,21 @@
 package org.cardanofoundation.rosetta.api.error.service;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.error.model.domain.BlockParsingErrorReviewDTO;
-import org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus;
-import org.cardanofoundation.rosetta.api.error.model.entity.ErrorEntity;
-import org.cardanofoundation.rosetta.api.error.model.entity.ErrorReviewEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import javax.annotation.Nullable;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import javax.annotation.Nullable;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import org.cardanofoundation.rosetta.api.error.model.domain.BlockParsingErrorReviewDTO;
+import org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus;
+import org.cardanofoundation.rosetta.api.error.model.entity.ErrorEntity;
+import org.cardanofoundation.rosetta.api.error.model.entity.ErrorReviewEntity;
 
 import static java.util.Objects.requireNonNullElse;
 

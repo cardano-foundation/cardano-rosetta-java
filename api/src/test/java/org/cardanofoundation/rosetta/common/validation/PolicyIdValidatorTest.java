@@ -1,8 +1,9 @@
 package org.cardanofoundation.rosetta.common.validation;
 
-import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
+import org.cardanofoundation.rosetta.common.exception.ApiException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

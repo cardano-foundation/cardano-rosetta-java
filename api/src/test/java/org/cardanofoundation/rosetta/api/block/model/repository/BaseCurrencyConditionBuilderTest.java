@@ -1,11 +1,13 @@
 package org.cardanofoundation.rosetta.api.block.model.repository;
 
-import org.cardanofoundation.rosetta.api.search.model.Currency;
-import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.jooq.Condition;
 import org.jooq.impl.DSL;
+
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+
+import org.cardanofoundation.rosetta.api.search.model.Currency;
+import org.cardanofoundation.rosetta.common.exception.ApiException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

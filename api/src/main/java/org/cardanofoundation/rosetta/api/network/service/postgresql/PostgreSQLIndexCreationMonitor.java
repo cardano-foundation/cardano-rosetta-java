@@ -1,20 +1,22 @@
 package org.cardanofoundation.rosetta.api.network.service.postgresql;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.network.service.IndexCreationMonitor;
-import org.cardanofoundation.rosetta.api.network.service.RosettaIndexConfig;
-import org.jooq.DSLContext;
-import org.jooq.Record3;
-import org.jooq.Result;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
-
-import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+import org.jooq.DSLContext;
+import org.jooq.Record3;
+import org.jooq.Result;
+
+import org.cardanofoundation.rosetta.api.network.service.IndexCreationMonitor;
+import org.cardanofoundation.rosetta.api.network.service.RosettaIndexConfig;
 
 /**
  * PostgreSQL-specific implementation of IndexCreationMonitor.

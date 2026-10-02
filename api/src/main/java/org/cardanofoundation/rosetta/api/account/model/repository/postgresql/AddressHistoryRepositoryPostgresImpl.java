@@ -1,15 +1,17 @@
 package org.cardanofoundation.rosetta.api.account.model.repository.postgresql;
 
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.account.model.repository.AddressHistoryRepository;
-import org.jooq.*;
-import org.jooq.impl.DSL;
+
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import org.jooq.*;
+import org.jooq.impl.DSL;
 
-import java.util.List;
+import org.cardanofoundation.rosetta.api.account.model.repository.AddressHistoryRepository;
 
 import static org.cardanofoundation.rosetta.api.jooq.Tables.*;
 

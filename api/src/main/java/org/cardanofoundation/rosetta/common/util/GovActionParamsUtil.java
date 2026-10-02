@@ -1,8 +1,10 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import com.bloxbean.cardano.client.transaction.spec.governance.actions.GovActionId;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+
+import com.bloxbean.cardano.client.transaction.spec.governance.actions.GovActionId;
+
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 
@@ -13,7 +15,7 @@ public class GovActionParamsUtil {
     private static final int INDEX_LENGTH = 2;
     private static final int TOTAL_LENGTH = TX_HASH_LENGTH + INDEX_LENGTH;
     private static final int MAX_INDEX_DECIMAL = 99;
-    
+
     @Getter
     public static class ParsedGovActionParams {
 
@@ -36,7 +38,7 @@ public class GovActionParamsUtil {
     /**
      * Validates and parses a concatenated governance action string.
      * Expected format: 64-character hex tx_id + 2-character hex index
-     * 
+     *
      * @param govActionString The concatenated governance action string
      * @return ParsedGovActionParams containing the tx_id and index
      * @throws ApiException if the format is invalid
@@ -49,13 +51,13 @@ public class GovActionParamsUtil {
         }
 
         String trimmed = govActionString.trim();
-        
+
         // Check total length
         if (trimmed.length() != TOTAL_LENGTH) {
-            log.error("[parseAndValidate] Invalid governance action length: {} (expected: {})", 
+            log.error("[parseAndValidate] Invalid governance action length: {} (expected: {})",
                 trimmed.length(), TOTAL_LENGTH);
             throw ExceptionFactory.invalidGovernanceVote(
-                String.format("Governance action must be exactly %d characters long (64 for tx_id + 2 for index), got %d", 
+                String.format("Governance action must be exactly %d characters long (64 for tx_id + 2 for index), got %d",
                     TOTAL_LENGTH, trimmed.length()));
         }
 
@@ -94,7 +96,7 @@ public class GovActionParamsUtil {
 
     /**
      * Formats a tx_id and index into a concatenated governance action string.
-     * 
+     *
      * @param txId The transaction ID (64 hex characters)
      * @param index The index (0-99)
      * @return The concatenated governance action string

@@ -1,13 +1,14 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
-import co.nstant.in.cbor.model.*;
-import org.cardanofoundation.rosetta.common.util.Constants;
-import org.openapitools.client.model.*;
-
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import co.nstant.in.cbor.model.*;
+import org.openapitools.client.model.*;
+
+import org.cardanofoundation.rosetta.common.util.Constants;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.*;
 import static org.cardanofoundation.rosetta.common.util.Formatters.key;
@@ -447,19 +448,19 @@ public class CborMapToOperation {
         Optional.ofNullable(metadataMap.get(key(Constants.GOVERNANCE_ACTION_HASH)))
                 .ifPresent(governanceActionHash -> {
                     String govActionString = ((UnicodeString) governanceActionHash).getString();
-                    
+
                     // Validate that the governance action hash is exactly 66 characters (64 + 2)
                     if (govActionString.length() != 66) {
                         // Invalid length, ignore the value
                         return;
                     }
-                    
+
                     // Parse tx_id and index from the concatenated string
                     // Index is always the last 2 hex characters
                     String txId = govActionString.substring(0, 64);
                     String indexHex = govActionString.substring(64);
                     int index = Integer.parseInt(indexHex, 16);
-                    
+
                     String concatenatedGovAction = org.cardanofoundation.rosetta.common.util.GovActionParamsUtil
                             .formatGovActionString(txId, index);
 

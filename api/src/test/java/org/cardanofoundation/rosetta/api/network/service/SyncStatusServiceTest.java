@@ -1,22 +1,23 @@
 package org.cardanofoundation.rosetta.api.network.service;
 
-import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
-import org.cardanofoundation.rosetta.common.enumeration.SyncStage;
-import org.cardanofoundation.rosetta.common.time.OfflineSlotService;
+import java.util.Optional;
+
+import org.springframework.test.util.ReflectionTestUtils;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.openapitools.client.model.SyncStatus;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.openapitools.client.model.SyncStatus;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Optional;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
+import org.cardanofoundation.rosetta.common.enumeration.SyncStage;
+import org.cardanofoundation.rosetta.common.time.OfflineSlotService;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)

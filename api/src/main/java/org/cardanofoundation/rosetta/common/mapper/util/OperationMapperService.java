@@ -1,25 +1,27 @@
 package org.cardanofoundation.rosetta.common.mapper.util;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Component;
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.cardanofoundation.rosetta.api.block.mapper.TransactionMapper;
-import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
-import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
-import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
-import org.cardanofoundation.rosetta.common.util.RosettaConstants;
 import org.mapstruct.Context;
 import org.mapstruct.Named;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.Operation;
 import org.openapitools.client.model.OperationIdentifier;
 import org.openapitools.client.model.OperationStatus;
-import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import org.cardanofoundation.rosetta.api.block.mapper.TransactionMapper;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
+import org.cardanofoundation.rosetta.common.util.RosettaConstants;
 
 @Component
 @RequiredArgsConstructor

@@ -1,9 +1,10 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import com.google.common.collect.ImmutableList;
-import org.cardanofoundation.rosetta.common.enumeration.OperationType;
-
 import java.util.List;
+
+import com.google.common.collect.ImmutableList;
+
+import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 
 import static org.cardanofoundation.rosetta.common.enumeration.OperationType.STAKE_DELEGATION;
 import static org.cardanofoundation.rosetta.common.util.Constants.OPERATION_TYPE_DREP_VOTE_DELEGATION;

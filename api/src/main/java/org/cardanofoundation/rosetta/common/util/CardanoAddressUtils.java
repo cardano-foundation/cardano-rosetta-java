@@ -1,5 +1,10 @@
 package org.cardanofoundation.rosetta.common.util;
 
+import java.util.Objects;
+import java.util.Optional;
+
+import lombok.extern.slf4j.Slf4j;
+
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.AddressType;
@@ -17,20 +22,17 @@ import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostAddr;
 import com.bloxbean.cardano.client.transaction.spec.cert.SingleHostName;
 import com.bloxbean.cardano.client.transaction.spec.cert.StakeCredential;
 import com.bloxbean.cardano.client.util.HexUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.InetAddressValidator;
+import org.openapitools.client.model.PublicKey;
+import org.openapitools.client.model.Relay;
+
 import org.cardanofoundation.rosetta.common.enumeration.EraAddressType;
 import org.cardanofoundation.rosetta.common.enumeration.StakeAddressPrefix;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.validation.PolicyIdValidator;
 import org.cardanofoundation.rosetta.common.validation.TokenNameValidator;
-import org.openapitools.client.model.PublicKey;
-import org.openapitools.client.model.Relay;
-
-import java.util.Objects;
-import java.util.Optional;
 
 @Slf4j
 public class CardanoAddressUtils {

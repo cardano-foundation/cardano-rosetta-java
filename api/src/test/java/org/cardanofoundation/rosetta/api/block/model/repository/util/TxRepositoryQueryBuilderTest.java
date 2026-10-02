@@ -1,23 +1,22 @@
 package org.cardanofoundation.rosetta.api.block.model.repository.util;
 
+import java.math.BigInteger;
+import java.util.List;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.TransactionSizeEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 import org.jooq.JSONB;
 import org.jooq.Record;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.annotation.Nullable;
-import java.math.BigInteger;
-import java.util.List;
+import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cardanofoundation.rosetta.api.jooq.Tables.*;

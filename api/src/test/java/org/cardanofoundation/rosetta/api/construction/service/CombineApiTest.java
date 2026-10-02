@@ -1,20 +1,22 @@
 package org.cardanofoundation.rosetta.api.construction.service;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Objects;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.cardanofoundation.rosetta.api.IntegrationTest;
-import org.cardanofoundation.rosetta.common.exception.ApiException;
-import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
+import org.openapitools.client.model.ConstructionCombineRequest;
+import org.openapitools.client.model.ConstructionCombineResponse;
+
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.openapitools.client.model.ConstructionCombineRequest;
-import org.openapitools.client.model.ConstructionCombineResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Objects;
+import org.cardanofoundation.rosetta.api.IntegrationTest;
+import org.cardanofoundation.rosetta.common.exception.ApiException;
+import org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 
 import static com.bloxbean.cardano.client.crypto.Blake2bUtil.blake2bHash256;
 import static com.bloxbean.cardano.client.util.HexUtil.decodeHexString;

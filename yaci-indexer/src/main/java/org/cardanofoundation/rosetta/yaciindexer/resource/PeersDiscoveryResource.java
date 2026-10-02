@@ -1,5 +1,15 @@
 package org.cardanofoundation.rosetta.yaciindexer.resource;
 
+import java.util.List;
+import jakarta.annotation.PostConstruct;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import com.bloxbean.cardano.yaci.core.protocol.peersharing.messages.PeerAddress;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -8,17 +18,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.cardanofoundation.rosetta.yaciindexer.domain.model.PeerAddressDto;
 import org.cardanofoundation.rosetta.yaciindexer.service.PeerDiscoveryManager;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController("rosetta.PeersDiscoveryController")
 @RequestMapping("${apiPrefix}/rosetta/peers")
@@ -62,11 +64,11 @@ public class PeersDiscoveryResource {
     })
     public List<PeerAddressDto> getDiscoveredPeers() {
         log.debug("Retrieving cached peers from PeerDiscoveryManager");
-        
+
         List<PeerAddress> cachedPeers = peerDiscoveryManager.getCachedPeers();
-        
+
         log.info("Returning {} cached peers", cachedPeers.size());
-        
+
         return cachedPeers.stream()
                 .map(this::toPeerAddressDto)
                 .toList();

@@ -1,23 +1,24 @@
 package org.cardanofoundation.rosetta.api.search.controller;
 
-import org.cardanofoundation.rosetta.api.search.service.SearchService;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.openapitools.client.model.BlockTransaction;
+import org.openapitools.client.model.SearchTransactionsRequest;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.openapitools.client.model.BlockTransaction;
-import org.openapitools.client.model.SearchTransactionsRequest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 
-import java.util.List;
-import java.util.Optional;
+import org.cardanofoundation.rosetta.api.search.service.SearchService;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -324,12 +325,12 @@ class SearchApiImplTest {
             SearchTransactionsRequest request = new SearchTransactionsRequest();
             Long limit = 5L;
             long offset = 0L;
-            
+
             BlockTransaction transaction1 = new BlockTransaction();
             BlockTransaction transaction2 = new BlockTransaction();
             List<BlockTransaction> transactions = List.of(transaction1, transaction2);
             Page<BlockTransaction> page = new PageImpl<>(transactions);
-            
+
             when(searchService.searchTransaction(request, offset, limit)).thenReturn(page);
 
             // When
@@ -349,11 +350,11 @@ class SearchApiImplTest {
             SearchTransactionsRequest request = new SearchTransactionsRequest();
             Long limit = 0L;
             long offset = 0L;
-            
+
             BlockTransaction transaction1 = new BlockTransaction();
             List<BlockTransaction> transactions = List.of(transaction1);
             Page<BlockTransaction> page = new PageImpl<>(transactions);
-            
+
             when(searchService.searchTransaction(request, offset, 1L)).thenReturn(page);
 
             // When
@@ -373,10 +374,10 @@ class SearchApiImplTest {
             SearchTransactionsRequest request = new SearchTransactionsRequest();
             Long limit = 10L;
             long offset = 100L;
-            
+
             List<BlockTransaction> emptyTransactions = List.of();
             Page<BlockTransaction> emptyPage = new PageImpl<>(emptyTransactions);
-            
+
             when(searchService.searchTransaction(request, offset, limit)).thenReturn(emptyPage);
 
             // When
@@ -395,10 +396,10 @@ class SearchApiImplTest {
             SearchTransactionsRequest request = new SearchTransactionsRequest();
             Long limit = 0L;
             long offset = 50L;
-            
+
             List<BlockTransaction> emptyTransactions = List.of();
             Page<BlockTransaction> emptyPage = new PageImpl<>(emptyTransactions);
-            
+
             when(searchService.searchTransaction(request, offset, 1L)).thenReturn(emptyPage);
 
             // When
@@ -417,11 +418,11 @@ class SearchApiImplTest {
             SearchTransactionsRequest request = new SearchTransactionsRequest();
             Long limit = 25L;
             long offset = 150L;
-            
+
             BlockTransaction transaction = new BlockTransaction();
             List<BlockTransaction> transactions = List.of(transaction);
             Page<BlockTransaction> page = new PageImpl<>(transactions);
-            
+
             when(searchService.searchTransaction(request, offset, limit)).thenReturn(page);
 
             // When
@@ -438,7 +439,7 @@ class SearchApiImplTest {
             SearchTransactionsRequest request = new SearchTransactionsRequest();
             Long limit = 0L;
             long offset = 75L;
-            
+
             Page<BlockTransaction> page = new PageImpl<>(List.of());
             when(searchService.searchTransaction(request, offset, 1L)).thenReturn(page);
 

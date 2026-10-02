@@ -1,14 +1,16 @@
 package org.cardanofoundation.rosetta.common.util;
 
 import com.bloxbean.cardano.client.transaction.spec.governance.actions.GovActionId;
-import org.cardanofoundation.rosetta.common.exception.ApiException;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.junit.jupiter.MockitoExtension;
+
+import org.cardanofoundation.rosetta.common.exception.ApiException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -28,7 +30,7 @@ class GovActionParamsUtilTest {
         @DisplayName("should parse valid governance action with index 0")
         void shouldParseValidGovernanceActionWithIndex0() {
             // when
-            GovActionParamsUtil.ParsedGovActionParams result = 
+            GovActionParamsUtil.ParsedGovActionParams result =
                 GovActionParamsUtil.parseAndValidate(VALID_GOV_ACTION_INDEX_0);
 
             // then
@@ -40,7 +42,7 @@ class GovActionParamsUtilTest {
         @DisplayName("should parse valid governance action with index 15")
         void shouldParseValidGovernanceActionWithIndex15() {
             // when
-            GovActionParamsUtil.ParsedGovActionParams result = 
+            GovActionParamsUtil.ParsedGovActionParams result =
                 GovActionParamsUtil.parseAndValidate(VALID_GOV_ACTION_INDEX_15);
 
             // then
@@ -52,7 +54,7 @@ class GovActionParamsUtilTest {
         @DisplayName("should parse valid governance action with index 99 (maximum)")
         void shouldParseValidGovernanceActionWithIndex99() {
             // when
-            GovActionParamsUtil.ParsedGovActionParams result = 
+            GovActionParamsUtil.ParsedGovActionParams result =
                 GovActionParamsUtil.parseAndValidate(VALID_GOV_ACTION_INDEX_99);
 
             // then
@@ -67,7 +69,7 @@ class GovActionParamsUtilTest {
             String govActionWithUppercase = "DF58F714C0765F3489AFB6909384A16C31D600695BE7E86FF9C59CF2E8A48C794F";
 
             // when
-            GovActionParamsUtil.ParsedGovActionParams result = 
+            GovActionParamsUtil.ParsedGovActionParams result =
                 GovActionParamsUtil.parseAndValidate(govActionWithUppercase);
 
             // then
@@ -82,7 +84,7 @@ class GovActionParamsUtilTest {
             String govActionWithWhitespace = "  " + VALID_GOV_ACTION_INDEX_0 + "  ";
 
             // when
-            GovActionParamsUtil.ParsedGovActionParams result = 
+            GovActionParamsUtil.ParsedGovActionParams result =
                 GovActionParamsUtil.parseAndValidate(govActionWithWhitespace);
 
             // then
@@ -95,9 +97,9 @@ class GovActionParamsUtilTest {
         @DisplayName("should throw exception for null or empty strings")
         void shouldThrowExceptionForNullOrEmptyStrings(String input) {
             // when & then
-            ApiException exception = assertThrows(ApiException.class, 
+            ApiException exception = assertThrows(ApiException.class,
                 () -> GovActionParamsUtil.parseAndValidate(input));
-            
+
             assertEquals("Invalid governance vote, reason: Governance action parameter is required", exception.getMessage());
         }
 
@@ -105,9 +107,9 @@ class GovActionParamsUtilTest {
         @DisplayName("should throw exception for null input")
         void shouldThrowExceptionForNullInput() {
             // when & then
-            ApiException exception = assertThrows(ApiException.class, 
+            ApiException exception = assertThrows(ApiException.class,
                 () -> GovActionParamsUtil.parseAndValidate(null));
-            
+
             assertEquals("Invalid governance vote, reason: Governance action parameter is required", exception.getMessage());
         }
 
@@ -118,9 +120,9 @@ class GovActionParamsUtilTest {
             String shortString = "df58f714c0765f3489afb6909384a16c31d600695be7e86ff9c59cf2e8a48c7";
 
             // when & then
-            ApiException exception = assertThrows(ApiException.class, 
+            ApiException exception = assertThrows(ApiException.class,
                 () -> GovActionParamsUtil.parseAndValidate(shortString));
-            
+
             assertEquals("Invalid governance vote, reason: Governance action must be exactly 66 characters long (64 for tx_id + 2 for index), got 63", exception.getMessage());
         }
 
@@ -131,7 +133,7 @@ class GovActionParamsUtilTest {
             String longString = VALID_TX_ID + "000";
 
             // when & then
-            ApiException exception = assertThrows(ApiException.class, 
+            ApiException exception = assertThrows(ApiException.class,
                 () -> GovActionParamsUtil.parseAndValidate(longString));
 
             assertEquals("Invalid governance vote, reason: Governance action must be exactly 66 characters long (64 for tx_id + 2 for index), got 67", exception.getMessage());
@@ -146,9 +148,9 @@ class GovActionParamsUtilTest {
         @DisplayName("should throw exception for non-hex characters")
         void shouldThrowExceptionForNonHexCharacters(String invalidHex) {
             // when & then
-            ApiException exception = assertThrows(ApiException.class, 
+            ApiException exception = assertThrows(ApiException.class,
                 () -> GovActionParamsUtil.parseAndValidate(invalidHex));
-            
+
             assertEquals("Invalid governance vote, reason: Governance action must contain only hexadecimal characters (0-9, a-f, A-F)", exception.getMessage());
         }
 
@@ -159,9 +161,9 @@ class GovActionParamsUtilTest {
             String govActionWithHighIndex = VALID_TX_ID + "64";
 
             // when & then
-            ApiException exception = assertThrows(ApiException.class, 
+            ApiException exception = assertThrows(ApiException.class,
                 () -> GovActionParamsUtil.parseAndValidate(govActionWithHighIndex));
-            
+
             assertEquals("Invalid governance vote, reason: Index 100 exceeds maximum allowed value 99", exception.getMessage());
         }
 
@@ -172,9 +174,9 @@ class GovActionParamsUtilTest {
             String govActionWithMaxHexIndex = VALID_TX_ID + "ff";
 
             // when & then
-            ApiException exception = assertThrows(ApiException.class, 
+            ApiException exception = assertThrows(ApiException.class,
                 () -> GovActionParamsUtil.parseAndValidate(govActionWithMaxHexIndex));
-            
+
             assertEquals("Invalid governance vote, reason: Index 255 exceeds maximum allowed value 99", exception.getMessage());
         }
     }
@@ -227,9 +229,9 @@ class GovActionParamsUtilTest {
         @DisplayName("should throw exception for null tx_id")
         void shouldThrowExceptionForNullTxId() {
             // when & then
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> GovActionParamsUtil.formatGovActionString(null, 0));
-            
+
             assertEquals("Transaction ID must be exactly 64 characters", exception.getMessage());
         }
 
@@ -240,9 +242,9 @@ class GovActionParamsUtilTest {
             String shortTxId = "df58f714c0765f3489afb6909384a16c31d600695be7e86ff9c59cf2e8a48c7";
 
             // when & then
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> GovActionParamsUtil.formatGovActionString(shortTxId, 0));
-            
+
             assertEquals("Transaction ID must be exactly 64 characters", exception.getMessage());
         }
 
@@ -253,9 +255,9 @@ class GovActionParamsUtilTest {
             String longTxId = VALID_TX_ID + "0";
 
             // when & then
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> GovActionParamsUtil.formatGovActionString(longTxId, 0));
-            
+
             assertEquals("Transaction ID must be exactly 64 characters", exception.getMessage());
         }
 
@@ -263,9 +265,9 @@ class GovActionParamsUtilTest {
         @DisplayName("should throw exception for negative index")
         void shouldThrowExceptionForNegativeIndex() {
             // when & then
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> GovActionParamsUtil.formatGovActionString(VALID_TX_ID, -1));
-            
+
             assertEquals("Index must be between 0 and 99", exception.getMessage());
         }
 
@@ -273,9 +275,9 @@ class GovActionParamsUtilTest {
         @DisplayName("should throw exception for index greater than 99")
         void shouldThrowExceptionForIndexGreaterThan99() {
             // when & then
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
+            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> GovActionParamsUtil.formatGovActionString(VALID_TX_ID, 100));
-            
+
             assertEquals("Index must be between 0 and 99", exception.getMessage());
         }
     }
@@ -288,7 +290,7 @@ class GovActionParamsUtilTest {
         @DisplayName("should create GovActionId correctly")
         void shouldCreateGovActionIdCorrectly() {
             // given
-            GovActionParamsUtil.ParsedGovActionParams parsed = 
+            GovActionParamsUtil.ParsedGovActionParams parsed =
                 new GovActionParamsUtil.ParsedGovActionParams(VALID_TX_ID, 15);
 
             // when
@@ -303,7 +305,7 @@ class GovActionParamsUtilTest {
         @DisplayName("should have correct getters")
         void shouldHaveCorrectGetters() {
             // given
-            GovActionParamsUtil.ParsedGovActionParams parsed = 
+            GovActionParamsUtil.ParsedGovActionParams parsed =
                 new GovActionParamsUtil.ParsedGovActionParams(VALID_TX_ID, 42);
 
             // then
