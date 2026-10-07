@@ -630,11 +630,9 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
   private byte[] getConfiguredProgrammableLogicBaseScriptHash() {
     String scriptHash = Optional.ofNullable(cip113BaseScriptHash)
             .map(String::trim)
-            .orElse("");
+            .filter(value -> !value.isEmpty())
+            .orElseThrow(ExceptionFactory::cip113PlbScriptHashNotConfigured);
 
-    if (scriptHash.isEmpty()) {
-      throw ExceptionFactory.cip113PlbScriptHashNotConfigured();
-    }
     if (scriptHash.length() != SCRIPT_HASH_HEX_LENGTH || !HexUtils.isHexString(scriptHash)) {
       throw ExceptionFactory.cip113PlbScriptHashInvalid();
     }
