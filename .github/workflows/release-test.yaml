@@ -182,6 +182,9 @@ jobs:
 
   mainnet-k8s:
     needs: validate
+    concurrency:
+      group: mainnet-deployment-kubernetes
+      cancel-in-progress: false
     uses: ./.github/workflows/release-test-mainnet-k8s.yaml
     with:
       candidate_api_image: ${{ needs.validate.outputs.api_image }}
@@ -197,6 +200,9 @@ jobs:
 
   mainnet-compose:
     needs: validate
+    concurrency:
+      group: mainnet-deployment-docker-compose
+      cancel-in-progress: false
     uses: ./.github/workflows/release-test-mainnet-compose.yaml
     with:
       candidate_api_image: ${{ needs.validate.outputs.api_image }}
@@ -234,7 +240,7 @@ jobs:
 
           A successful Mainnet job means the deployment and performance evidence was generated. It does not accept a performance regression. Review both uploaded comparison reports before the release decision.
 
-          If a Mainnet job failed after mutation began, treat that deployment as unavailable or partial. A clean-resync retry must rerun the reusable job from its reset boundary; never resume installation over partial data.
+          Each Mainnet target clean-syncs the previous stable release, tests the upgrade, then clean-syncs the candidate for performance testing. Deployments are stopped after testing while retaining data; retries always start from the baseline reset boundary.
           EOF
 
           [[ "${{ needs.validate.result }}" == "success" &&

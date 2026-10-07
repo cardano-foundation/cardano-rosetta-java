@@ -26,50 +26,6 @@ verify_release_database_secret() {
   fi
 }
 
-# Emits PV name, PV UID and canonical data path as TSV. Call through an assignment,
-# not a process substitution: API/filesystem failures must abort the caller.
-verify_release_volume() (
-  set -euo pipefail
-  local pvc=$1 expected_uid=$2 pvc_json pv_json pv pv_uid data_path root_device path_device
-  pvc_json=$(kubectl get pvc "$pvc" --namespace "$NAMESPACE" -o json) || exit
-  pv=$(jq -er --arg release "$HELM_RELEASE" --arg uid "$expected_uid" '
-    if .metadata.labels["app.kubernetes.io/instance"] == $release and
-       .metadata.uid == $uid and
-       .spec.storageClassName == "local-path" and .status.phase == "Bound"
-    then .spec.volumeName else error("Unexpected release PVC contract") end
-  ' <<< "$pvc_json") || exit
-  pv_json=$(kubectl get pv "$pv" -o json) || exit
-  pv_uid=$(jq -er '.metadata.uid' <<< "$pv_json") || exit
-  data_path=$(jq -er --arg pvc "$pvc" --arg uid "$expected_uid" --arg namespace "$NAMESPACE" '
-    if .spec.claimRef.uid == $uid and .spec.claimRef.name == $pvc and
-       .spec.claimRef.namespace == $namespace and .spec.persistentVolumeReclaimPolicy == "Delete"
-    then .spec.local.path else error("Unexpected release PV binding or reclaim policy") end
-  ' <<< "$pv_json") || exit
-  root_device=$(stat -c '%d' "$K8S_STORAGE_ROOT") || exit
-  path_device=$(sudo stat -c '%d' "$data_path") || exit
-  if [[ "$data_path" != "$K8S_STORAGE_ROOT"/* ]] ||
-     ! sudo test -d "$data_path" || sudo test -L "$data_path" ||
-     [[ "$(sudo realpath -e "$data_path")" != "$data_path" ]] ||
-     [[ "$path_device" != "$root_device" ]]; then
-    echo "Unsafe local-path storage target for $pvc: $data_path" >&2
-    exit 1
-  fi
-  printf '%s\t%s\t%s\n' "$pv" "$pv_uid" "$data_path"
-)
-
-verify_release_unbound_pvc() {
-  local pvc_json=$1 expected_uid=$2 validated
-  validated=$(jq -er --arg release "$HELM_RELEASE" --arg uid "$expected_uid" '
-    if .metadata.labels["app.kubernetes.io/instance"] == $release and
-       .metadata.uid == $uid and
-       .spec.storageClassName == "local-path" and
-       ((.spec.volumeName // "") == "") and
-       .status.phase == "Pending"
-    then true else error("Unexpected unbound release PVC contract") end
-  ' <<< "$pvc_json") || return
-  [[ "$validated" == true ]]
-}
-
 # One snapshot per workload in the current step, never cached across phases.
 # Populates workload_json/pods_json; container verification selects pod_json.
 load_release_workload() {
@@ -132,73 +88,37 @@ verify_release_deployment() {
 }
 
 reinstall_helm_release() {
-  local workload pvc pv current phase secret_identity
-  local -a pvcs=("node-data-$HELM_RELEASE-cardano-node-0" "pg-data-$HELM_RELEASE-postgresql-0")
-  local -A pvc_uids=() volume_identities=()
-  for workload in cardano-node postgresql; do
-    current=$(kubectl get statefulset "$HELM_RELEASE-$workload" --namespace "$NAMESPACE" -o json) || return
-    if ! jq -e '
-      .metadata.deletionTimestamp == null and
-      (.spec.persistentVolumeClaimRetentionPolicy.whenDeleted // "Retain") == "Retain" and
-      (.spec.persistentVolumeClaimRetentionPolicy.whenScaled // "Retain") == "Retain"
-    ' <<< "$current" >/dev/null; then
-      echo "Unsafe PVC retention for $workload." >&2
-      return 1
-    fi
-  done
-  for pvc in "${pvcs[@]}"; do
-    current=$(kubectl get pvc "$pvc" --namespace "$NAMESPACE" -o json) || return
-    pvc_uids[$pvc]=$(jq -er '
-      if .metadata.deletionTimestamp == null and ((.metadata.ownerReferences // []) | length == 0)
-      then .metadata.uid else error("Unsafe PVC ownership or deletion") end
-    ' <<< "$current") || return
-    volume_identities[$pvc]=$(verify_release_volume "$pvc" "${pvc_uids[$pvc]}") || return
-    pv=${volume_identities[$pvc]%%$'\t'*}
-    current=$(kubectl get pv "$pv" -o json) || return
-    if ! jq -e '
-      .metadata.deletionTimestamp == null and ((.metadata.ownerReferences // []) | length == 0)
-    ' <<< "$current" >/dev/null; then
-      echo "Unsafe PV ownership or deletion for $pvc." >&2
-      return 1
-    fi
-  done
-  verify_release_database_secret || return
-  secret_identity=$(kubectl get secret "$DB_SECRET_NAME" --namespace "$NAMESPACE" -o json |
-    jq -ce 'select(.metadata.deletionTimestamp == null) | [.metadata.uid, .data["db-secret"]]') || return
+  local workloads before after identity
+  local -a resources=("pvc/node-data-$HELM_RELEASE-cardano-node-0"
+    "pvc/pg-data-$HELM_RELEASE-postgresql-0" "secret/$DB_SECRET_NAME")
 
-  # Foreground cascading plus --wait includes controller-owned pods, allowing
-  # their normal termination grace periods before any replacement is installed.
+  workloads=$(kubectl get statefulset "$HELM_RELEASE-cardano-node" "$HELM_RELEASE-postgresql" \
+    --namespace "$NAMESPACE" --output json) || return
+  jq -e 'all(.items[];
+    (.spec.persistentVolumeClaimRetentionPolicy.whenDeleted // "Retain") == "Retain")
+  ' <<< "$workloads" || { echo "StatefulSets must retain PVCs on uninstall." >&2; return 1; }
+  verify_release_database_secret || return
+
+  # Compare the same claims, bound volumes and credentials once after reinstall.
+  identity='[.items[] |
+    if .metadata.deletionTimestamp != null or ((.metadata.ownerReferences // []) | length) != 0
+    then error("Resource is being deleted or has a garbage-collection owner")
+    else {kind, name: .metadata.name, uid: .metadata.uid,
+          volume: .spec.volumeName, credentials: .data} end
+  ] | sort_by(.kind, .name)'
+  before=$(kubectl get "${resources[@]}" --namespace "$NAMESPACE" --output json |
+    jq -cSe "$identity") || return
+
   helm uninstall "$HELM_RELEASE" --namespace "$NAMESPACE" \
     --cascade=foreground --wait --timeout 30m || return
+  helm install "$@" || return
 
-  # Check retained identities both before creating workloads and after install.
-  for phase in before-install after-install; do
-    for pvc in "${pvcs[@]}"; do
-      pv=${volume_identities[$pvc]%%$'\t'*}
-      current=$(kubectl get "pvc/$pvc" "pv/$pv" --namespace "$NAMESPACE" -o json) || return
-      if ! jq -e 'all(.items[];
-        .metadata.deletionTimestamp == null and ((.metadata.ownerReferences // []) | length == 0)
-      )' <<< "$current" >/dev/null; then
-        echo "Unsafe retained storage for $pvc ($phase)." >&2
-        return 1
-      fi
-      current=$(verify_release_volume "$pvc" "${pvc_uids[$pvc]}") || return
-      [[ "$current" == "${volume_identities[$pvc]}" ]] || {
-        echo "Storage identity changed for $pvc ($phase)." >&2
-        return 1
-      }
-    done
-    verify_release_database_secret || return
-    current=$(kubectl get secret "$DB_SECRET_NAME" --namespace "$NAMESPACE" -o json |
-      jq -ce 'select(.metadata.deletionTimestamp == null) | [.metadata.uid, .data["db-secret"]]') || return
-    [[ "$current" == "$secret_identity" ]] || {
-      echo "Database secret identity or credentials changed ($phase)." >&2
-      return 1
-    }
-    if [[ "$phase" == before-install ]]; then
-      helm install "$@" || return
-    fi
-  done
+  after=$(kubectl get "${resources[@]}" --namespace "$NAMESPACE" --output json |
+    jq -cSe "$identity") || return
+  [[ "$after" == "$before" ]] || {
+    echo "PVC identity, bound volume or database credentials changed during reinstall." >&2
+    return 1
+  }
 }
 
 release_helm() {
@@ -306,304 +226,56 @@ wait_for_k8s_target_live() {
   wait_for_mainnet_token_metadata "$endpoint"
 }
 
-list_k8s_release_paths() {
-  local pvc=$1
-  sudo find "$K8S_STORAGE_ROOT" \
-    -mindepth 1 \
-    -maxdepth 1 \
-    -type d \
-    -name "pvc-*_${NAMESPACE}_${pvc}" \
-    -print
-}
-
-verify_k8s_release_path() {
-  local pvc=$1 data_path=$2 basename path_uid root_device path_device path_identity
-  basename=${data_path##*/}
-  if [[ "$data_path" != "$K8S_STORAGE_ROOT"/* ]]; then
-    echo "Release local-path is outside $K8S_STORAGE_ROOT: $data_path" >&2
-    return 1
-  fi
-  if [[ "$basename" =~ ^pvc-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})_${NAMESPACE}_${pvc}$ ]]; then
-    path_uid=${BASH_REMATCH[1]}
-  else
-    echo "Unexpected local-path name for $pvc: $data_path" >&2
-    return 1
-  fi
-  if ! sudo test -d "$data_path" || sudo test -L "$data_path" ||
-     [[ "$(sudo realpath -e "$data_path")" != "$data_path" ]]; then
-    echo "Unsafe release local-path for $pvc: $data_path" >&2
-    return 1
-  fi
-  root_device=$(stat -c '%d' "$K8S_STORAGE_ROOT") || return
-  path_device=$(sudo stat -c '%d' "$data_path") || return
-  path_identity=$(sudo stat -c '%d:%i' "$data_path") || return
-  if [[ "$path_device" != "$root_device" ]]; then
-    echo "Release local-path crosses filesystems: $data_path" >&2
-    return 1
-  fi
-  printf '%s\t%s\n' "$path_uid" "$path_identity"
+stop_k8s_release() {
+  local workloads pods selector="app.kubernetes.io/instance=$HELM_RELEASE"
+  local -a pod_names=()
+  source "$RELEASE_SCRIPTS/release_test_runtime.sh" || return
+  require_release_host || return
+  verify_release_cluster || return
+  workloads=$(kubectl get deployment,statefulset --namespace "$NAMESPACE" \
+    --selector "$selector" --output json) || return
+  jq -e --arg release "$HELM_RELEASE" --arg namespace "$NAMESPACE" '
+    all(.items[];
+      .metadata.annotations["meta.helm.sh/release-name"] == $release and
+      .metadata.annotations["meta.helm.sh/release-namespace"] == $namespace and
+      (.kind != "StatefulSet" or
+       (.spec.persistentVolumeClaimRetentionPolicy.whenScaled // "Retain") == "Retain"))
+  ' <<< "$workloads" || { echo "Unsafe release workload ownership or PVC retention." >&2; return 1; }
+  [[ "$(jq '.items | length' <<< "$workloads")" != 0 ]] || return 0
+  kubectl scale deployment,statefulset --namespace "$NAMESPACE" \
+    --selector "$selector" --replicas=0 || return
+  pods=$(kubectl get pods --namespace "$NAMESPACE" --selector "$selector" --output name) || return
+  [[ -n "$pods" ]] || return 0
+  mapfile -t pod_names <<< "$pods"
+  kubectl wait --namespace "$NAMESPACE" --for=delete --timeout=10m "${pod_names[@]}"
 }
 
 reset_current_k8s_release_data() {
-  local records paths release_pvcs unexpected_pvc volume prefix pvc pvc_json pvc_uid bound_pv identity
-  local pv pv_uid data_path host_mounts mount release_name resource resource_name
-  local discovered_paths candidate_path path_record path_uid path_identity path_found
-  local remaining_workloads current_pvc_json current_uid current_identity current_pv current_pv_uid current_data_path
-  local current_path_record current_path_uid current_path_identity referenced_pvs
-  local deadline remaining_pvcs remaining_pvs remaining_paths free_bytes free_gib minimum_free_bytes pv_json
-  local unreferenced_path_observations=0
-  local -a cleanup_data_paths=()
+  local claims pv_names pv policy
+  local -a volumes=()
+
+  claims=$(kubectl get pvc "$NODE_PVC" "$POSTGRES_PVC" --namespace "$NAMESPACE" \
+    --ignore-not-found --output json) || return
+  claims=${claims:-'{"items":[]}'}
+  jq -e --arg release "$HELM_RELEASE" '
+    all(.items[]; .metadata.labels["app.kubernetes.io/instance"] == $release)
+  ' <<< "$claims" || { echo "Refusing to reset another release's PVCs." >&2; return 1; }
+
+  pv_names=$(jq -r '.items[].spec.volumeName // empty' <<< "$claims") || return
+  for pv in $pv_names; do
+    policy=$(kubectl get pv "$pv" --output jsonpath='{.spec.persistentVolumeReclaimPolicy}') || return
+    [[ "$policy" == Delete ]] || { echo "$pv must use the Delete reclaim policy." >&2; return 1; }
+    volumes+=("pv/$pv")
+  done
+
+  helm uninstall "$HELM_RELEASE" --namespace "$NAMESPACE" \
+    --ignore-not-found --cascade=foreground --wait --timeout 30m || return
+  kubectl delete pvc "$NODE_PVC" "$POSTGRES_PVC" --namespace "$NAMESPACE" \
+    --ignore-not-found --wait=true --timeout=30m || return
+  if (( ${#volumes[@]} )); then
+    kubectl wait --for=delete --timeout=2h "${volumes[@]}" || return
+  fi
 
   source "$RELEASE_SCRIPTS/release_test_runtime.sh" || return
-  require_release_host || return
-  records="$RUNNER_TEMP/clean-resync-volumes-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.tsv"
-  paths="$RUNNER_TEMP/clean-resync-paths-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.tsv"
-  : > "$records" || return
-  : > "$paths" || return
-  release_pvcs=$(kubectl get persistentvolumeclaims \
-    --namespace "$NAMESPACE" \
-    --selector "app.kubernetes.io/instance=$HELM_RELEASE" \
-    --output json) || return
-  unexpected_pvc=$(jq -r \
-    --arg node "$NODE_PVC" \
-    --arg postgres "$POSTGRES_PVC" '
-      [.items[].metadata.name | select(. != $node and . != $postgres)] | first // ""
-    ' <<< "$release_pvcs") || return
-  if [[ -n "$unexpected_pvc" ]]; then
-    echo "Unexpected PVC owned by $HELM_RELEASE: $unexpected_pvc" >&2
-    return 1
-  fi
-
-  for volume in "node|$NODE_PVC" "postgres|$POSTGRES_PVC"; do
-    IFS='|' read -r prefix pvc <<< "$volume"
-    data_path=
-    pvc_json=$(kubectl get pvc "$pvc" \
-      --namespace "$NAMESPACE" \
-      --ignore-not-found \
-      --output json) || return
-    if [[ -z "$pvc_json" ]]; then
-      echo "$pvc is already absent."
-    else
-      pvc_uid=$(jq -er '.metadata.uid' <<< "$pvc_json") || return
-      bound_pv=$(jq -r '.spec.volumeName // ""' <<< "$pvc_json") || return
-      if [[ -z "$bound_pv" ]]; then
-        verify_release_unbound_pvc "$pvc_json" "$pvc_uid" || return
-        printf '%s\t%s\t%s\t-\t-\t-\n' \
-          "$prefix" "$pvc" "$pvc_uid" >> "$records"
-      else
-        identity=$(verify_release_volume "$pvc" "$pvc_uid") || return
-        IFS=$'\t' read -r pv pv_uid data_path <<< "$identity"
-        printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
-          "$prefix" "$pvc" "$pvc_uid" "$pv" "$pv_uid" "$data_path" >> "$records"
-      fi
-    fi
-
-    discovered_paths=$(list_k8s_release_paths "$pvc") || return
-    path_found=false
-    while IFS= read -r candidate_path; do
-      [[ -n "$candidate_path" ]] || continue
-      path_record=$(verify_k8s_release_path "$pvc" "$candidate_path") || return
-      IFS=$'\t' read -r path_uid path_identity <<< "$path_record"
-      printf '%s\t%s\t%s\t%s\t%s\n' \
-        "$prefix" "$pvc" "$candidate_path" "$path_uid" "$path_identity" >> "$paths"
-      if [[ -n "$data_path" && "$candidate_path" == "$data_path" ]]; then
-        [[ "$path_uid" == "$pvc_uid" ]] || {
-          echo "PVC UID does not match its local-path name: $pvc" >&2
-          return 1
-        }
-        path_found=true
-      fi
-    done <<< "$discovered_paths"
-    if [[ -n "$data_path" && "$path_found" != true ]]; then
-      echo "Bound local-path was not found during storage discovery: $data_path" >&2
-      return 1
-    fi
-  done
-
-  host_mounts=$(
-    findmnt --json --output TARGET |
-      jq -er '.filesystems[] | recurse(.children[]?) | .target'
-  ) || return
-  while IFS=$'\t' read -r prefix pvc data_path path_uid path_identity; do
-    [[ -n "$prefix" ]] || continue
-    cleanup_data_paths+=("$data_path")
-    while IFS= read -r mount; do
-      if [[ "$mount" == "$data_path" || "$mount" == "$data_path"/* ]]; then
-        echo "Persistent-volume path contains host mount $mount: $prefix" >&2
-        return 1
-      fi
-    done <<< "$host_mounts"
-  done < "$paths"
-
-  require_release_cleanup_space \
-    "$K8S_STORAGE_ROOT" "$K8S_MIN_FREE_GIB" "${cleanup_data_paths[@]}" || return
-
-  release_name=$(helm list \
-    --all \
-    --namespace "$NAMESPACE" \
-    --filter "^${HELM_RELEASE}$" \
-    --short) || return
-  if [[ -n "$release_name" ]]; then
-    for resource in \
-      statefulset/"$HELM_RELEASE-cardano-node" \
-      statefulset/"$HELM_RELEASE-postgresql" \
-      deployment/"$HELM_RELEASE-rosetta-api" \
-      deployment/"$HELM_RELEASE-yaci-indexer"; do
-      resource_name=$(kubectl get "$resource" \
-        --namespace "$NAMESPACE" \
-        --ignore-not-found \
-        --output name) || return
-      if [[ -n "$resource_name" ]]; then
-        kubectl scale "$resource" --replicas=0 --namespace "$NAMESPACE" || return
-      fi
-    done
-    helm uninstall "$HELM_RELEASE" \
-      --namespace "$NAMESPACE" \
-      --wait \
-      --timeout 30m || return
-  else
-    remaining_workloads=$(kubectl get deployment,statefulset \
-      --namespace "$NAMESPACE" \
-      --selector "app.kubernetes.io/instance=$HELM_RELEASE" \
-      --output name) || return
-    if [[ -n "$remaining_workloads" ]]; then
-      echo "Release-owned workloads exist without Helm release state." >&2
-      return 1
-    fi
-  fi
-
-  while IFS=$'\t' read -r prefix pvc pvc_uid pv pv_uid data_path; do
-    [[ -n "$prefix" ]] || continue
-    current_pvc_json=$(kubectl get pvc "$pvc" \
-      --namespace "$NAMESPACE" \
-      --ignore-not-found \
-      --output json) || return
-    if [[ -z "$current_pvc_json" ]]; then
-      echo "$pvc disappeared after release removal; its local-path remains tracked."
-      continue
-    fi
-    current_uid=$(jq -r '.metadata.uid' <<< "$current_pvc_json") || return
-    if [[ "$current_uid" != "$pvc_uid" ]]; then
-      echo "PVC identity changed immediately before deletion: $pvc" >&2
-      return 1
-    fi
-    if [[ "$pv" == - ]]; then
-      verify_release_unbound_pvc "$current_pvc_json" "$pvc_uid" || return
-    else
-      current_identity=$(verify_release_volume "$pvc" "$pvc_uid") || return
-      IFS=$'\t' read -r current_pv current_pv_uid current_data_path <<< "$current_identity"
-      if [[ "$current_pv" != "$pv" || "$current_pv_uid" != "$pv_uid" ||
-            "$current_data_path" != "$data_path" ]]; then
-        echo "Persistent-volume identity changed immediately before deletion: $pvc" >&2
-        return 1
-      fi
-    fi
-    if ! kubectl delete \
-      --raw="/api/v1/namespaces/${NAMESPACE}/persistentvolumeclaims/${pvc}" \
-      --filename=- <<EOF
-{
-  "apiVersion": "v1",
-  "kind": "DeleteOptions",
-  "preconditions": {"uid": "$pvc_uid"}
-}
-EOF
-    then
-      return 1
-    fi
-  done < "$records"
-
-  minimum_free_bytes=$((K8S_MIN_FREE_GIB * 1024 * 1024 * 1024))
-  deadline=$((SECONDS + 7200))
-  while (( SECONDS < deadline )); do
-    pvc_json=$(kubectl get persistentvolumeclaims \
-      --namespace "$NAMESPACE" --output json) || return
-    remaining_pvcs=$(jq \
-      --arg node "$NODE_PVC" \
-      --arg postgres "$POSTGRES_PVC" '
-        [.items[] | select(.metadata.name == $node or .metadata.name == $postgres)] | length
-      ' <<< "$pvc_json") || return
-    pv_json=$(kubectl get persistentvolumes --output json) || return
-    remaining_pvs=$(jq \
-      --arg namespace "$NAMESPACE" \
-      --arg node "$NODE_PVC" \
-      --arg postgres "$POSTGRES_PVC" '
-        [.items[] | select(
-          .spec.claimRef.namespace == $namespace and
-          (.spec.claimRef.name == $node or .spec.claimRef.name == $postgres)
-        )] | length
-      ' <<< "$pv_json") || return
-    remaining_paths=0
-    while IFS=$'\t' read -r prefix pvc data_path path_uid path_identity; do
-      [[ -n "$prefix" ]] || continue
-      if sudo test -e "$data_path"; then
-        (( remaining_paths += 1 ))
-      fi
-    done < "$paths"
-    free_bytes=$(df --output=avail -B1 "$K8S_STORAGE_ROOT" |
-      awk 'NR == 2 {print $1}') || return
-    [[ "$free_bytes" =~ ^[0-9]+$ ]] || {
-      echo "Could not measure free space after K8s cleanup." >&2
-      return 1
-    }
-    free_gib=$((free_bytes / 1024 / 1024 / 1024))
-    if (( remaining_pvcs == 0 && remaining_pvs == 0 && remaining_paths == 0 )); then
-      if (( free_bytes < minimum_free_bytes )); then
-        echo "K8s reset left $free_bytes bytes free (${free_gib}GiB); at least ${K8S_MIN_FREE_GIB}GiB is required before installation." >&2
-        return 1
-      fi
-      echo "Current K8s release data removed with ${free_gib}GiB available."
-      return 0
-    fi
-
-    if (( remaining_pvcs == 0 && remaining_pvs == 0 && remaining_paths > 0 )); then
-      (( unreferenced_path_observations += 1 ))
-      if (( unreferenced_path_observations >= 2 )); then
-        while IFS=$'\t' read -r prefix pvc data_path path_uid path_identity; do
-          [[ -n "$prefix" ]] || continue
-          sudo test -e "$data_path" || continue
-          pv_json=$(kubectl get persistentvolumes --output json) || return
-          referenced_pvs=$(jq --arg path "$data_path" '
-            [.items[] | select(
-              (.spec.local.path // .spec.hostPath.path // "") == $path
-            )] | length
-          ' <<< "$pv_json") || return
-          if (( referenced_pvs != 0 )); then
-            echo "Refusing orphan cleanup of a referenced local-path: $data_path" >&2
-            return 1
-          fi
-
-          host_mounts=$(
-            findmnt --json --output TARGET |
-              jq -er '.filesystems[] | recurse(.children[]?) | .target'
-          ) || return
-          while IFS= read -r mount; do
-            if [[ "$mount" == "$data_path" || "$mount" == "$data_path"/* ]]; then
-              echo "Refusing orphan cleanup across host mount $mount under $data_path." >&2
-              return 1
-            fi
-          done <<< "$host_mounts"
-          current_path_record=$(verify_k8s_release_path \
-            "$pvc" "$data_path") || return
-          IFS=$'\t' read -r current_path_uid current_path_identity <<< "$current_path_record"
-          if [[ "$current_path_uid" != "$path_uid" || "$current_path_identity" != "$path_identity" ]]; then
-            echo "Local-path identity changed at the orphan deletion boundary: $data_path" >&2
-            return 1
-          fi
-
-          sudo find "$data_path" -xdev -mindepth 1 -delete || return
-          sudo rmdir "$data_path" || return
-          echo "Removed unreferenced release local-path: $data_path"
-        done < "$paths"
-        continue
-      fi
-    else
-      unreferenced_path_observations=0
-    fi
-
-    echo "Waiting for K8s cleanup: pvc=$remaining_pvcs pv=$remaining_pvs paths=$remaining_paths free=${free_gib}GiB."
-    sleep 30
-  done
-
-  echo "PVC deletion did not remove the bound PVs and paths." >&2
-  return 1
+  require_release_free_space "$K8S_STORAGE_ROOT" "$K8S_MIN_FREE_GIB"
 }
