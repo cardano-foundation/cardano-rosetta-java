@@ -109,13 +109,8 @@ runs:
           tags: cardanofoundation/cardano-rosetta-java-indexer:latest
           push: true
 
-      - name: Cardano Node - Build and push Docker ${{ inputs.tag }} image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: ./docker/dockerfiles/node/Dockerfile
-          tags: cardanofoundation/cardano-rosetta-java-cardano-node:${{ steps.envver.outputs.node_version }}
-          push: true
+      # Cardano Node images are published by the 2.x line.
+      # Publishing them here would overwrite the shared Node-version tag.
 
       - name: Postgres - Build and push Docker ${{ inputs.tag }} image
         uses: docker/build-push-action@v4
