@@ -112,6 +112,7 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `TOKEN_REGISTRY_CACHE_TTL_HOURS`              | Cache TTL for token metadata in hours                                 | 12                                     | added in release 1.4.0  |
 | `TOKEN_REGISTRY_LOGO_FETCH`                   | Enable fetching token logos from registry (increases response size)   | false                                  | added in release 1.4.0  |
 | `TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS`      | Token registry request timeout in seconds                             | 2                                      | added in release 1.4.0  |
+| `CIP113_BASE_SCRIPT_HASH`                     | CIP-113 programmable logic base script hash used for address derivation; must be a 28-byte hexadecimal string when configured | (empty)                                | added in release 2.3.0  |
 
 </div>
 
