@@ -19,6 +19,12 @@ jobs:
       group: preprod-host-deployment
       cancel-in-progress: false
     timeout-minutes: 60
+    env:
+      REMOVE_SPENT_UTXOS: "false"
+      DB_PORT: "5433"
+      TOKEN_REGISTRY_ENABLED: "true"
+      TOKEN_REGISTRY_BASE_URL: https://preprod.tokens.cardano.org/api
+      BLOCK_TRANSACTION_API_TIMEOUT_SECS: "10"
 
     steps:
       - uses: actions/checkout@v4
@@ -55,37 +61,6 @@ jobs:
             --env-file .env.docker-compose-profile-mid-level \
             -f docker-compose.yaml \
             down
-
-      - name: Configure environment for full-history tests
-        run: |
-          cd /home/integration/git/cardano-rosetta-java
-
-          ensure_var() {
-            local key="$1"
-            local value="$2"
-            local file=".env.docker-compose-preprod"
-            if grep -q "^${key}=" "$file"; then
-              sed -i "s#^${key}=.*#${key}=${value}#" "$file"
-            else
-              echo "${key}=${value}" >> "$file"
-            fi
-          }
-
-          configure_test_env() {
-            ensure_var REMOVE_SPENT_UTXOS false
-            ensure_var REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT 129600
-            ensure_var DB_PORT 5433
-            ensure_var TOKEN_REGISTRY_ENABLED true
-            ensure_var TOKEN_REGISTRY_BASE_URL https://preprod.tokens.cardano.org/api
-            ensure_var TOKEN_REGISTRY_CACHE_TTL_HOURS 1
-            ensure_var TOKEN_REGISTRY_LOGO_FETCH true
-            ensure_var TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS 2
-            ensure_var PEER_DISCOVERY true
-            ensure_var BLOCK_TRANSACTION_API_TIMEOUT_SECS 10
-          }
-
-          configure_test_env
-
 
       - name: Build and start services with PR code
         id: deployment
@@ -164,7 +139,7 @@ jobs:
         run: |
           cd /home/integration/git/cardano-rosetta-java
 
-          # Merge env files so tests can read actual configuration
+          # Merge defaults; tests keep the job's environment overrides.
           cat .env.docker-compose-preprod > .env.test
           cat .env.docker-compose-profile-mid-level >> .env.test
 
@@ -239,6 +214,18 @@ jobs:
         env:
           ROSETTA_URL: http://localhost:8082
           CARDANO_NETWORK: preprod
+
+      # Stop our project even if checkout or deployment failed, before reporting.
+      - name: Stop PR Preprod deployment and retain data
+        if: always()
+        run: |
+          set -euo pipefail
+          cd /home/integration/git/cardano-rosetta-java
+          docker compose \
+            --env-file .env.docker-compose-preprod \
+            --env-file .env.docker-compose-profile-mid-level \
+            -f docker-compose.yaml \
+            down --remove-orphans
 
       - name: Verify Node.js for Allure 3
         if: always()
@@ -320,20 +307,3 @@ jobs:
               issue_number: prNumber,
               body: comment
             });
-
-      - name: Stop PR Preprod deployment and retain data
-        if: always() && steps.deployment.outcome != '' && steps.deployment.outcome != 'skipped'
-        run: |
-          set -euo pipefail
-          cd /home/integration/git/cardano-rosetta-java
-          docker compose \
-            --env-file .env.docker-compose-preprod \
-            --env-file .env.docker-compose-profile-mid-level \
-            -f docker-compose.yaml \
-            down --remove-orphans
-
-      - name: Restore baseline configuration
-        if: always()
-        run: |
-          cd /home/integration/git/cardano-rosetta-java
-          git restore .env.docker-compose-preprod
