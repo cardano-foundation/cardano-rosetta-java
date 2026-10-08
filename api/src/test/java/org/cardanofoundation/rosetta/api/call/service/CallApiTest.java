@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.CallRequest;
 import org.openapitools.client.model.CallResponse;
 
@@ -35,8 +36,8 @@ class CallApiTest extends IntegrationTest {
   @SuppressWarnings("unchecked")
   private String resolvedAddress(CallResponse response) {
     Map<String, Object> result = (Map<String, Object>) response.getResult();
-    Map<String, Object> accountIdentifier = (Map<String, Object>) result.get("account_identifier");
-    return (String) accountIdentifier.get("address");
+    AccountIdentifier accountIdentifier = (AccountIdentifier) result.get("account_identifier");
+    return accountIdentifier.getAddress();
   }
 
   @Test
