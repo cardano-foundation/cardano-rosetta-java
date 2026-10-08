@@ -1,0 +1,24 @@
+{
+  "test_name": "(-) cip113 resolve mainnet address on testnet",
+  "description": "Negative test: a mainnet-tagged address does not match the requested test network",
+  "network": "devkit",
+  "endpoint": "/call",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "method": "resolve_smart_wallet_addr",
+    "parameters": {
+      "address": "addr1vx75nqeurq7nfgyzmgu4e4emrjqk7qn3jpaf7krzp09vd9qk2f80y"
+    }
+  },
+  "expected_error": {
+    "code": 5067,
+    "message": "Invalid address for resolve_smart_wallet_addr",
+    "retriable": false,
+    "details": {
+      "message": "Address network does not match requested network 'devkit'"
+    }
+  }
+}

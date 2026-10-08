@@ -1,0 +1,24 @@
+{
+  "test_name": "(-) cip113 resolve base foreign script",
+  "description": "Negative test: a script-payment Base address whose script is not the configured PLB is not a CIP-113 smart wallet",
+  "network": "devkit",
+  "endpoint": "/call",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "method": "resolve_smart_wallet_addr",
+    "parameters": {
+      "address": "addr_test1zreps2cq5daaw3hzq46untcp4vcnzgsn29xdx8589c9z50sqzppp5sllda3lrk5k7txy6kg5w2afqpfh2spwxxjc7t2s70lru2"
+    }
+  },
+  "expected_error": {
+    "code": 5065,
+    "message": "Address is not a CIP-113 smart wallet",
+    "retriable": false,
+    "details": {
+      "message": "Payment script hash does not match configured CIP113_BASE_SCRIPT_HASH"
+    }
+  }
+}
