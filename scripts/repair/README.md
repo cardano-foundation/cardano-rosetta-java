@@ -1,6 +1,6 @@
 # Upgrade to 2.3.3: mainnet repair
 
-Version 2.3.3 upgrades Yaci to **0.4.7** and Yaci Store to **2.0.7**.
+Version 2.3.3 upgrades Yaci to **0.4.7** (Yaci Store stays at 2.0.2.1).
 
 > **Mainnet only: one-time repair required.**
 > Yaci 0.4.6 and earlier read mainnet block **14,053,493** as having **0 transactions**. The block has **137**.
@@ -27,7 +27,7 @@ docker compose exec db psql -U rosetta_db_admin -d rosetta-java -c \
 The repair script moves the sync cursor back to block 14,053,492. On the next start the indexer rolls back to that
 slot and fetches block 14,053,493 again with the fixed parser. The script is
 [`repair-mainnet-block-14053493.sql`](repair-mainnet-block-14053493.sql) in this folder (taken unchanged from
-[Yaci Store v2.0.7](https://github.com/bloxbean/yaci-store/blob/v2.0.7/scripts/repair/repair-mainnet-block-14053493.sql)).
+the [Yaci Store v2.0.7 release](https://github.com/bloxbean/yaci-store/blob/v2.0.7/scripts/repair/repair-mainnet-block-14053493.sql)).
 
 1. **Stop the indexer and API. Keep the database running.**
 
@@ -71,8 +71,6 @@ slot and fetches block 14,053,493 again with the fixed parser. The script is
   databases. This is expected. Only if your mainnet database was synced from a custom start slot, set
   `v_force_mainnet := true` at the top of the script.
 - **Event publisher id.** The script assumes `store.event-publisher-id` is the default `1`.
-- **First start can be slow.** Yaci Store 2.0.7 adds a `deposit` column to `stake_registration` and fills it for all
-  existing rows. On mainnet this takes extra time on the first start. Do not interrupt it.
 - **Restored snapshots.** A database restored from a snapshot taken after 2026-10-11 07:07 UTC needs the same repair.
 
 ## Kubernetes / Helm
