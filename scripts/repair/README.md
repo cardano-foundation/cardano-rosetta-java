@@ -12,7 +12,7 @@ Version 2.3.3 upgrades Yaci to **0.4.7** (Yaci Store stays at 2.0.2.1).
 ## 1. Check whether you are affected
 
 ```bash
-docker compose exec db psql -U rosetta_db_admin -d rosetta-java -c \
+docker compose exec -e PGPASSWORD=<DB_SECRET> db psql -h localhost -U rosetta_db_admin -d rosetta-java -c \
   "SELECT count(*) FROM transaction WHERE block = 14053493;"
 ```
 
@@ -41,11 +41,13 @@ the [Yaci Store v2.0.7 release](https://github.com/bloxbean/yaci-store/blob/v2.0
 3. **Run the repair script against the Rosetta database** (from the repository root):
 
    ```bash
-   docker compose exec -T db psql -U rosetta_db_admin -d rosetta-java -v ON_ERROR_STOP=1 \
+   docker compose exec -T -e PGPASSWORD=<DB_SECRET> db psql -h localhost -U rosetta_db_admin -d rosetta-java -v ON_ERROR_STOP=1 \
      -f - < scripts/repair/repair-mainnet-block-14053493.sql
    ```
 
-   Use your own `DB_USER` / `DB_NAME` if you changed them. Expected output:
+   Replace `<DB_SECRET>` with the `DB_SECRET` from your env file (the same applies to the check queries), and use your
+   own `DB_USER` / `DB_NAME` if you changed them. If your tables are not in the `public` schema, add
+   `-c 'SET search_path TO <your DB_SCHEMA>'` before `-f -`. Expected output:
 
    ```
    NOTICE:  Block 14053493 has 0 of 137 transactions. Repairing.
@@ -84,7 +86,7 @@ kubectl scale deployment <release>-yaci-indexer --replicas=0
 Then run the script inside the PostgreSQL pod, for example:
 
 ```bash
-kubectl exec -i <postgres-pod> -- psql -U rosetta_db_admin -d rosetta-java -v ON_ERROR_STOP=1 -f - \
+kubectl exec -i <postgres-pod> -- env PGPASSWORD=<DB_SECRET> psql -h localhost -U rosetta_db_admin -d rosetta-java -v ON_ERROR_STOP=1 -f - \
   < scripts/repair/repair-mainnet-block-14053493.sql
 ```
 
