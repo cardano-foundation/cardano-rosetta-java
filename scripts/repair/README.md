@@ -65,7 +65,11 @@ its header mentions Yaci 0.4.6, the same bug is in Yaci 0.3.11 and earlier).
    docker compose up -d
    ```
 
-   The indexer log shows a rollback to `slot=200136161`, then syncing continues.
+   The indexer log shows `Intersect found at slot: 200136161`. The indexer then rolls back the data stored after
+   that slot before it continues syncing. This took about 8 minutes on our mainnet test instance, and the cursor does
+   not move during that time. The indexer may also log
+   `NullPointerException: ... "this.blockFetcher" is null` every 20 seconds during the rollback. In our test these
+   errors stopped as soon as syncing continued.
 
 5. **Verify:** the query from step 1 now returns `137`.
 
