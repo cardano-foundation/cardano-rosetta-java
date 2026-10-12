@@ -87,20 +87,66 @@ jobs:
           configure_test_env
 
 
-      - name: Build and start services with PR code
+      - name: Prepare base images
+        run: |
+          cd /home/integration/git/cardano-rosetta-java
+
+          compose() {
+            docker compose \
+              --env-file .env.docker-compose-preprod \
+              --env-file .env.docker-compose-profile-mid-level \
+              -f docker-compose.yaml "$@"
+          }
+
+          # cardano-node, submit-api and sync-waiter share one image
+          BASE_SERVICES="cardano-node cardano-submit-api cardano-sync-waiter mithril db"
+          BASE_REF="${{ github.base_ref || github.ref_name }}"
+          BASELINE_TAG=$(git describe --tags --abbrev=0 "origin/${BASE_REF}" 2>/dev/null || true)
+
+          # Build only if the PR changed these files since the last release
+          if [ -z "$BASELINE_TAG" ] || ! git diff --quiet "$BASELINE_TAG" HEAD -- \
+              docker/dockerfiles/node docker/dockerfiles/mithril \
+              docker/dockerfiles/postgres config/node; then
+            echo "Base image files changed since ${BASELINE_TAG}: building"
+            compose build $BASE_SERVICES
+          elif ! compose pull $BASE_SERVICES; then
+            echo "Pull failed: building instead"
+            compose build $BASE_SERVICES
+          fi
+
+      - name: Build PR images
+        run: |
+          cd /home/integration/git/cardano-rosetta-java
+
+          # PR-specific tag so API and indexer are always built from the PR code
+          export RELEASE_VERSION=pr-${{ github.event.pull_request.number }}-${{ github.sha }}
+
+          # Retry to survive transient network failures
+          for attempt in 1 2 3; do
+            if docker compose \
+              --env-file .env.docker-compose-preprod \
+              --env-file .env.docker-compose-profile-mid-level \
+              -f docker-compose.yaml \
+              build api yaci-indexer; then
+              exit 0
+            fi
+            echo "Build failed (attempt ${attempt}/3)"
+            sleep 30
+          done
+          exit 1
+
+      - name: Start services with PR code
         id: deployment
         run: |
           cd /home/integration/git/cardano-rosetta-java
 
-          # Use PR-specific tag for API and indexer to force rebuild
           export RELEASE_VERSION=pr-${{ github.event.pull_request.number }}-${{ github.sha }}
 
-          # Build and start all services
           docker compose \
             --env-file .env.docker-compose-preprod \
             --env-file .env.docker-compose-profile-mid-level \
             -f docker-compose.yaml \
-            up --build -d --wait
+            up -d --wait
 
       - name: Wait for API to sync
         timeout-minutes: 10
