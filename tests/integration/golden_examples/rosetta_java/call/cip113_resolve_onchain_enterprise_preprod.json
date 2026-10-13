@@ -1,0 +1,24 @@
+{
+  "test_name": "cip113 resolve onchain enterprise preprod",
+  "description": "Resolve an enterprise key address whose payment key hash is the user credential of a real on-chain preprod CIP-113 smart wallet: returns that smart wallet",
+  "network": "preprod",
+  "endpoint": "/call",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "method": "resolve_smart_wallet_addr",
+    "parameters": {
+      "address": "addr_test1vpwcgn22xnj8gnen0snfcjgyqp0jfgc6kufgmjlk2fm7mvg5ys3p3"
+    }
+  },
+  "expected_response": {
+    "result": {
+      "account_identifier": {
+        "address": "addr_test1zzl9nam4pfweg7akf8ns646dqenermp55807u2sg0jz3rc6as3x55d8yw38nxlpxn3ysgqzlyj334dcj3h9lv5nhakcsudhvdm"
+      }
+    },
+    "idempotent": true
+  }
+}

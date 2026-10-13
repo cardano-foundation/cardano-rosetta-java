@@ -134,6 +134,15 @@ Each test file should contain:
 - Either `expected_response` (success) or `expected_error` (failure)
 - Test metadata (name, description)
 
+### Network-specific tests
+
+A test file may carry a top-level `"network"` field (for example `"devkit"` or `"preprod"`). When `--network-id` is passed and differs from that value, the file is skipped (reported as `Requires network 'X', running on 'Y'`). Files without the field run on every network.
+
+Use this for tests whose expected values depend on the network, such as the CIP-113 address goldens, which embed the configured `CIP113_BASE_SCRIPT_HASH`:
+
+- `*_preprod.json` next to a devkit golden is its preprod twin, computed with the preprod programmable logic base script hash.
+- Goldens that read real preprod chain data (`cip113_search_*`, `cip113_block_transaction_*`, `cip113_account_balance_*`) are pinned to fixed transactions or blocks, so they do not drift as the chain advances.
+
 ## Exit Codes
 
 - `0`: All tests passed
