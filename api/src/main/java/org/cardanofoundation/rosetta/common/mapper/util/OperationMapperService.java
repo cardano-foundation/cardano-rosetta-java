@@ -52,8 +52,14 @@ public class OperationMapperService {
 
     operations.addAll(inpOps);
 
+    // Zero-value withdrawals are Plutus withdraw-zero script invocations, not balance changes.
+    // Filtering them out here, before the index counter advances, keeps remaining indexes
+    // contiguous without a separate re-indexing pass. A null amount is treated the same as zero,
+    // matching TransactionMapperUtils.updateDepositAmountNegate's existing null-as-zero handling.
+    // See issue #780.
     operations.addAll(Optional.ofNullable(source.getWithdrawals()).stream()
             .flatMap(List::stream)
+            .filter(withdrawal -> withdrawal.getAmount() != null && withdrawal.getAmount().signum() != 0)
             .map(withdrawal -> transactionMapper.mapWithdrawalToOperation(withdrawal, txStatus, ix.getAndIncrement()))
             .toList());
 
