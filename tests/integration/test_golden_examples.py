@@ -691,7 +691,7 @@ def validate_file(file_path: Path) -> Dict[str, Any]:
                 ) if diffs else res.update({"status": "passed"})
         else:  # has_err
             if http != 200:
-                exp = test["expected_error"]
+                exp, _ = replace_network_placeholder(test["expected_error"])
                 act_obj: Dict[str, Any] = actual if isinstance(actual, dict) else {}
                 act = act_obj.get("error", act_obj)
                 if "code" in exp and "code" in act and exp["code"] != act["code"]:

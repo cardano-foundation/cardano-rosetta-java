@@ -136,12 +136,9 @@ Each test file should contain:
 
 ### Network-specific tests
 
-A test file may carry a top-level `"network"` field (for example `"devkit"` or `"preprod"`). When `--network-id` is passed and differs from that value, the file is skipped (reported as `Requires network 'X', running on 'Y'`). Files without the field run on every network.
+Most goldens are network-independent: they use `{{networkId}}` in `request_body` (and in `expected_error`) and run unchanged on every network, for example on the devkit chain in CI and on preprod. The CIP-113 goldens work this way too, because `.env.IntegrationTest` configures the same CIP-113 base script hash as preprod (`CIP113_BASE_SCRIPT_HASH`), so the expected smart-wallet addresses are identical on both.
 
-Use this for tests whose expected values depend on the network, such as the CIP-113 address goldens, which embed the configured `CIP113_BASE_SCRIPT_HASH`:
-
-- `*_preprod.json` next to a devkit golden is its preprod twin, computed with the preprod programmable logic base script hash.
-- Goldens that read real preprod chain data (`cip113_search_*`, `cip113_block_transaction_*`, `cip113_account_balance_*`) are pinned to fixed transactions or blocks, so they do not drift as the chain advances.
+A test file that depends on real chain data may carry a top-level `"network"` field (for example `"preprod"`). When `--network-id` differs from that value (the default is `preprod`), the file is skipped and reported as `Requires network 'X', running on 'Y'`. Use it only for such tests, for example the `cip113_search_*`, `cip113_block_transaction_*` and `cip113_resolve_onchain_*` goldens, which are pinned to fixed preprod transactions and so do not drift as the chain advances.
 
 ## Exit Codes
 
