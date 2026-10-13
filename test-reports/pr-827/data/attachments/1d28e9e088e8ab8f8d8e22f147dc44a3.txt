@@ -1,0 +1,3 @@
+    assert response.status_code == 200
+    assert len(txs) > 0, "Currency filter with policyId should return transactions"
+        assert expected_asset in assets_in_tx, (
