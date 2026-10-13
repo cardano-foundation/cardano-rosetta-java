@@ -1,6 +1,6 @@
 {
   "test_name": "cip113_block_transaction_smart_wallet_transfer_2",
-  "description": "/block/transaction for the same real preprod CIP-113 smart-wallet transfer. Must equal the /search/transactions result.",
+  "description": "/block/transaction for the preprod transaction at block 5259307 that splits the 10 tokens (policy ba748823\u2026) of a CIP-113 smart-wallet UTxO into two outputs (6 and 4) back to the same smart wallet; no mint or burn. Must match the /search/transactions result for the same transaction.",
   "network": "preprod",
   "endpoint": "/block/transaction",
   "request_body": {

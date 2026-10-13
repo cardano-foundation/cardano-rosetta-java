@@ -1,6 +1,6 @@
 {
   "test_name": "cip113_search_smart_wallet_transfer_3",
-  "description": "Search by hash for a real preprod transaction that sends native tokens to a CIP-113 smart wallet (script-credential base address). Validates the token bundle and address on the output operations.",
+  "description": "Search by hash for a real preprod transaction (block 5262620) that burns 1 token of policy 85644f95\u2026 and mints 4 tokens of policy 5568d71b\u2026, paying them to a CIP-113 smart wallet. Mint and burn are not operations, so the bundle shows 1 token in and 4 out. Validates the token bundle and the smart-wallet address on the operations.",
   "network": "preprod",
   "endpoint": "/search/transactions",
   "request_body": {

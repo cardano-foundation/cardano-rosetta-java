@@ -1,6 +1,6 @@
 {
   "test_name": "cip113_block_transaction_smart_wallet_transfer_1",
-  "description": "/block/transaction for the same real preprod CIP-113 smart-wallet transfer. Must equal the /search/transactions result.",
+  "description": "/block/transaction for the preprod transaction at block 5259310 that burns 3 of the 6 tokens (policy ba748823\u2026) held by a CIP-113 smart wallet and returns the remaining 3 to it. The burn is not an operation, so the token bundle is 6 in, 3 out. Must match the /search/transactions result for the same transaction.",
   "network": "preprod",
   "endpoint": "/block/transaction",
   "request_body": {
