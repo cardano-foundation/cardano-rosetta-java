@@ -1,0 +1,24 @@
+{
+  "test_name": "cip113 resolve enterprise",
+  "description": "Resolve a key Enterprise address: its payment key hash becomes the stake credential of the CIP-113 smart wallet",
+  "network": "devkit",
+  "endpoint": "/call",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "method": "resolve_smart_wallet_addr",
+    "parameters": {
+      "address": "addr_test1vz75nqeurq7nfgyzmgu4e4emrjqk7qn3jpaf7krzp09vd9qdzamqp"
+    }
+  },
+  "expected_response": {
+    "result": {
+      "account_identifier": {
+        "address": "addr_test1zqvca3jpwpvrtd0fvexseqs55em0zg0zkr26hzs7e0qw6w9afxpncxpaxjsg9k3etntnk8ypdup8ryr6navxyz72c62qhg2h67"
+      }
+    },
+    "idempotent": true
+  }
+}
