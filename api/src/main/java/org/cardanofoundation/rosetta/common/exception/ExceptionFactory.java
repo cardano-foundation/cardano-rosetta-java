@@ -96,6 +96,10 @@ public class ExceptionFactory {
         return new ApiException(RosettaErrorType.PUBLIC_KEY_MISSING.toRosettaError(false));
     }
 
+    public static ApiException invalidPublicKeyFormat() {
+        return new ApiException(RosettaErrorType.INVALID_PUBLIC_KEY_FORMAT.toRosettaError(false));
+    }
+
     public static ApiException invalidStakingKeyFormat() {
         return new ApiException(RosettaErrorType.INVALID_STAKING_KEY_FORMAT.toRosettaError(false));
     }
@@ -198,6 +202,18 @@ public class ExceptionFactory {
 
     public static ApiException invalidAddressTypeError() {
         return new ApiException(RosettaErrorType.INVALID_ADDRESS_TYPE.toRosettaError(false));
+    }
+
+    public static ApiException cip113StakingCredentialNotAllowed() {
+        return new ApiException(RosettaErrorType.CIP113_STAKING_CREDENTIAL_NOT_ALLOWED.toRosettaError(false));
+    }
+
+    public static ApiException cip113PlbScriptHashNotConfigured() {
+        return new ApiException(RosettaErrorType.CIP113_PLB_SCRIPT_HASH_NOT_CONFIGURED.toRosettaError(false));
+    }
+
+    public static ApiException cip113PlbScriptHashInvalid() {
+        return new ApiException(RosettaErrorType.CIP113_PLB_SCRIPT_HASH_INVALID.toRosettaError(false));
     }
 
     public static ApiException transactionNotFound() {

@@ -6,6 +6,8 @@ import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
 import com.bloxbean.cardano.client.transaction.spec.Value;
 import lombok.SneakyThrows;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProcessOperations;
+import org.cardanofoundation.rosetta.api.construction.enumeration.AddressType;
+import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
@@ -30,10 +32,12 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.cardanofoundation.rosetta.EntityGenerator.givenConstructionPayloadsRequest;
+import static org.cardanofoundation.rosetta.EntityGenerator.givenPublicKey;
+import static org.cardanofoundation.rosetta.EntityGenerator.newNetworkId;
 import static org.cardanofoundation.rosetta.EntityGenerator.givenSigningPayload;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ConstructionApiServiceImplTest {
@@ -54,6 +58,65 @@ class ConstructionApiServiceImplTest {
 
   @InjectMocks
   private ConstructionApiServiceImpl underTest;
+
+  @Test
+  void constructionDeriveService_whenCip113AddressType_thenRoutesToCip113Derivation() {
+    PublicKey publicKey = givenPublicKey();
+    ConstructionDeriveRequest request = ConstructionDeriveRequest.builder()
+            .networkIdentifier(newNetworkId())
+            .publicKey(publicKey)
+            .metadata(ConstructionDeriveMetadata.builder()
+                    .addressType("CIP-113")
+                    .build())
+            .build();
+    String expectedAddress = "addr_test1zqvca3jpwpvrtd0fvexseqs55em0zg0zkr26hzs7e0qw6w9mgrc6v3au3rqm66mn3kuwke340kfxga82tl7kh2nke8asgpvgzg";
+
+    when(cardanoConstructionService.getCardanoAddress(AddressType.CIP_113, null, publicKey,
+            NetworkEnum.DEVNET))
+            .thenReturn(expectedAddress);
+
+    ConstructionDeriveResponse response = underTest.constructionDeriveService(request);
+
+    assertEquals(expectedAddress, response.getAccountIdentifier().getAddress());
+    verify(cardanoConstructionService).getCardanoAddress(AddressType.CIP_113, null, publicKey,
+            NetworkEnum.DEVNET);
+  }
+
+  @Test
+  void constructionDeriveService_whenCip113HasStakingCredential_thenThrowsNotAllowed() {
+    ConstructionDeriveRequest request = ConstructionDeriveRequest.builder()
+            .networkIdentifier(newNetworkId())
+            .publicKey(givenPublicKey())
+            .metadata(ConstructionDeriveMetadata.builder()
+                    .addressType("CIP-113")
+                    .stakingCredential(givenPublicKey())
+                    .build())
+            .build();
+
+    ApiException exception = assertThrows(ApiException.class,
+            () -> underTest.constructionDeriveService(request));
+
+    assertEquals(RosettaErrorType.CIP113_STAKING_CREDENTIAL_NOT_ALLOWED.getCode(),
+            exception.getError().getCode());
+    verify(cardanoConstructionService, never()).getCardanoAddress(any(), any(), any(), any());
+  }
+
+  @Test
+  void constructionDeriveService_whenCip113WrongCase_thenThrowsInvalidAddressType() {
+    ConstructionDeriveRequest request = ConstructionDeriveRequest.builder()
+            .networkIdentifier(newNetworkId())
+            .publicKey(givenPublicKey())
+            .metadata(ConstructionDeriveMetadata.builder()
+                    .addressType("cip113")
+                    .build())
+            .build();
+
+    ApiException exception = assertThrows(ApiException.class,
+            () -> underTest.constructionDeriveService(request));
+
+    assertEquals(RosettaErrorType.INVALID_ADDRESS_TYPE.getCode(), exception.getError().getCode());
+    verify(cardanoConstructionService, never()).getCardanoAddress(any(), any(), any(), any());
+  }
 
   // TODO
   @Test
