@@ -116,6 +116,7 @@ Set `global.profile` to one of: `entry`, `mid`, `advanced`.
 | `rosetta-api.env.tokenRegistryCacheTtlHours` | `12` | `TOKEN_REGISTRY_CACHE_TTL_HOURS` | Token metadata cache TTL |
 | `rosetta-api.env.tokenRegistryLogoFetch` | `false` | `TOKEN_REGISTRY_LOGO_FETCH` | Fetch token logos (bandwidth-intensive) |
 | `rosetta-api.env.tokenRegistryRequestTimeoutSeconds` | `2` | `TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS` | Token registry request timeout |
+| `rosetta-api.env.cip113BaseScriptHash` | `""` (chart default); `d91d08e381f8ef95ffbb3f8048f020d7361ded8f3abfdf66c25fa838` in `values.yaml` (mainnet); `be59f7750a5d947bb649e70d574d066791ec34a1dfee2a087c8511e3` in `values-preprod.yaml` | `CIP113_BASE_SCRIPT_HASH` | CIP-113 programmable logic base script hash (28-byte hex). Network-specific |
 
 ### Ingress
 
