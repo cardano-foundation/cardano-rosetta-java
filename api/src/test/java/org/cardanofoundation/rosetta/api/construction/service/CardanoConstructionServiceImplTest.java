@@ -17,6 +17,7 @@ import org.cardanofoundation.rosetta.common.exception.Error;
 import org.cardanofoundation.rosetta.common.mapper.CborArrayToTransactionData;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
+import org.cardanofoundation.rosetta.common.services.Cip113AddressServiceImpl;
 import org.cardanofoundation.rosetta.common.time.OfflineSlotServiceImpl;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
@@ -81,6 +82,8 @@ class CardanoConstructionServiceImplTest {
   @InjectMocks
   private CardanoConstructionServiceImpl cardanoService;
 
+  private Cip113AddressServiceImpl cip113AddressService;
+
   private MockedStatic<CompletableFuture> completableFutureMock;
 
   @Spy
@@ -91,8 +94,10 @@ class CardanoConstructionServiceImplTest {
 
   @BeforeEach
   void setup() {
+    cip113AddressService = new Cip113AddressServiceImpl();
     cardanoService = new CardanoConstructionServiceImpl(null, null,
-        new TransactionOperationParserImpl(), restTemplate, offlineSlotService);
+        new TransactionOperationParserImpl(), restTemplate, offlineSlotService,
+        cip113AddressService);
     completableFutureMock = Mockito.mockStatic(CompletableFuture.class, invocation -> {
       if (invocation.getMethod().getName().equals("supplyAsync")) {
         Supplier<?> supplier = invocation.getArgument(0);
@@ -696,7 +701,7 @@ class CardanoConstructionServiceImplTest {
   }
 
   private void setCip113BaseScriptHash(String value) {
-    ReflectionTestUtils.setField(cardanoService, "cip113BaseScriptHash", value);
+    ReflectionTestUtils.setField(cip113AddressService, "cip113BaseScriptHash", value);
   }
 
   private void assertCip113PlbInvalid(String value) {

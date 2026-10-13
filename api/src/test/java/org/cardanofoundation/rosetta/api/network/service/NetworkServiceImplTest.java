@@ -144,9 +144,10 @@ class NetworkServiceImplTest extends IntegrationTest {
       // when
       NetworkOptionsResponse networkOptions = networkService.getNetworkOptions(networkRequest);
       // then
-      assertEquals(2, networkOptions.getAllow().getCallMethods().size());
+      assertEquals(3, networkOptions.getAllow().getCallMethods().size());
       assertEquals("get_parse_error_blocks", networkOptions.getAllow().getCallMethods().get(0));
       assertEquals("mark_parse_error_block_checked", networkOptions.getAllow().getCallMethods().get(1));
+      assertEquals("resolve_smart_wallet_addr", networkOptions.getAllow().getCallMethods().get(2));
     }
   }
 
