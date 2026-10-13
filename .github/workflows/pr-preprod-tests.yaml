@@ -18,7 +18,7 @@ jobs:
     concurrency:
       group: preprod-host-deployment
       cancel-in-progress: false
-    timeout-minutes: 420  # 5h sync wait + build and tests
+    timeout-minutes: 60
 
     steps:
       - uses: actions/checkout@v4
@@ -149,7 +149,7 @@ jobs:
             up -d --wait
 
       - name: Wait for API to sync
-        timeout-minutes: 300  # catching up after downtime can take hours
+        timeout-minutes: 10
         run: |
           echo "Waiting for API to be ready..."
 
