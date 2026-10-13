@@ -112,11 +112,19 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `TOKEN_REGISTRY_CACHE_TTL_HOURS`              | Cache TTL for token metadata in hours                                 | 12                                     | added in release 1.4.0  |
 | `TOKEN_REGISTRY_LOGO_FETCH`                   | Enable fetching token logos from registry (increases response size)   | false                                  | added in release 1.4.0  |
 | `TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS`      | Token registry request timeout in seconds                             | 2                                      | added in release 1.4.0  |
+| `CIP113_BASE_SCRIPT_HASH`                     | CIP-113 programmable logic base script hash used for address derivation; must be a 28-byte hexadecimal string when configured | (empty)                                | added in release 2.3.0  |
 
 </div>
 
 :::note
 `DB_PATH` default above reflects the mainnet compose profile. Preprod uses `/opt/rosetta-java-preprod/sql_data`.
+
+`CIP113_BASE_SCRIPT_HASH` is network-specific. It is empty by default in the code; the shipped compose env files set it to the deployed CIP-113 programmable logic base script hash for their network:
+
+| Network | `CIP113_BASE_SCRIPT_HASH` |
+|---------|---------------------------|
+| mainnet | `d91d08e381f8ef95ffbb3f8048f020d7361ded8f3abfdf66c25fa838` |
+| preprod | `be59f7750a5d947bb649e70d574d066791ec34a1dfee2a087c8511e3` |
 :::
 
 ## Hardware Profile Variables

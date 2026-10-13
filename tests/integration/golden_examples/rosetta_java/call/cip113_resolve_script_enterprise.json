@@ -1,0 +1,24 @@
+{
+  "test_name": "(-) cip113 resolve script enterprise",
+  "description": "Negative test: an Enterprise address with a script payment credential has no user key credential to extract",
+  "network": "devkit",
+  "endpoint": "/call",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "method": "resolve_smart_wallet_addr",
+    "parameters": {
+      "address": "addr_test1wreps2cq5daaw3hzq46untcp4vcnzgsn29xdx8589c9z50szlr8vd"
+    }
+  },
+  "expected_error": {
+    "code": 5065,
+    "message": "Address is not a CIP-113 smart wallet",
+    "retriable": false,
+    "details": {
+      "message": "Enterprise script payment credentials are not supported"
+    }
+  }
+}

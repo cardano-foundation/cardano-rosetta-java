@@ -147,6 +147,8 @@ spec:
               value: {{ .Values.env.tokenRegistryLogoFetch | toString | quote }}
             - name: TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS
               value: {{ .Values.env.tokenRegistryRequestTimeoutSeconds | toString | quote }}
+            - name: CIP113_BASE_SCRIPT_HASH
+              value: {{ .Values.env.cip113BaseScriptHash | quote }}
             {{- $profile := (include "rosetta-api.profile" .) }}
             {{- $db := index .Values.global.profiles $profile "db" }}
             - name: API_DB_POOL_MIN_COUNT

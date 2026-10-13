@@ -1,0 +1,24 @@
+{
+  "test_name": "(-) cip113 resolve script stake base",
+  "description": "Negative test: a Base address whose stake credential is a script is not supported in Phase 1",
+  "network": "devkit",
+  "endpoint": "/call",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "method": "resolve_smart_wallet_addr",
+    "parameters": {
+      "address": "addr_test1xqvca3jpwpvrtd0fvexseqs55em0zg0zkr26hzs7e0qw6wqqzppp5sllda3lrk5k7txy6kg5w2afqpfh2spwxxjc7t2sahgwgj"
+    }
+  },
+  "expected_error": {
+    "code": 5066,
+    "message": "Address type not supported for resolve_smart_wallet_addr",
+    "retriable": false,
+    "details": {
+      "message": "Base addresses must contain a key stake credential"
+    }
+  }
+}
