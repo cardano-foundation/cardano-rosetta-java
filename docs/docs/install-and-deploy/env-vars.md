@@ -118,6 +118,13 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 
 :::note
 `DB_PATH` default above reflects the mainnet compose profile. Preprod uses `/opt/rosetta-java-preprod/sql_data`.
+
+`CIP113_BASE_SCRIPT_HASH` is network-specific. It is empty by default in the code; the shipped compose env files set it to the deployed CIP-113 programmable logic base script hash for their network:
+
+| Network | `CIP113_BASE_SCRIPT_HASH` |
+|---------|---------------------------|
+| mainnet | `d91d08e381f8ef95ffbb3f8048f020d7361ded8f3abfdf66c25fa838` |
+| preprod | `be59f7750a5d947bb649e70d574d066791ec34a1dfee2a087c8511e3` |
 :::
 
 ## Hardware Profile Variables
