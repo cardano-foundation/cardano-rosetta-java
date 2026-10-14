@@ -50,7 +50,7 @@ class DeriveApiTest extends IntegrationTest {
       ConstructionDeriveResponse constructionDeriveResponse = constructionApiService.constructionDeriveService(
           deriveRequest);
 
-      String address = "addr_test1zqvca3jpwpvrtd0fvexseqs55em0zg0zkr26hzs7e0qw6w9mgrc6v3au3rqm66mn3kuwke340kfxga82tl7kh2nke8asgpvgzg";
+      String address = "addr_test1zzl9nam4pfweg7akf8ns646dqenermp55807u2sg0jz3rcamgrc6v3au3rqm66mn3kuwke340kfxga82tl7kh2nke8as2mmcxg";
       assertEquals(address, constructionDeriveResponse.getAccountIdentifier().getAddress());
     }
   }
