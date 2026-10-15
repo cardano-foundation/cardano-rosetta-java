@@ -1,0 +1,4 @@
+    assert response.status_code == 200
+    assert block["block_identifier"]["index"] == test_index
+    assert len(block_hash) == 64, "Block hash must be 64 hex chars"
+    assert all(c in "0123456789abcdef" for c in block_hash.lower()), (

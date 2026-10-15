@@ -1,0 +1,13 @@
+{
+  "method": "POST",
+  "url": "http://localhost:8082/search/transactions",
+  "body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "preprod"
+    },
+    "transaction_identifier": {
+      "hash": "invalid_hash"
+    }
+  }
+}
