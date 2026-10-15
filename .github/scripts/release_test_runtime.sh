@@ -96,45 +96,18 @@ wait_for_preprod_token_metadata() {
     tGENS
 }
 
-measure_release_cleanup_space() {
-  local storage_root=$1 free_bytes reclaimable_bytes=0 data_path du_output used_bytes
-  shift
-  free_bytes=$(df --output=avail -B1 "$storage_root" |
-    awk 'NR == 2 {print $1}') || return
-  [[ "$free_bytes" =~ ^[0-9]+$ ]] || {
-    echo "Could not measure free space under $storage_root." >&2
+require_release_free_space() {
+  local storage_root=$1 minimum_free_gib=$2 free_bytes
+  free_bytes=$(df --output=avail -B1 "$storage_root" | awk 'NR == 2 {print $1}') || return
+  [[ "$free_bytes" =~ ^[0-9]+$ && "$minimum_free_gib" =~ ^[0-9]+$ ]] || {
+    echo "Invalid free-space measurement or minimum requirement." >&2
     return 1
   }
-  for data_path in "$@"; do
-    # Live files may vanish during du. Accept its total only if it is numeric.
-    du_output=$(sudo du -sB1 "$data_path") || true
-    used_bytes=$(awk '{print $1}' <<< "$du_output")
-    [[ "$used_bytes" =~ ^[0-9]+$ ]] || {
-      echo "Could not measure $data_path." >&2
-      return 1
-    }
-    reclaimable_bytes=$((reclaimable_bytes + used_bytes))
-  done
-  printf '%s\t%s\t%s\n' "$free_bytes" "$reclaimable_bytes" "$((free_bytes + reclaimable_bytes))"
-}
-
-require_release_cleanup_space() {
-  local storage_root=$1 minimum_free_gib=$2 measurement free_bytes reclaimable_bytes projected_bytes
-  local minimum_free_bytes
-  shift 2
-  [[ "$minimum_free_gib" =~ ^[0-9]+$ ]] || {
-    echo "Minimum free-space requirement must be an integer GiB value." >&2
-    return 1
-  }
-  measurement=$(measure_release_cleanup_space "$storage_root" "$@") || return
-  IFS=$'\t' read -r free_bytes reclaimable_bytes projected_bytes <<< "$measurement"
-  minimum_free_bytes=$((minimum_free_gib * 1024 * 1024 * 1024))
-  printf 'Disk space at %s: available=%s bytes; deployment data=%s bytes; estimated available after cleanup=%s bytes.\n' \
-    "$storage_root" "$free_bytes" "$reclaimable_bytes" "$projected_bytes"
-  if (( projected_bytes < minimum_free_bytes )); then
-    echo "Projected free space is below the required ${minimum_free_gib}GiB." >&2
+  if (( free_bytes < minimum_free_gib * 1024 * 1024 * 1024 )); then
+    echo "$storage_root has $free_bytes bytes free; at least ${minimum_free_gib}GiB is required." >&2
     return 1
   fi
+  echo "$storage_root has $((free_bytes / 1024 / 1024 / 1024))GiB free."
 }
 
 capture_release_machine() {

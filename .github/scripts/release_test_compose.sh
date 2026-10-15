@@ -58,6 +58,11 @@ release_compose() (
     --file docker-compose.yaml --file "$override_file" "$@"
 )
 
+stop_compose_release() {
+  write_compose_override || return
+  release_compose down --remove-orphans
+}
+
 verify_compose_database_access() (
   # Resolve exactly the application's Compose settings, including environment overrides.
   # Keep the password out of command arguments and shell traces.
@@ -185,126 +190,27 @@ wait_for_compose_target_live() {
   wait_for_mainnet_token_metadata http://127.0.0.1:8082
 }
 
-# Before stopping: require ownership. After stopping: no container may retain a
-# path, its parent, or its descendants. Docker errors must never look like no mounts.
-verify_compose_mounts() {
-  local policy=$1 containers container mounts mount data_path project service
-  containers=$(docker ps --all --quiet) || return
-  for container in $containers; do
-    mounts=$(docker inspect "$container" \
-      --format '{{range .Mounts}}{{println .Source}}{{end}}') || return
-    while IFS= read -r mount; do
-      [[ -n "$mount" ]] || continue
-      for data_path in "$DB_PATH" "$CARDANO_NODE_DIR"; do
-        if [[ "$mount" != "$data_path" && "$data_path" != "$mount"/* && "$mount" != "$data_path"/* ]]; then
-          continue
-        fi
-        [[ "$policy" != unmounted ]] || {
-          echo "Refusing deletion: $container still references $data_path via $mount." >&2; exit 1;
-        }
-        project=$(docker inspect "$container" \
-          --format '{{index .Config.Labels "com.docker.compose.project"}}') || return
-        [[ "$project" == "$PROJECT_NAME" ]] || {
-          echo "Data path $mount belongs to foreign project $project." >&2; exit 1;
-        }
-        if [[ "$policy" == services ]]; then
-          service=$(docker inspect "$container" \
-            --format '{{index .Config.Labels "com.docker.compose.service"}}') || return
-          if [[ "$data_path" == "$DB_PATH" ]]; then
-            [[ "$service" == db ]] || { echo "Unexpected database service $service." >&2; exit 1; }
-          else
-            case "$service" in
-              api|cardano-node|cardano-submit-api|cardano-sync-waiter|mithril|yaci-indexer) ;;
-              *) echo "Unexpected node-data service $service." >&2; exit 1 ;;
-            esac
-          fi
-        fi
-      done
-    done <<< "$mounts"
-  done
-}
-
 reset_current_compose_release_data() {
-  local db_path=$DB_PATH node_path=$CARDANO_NODE_DIR cleanup_root=$DATA_ROOT
+  local db_path=$DB_PATH node_path=$CARDANO_NODE_DIR cleanup_root=$DATA_ROOT path
   local minimum_free_gib=${COMPOSE_MIN_FREE_GIB:-}
-  local root_device host_mounts data_path expected_identity mount free_bytes free_gib minimum_free_bytes
-  local db_identity node_identity
-
   source "$RELEASE_SCRIPTS/release_test_runtime.sh" || return
   require_release_host || return
-  if [[ "$db_path" != "$cleanup_root/sql_data" || "$node_path" != "$cleanup_root/node_data" ||
-        "$cleanup_root" == "/" ]]; then
+  if [[ "$cleanup_root" == / || "$db_path" != "$cleanup_root/sql_data" ||
+        "$node_path" != "$cleanup_root/node_data" ]]; then
     echo "Refusing to delete data outside the configured release root." >&2
     return 1
   fi
-  if [[ "$(realpath -e "$cleanup_root")" != "$cleanup_root" || -L "$cleanup_root" ]]; then
-    echo "Refusing cleanup through a non-canonical root: $cleanup_root" >&2
-    return 1
-  fi
-  if [[ ! -d "$db_path" || -L "$db_path" || ! -d "$node_path" || -L "$node_path" ]]; then
-    echo "Compose data paths must exist as real directories before cleanup." >&2
-    return 1
-  fi
-
-  db_identity=$(stat -c '%d:%i' "$db_path") || return
-  node_identity=$(stat -c '%d:%i' "$node_path") || return
-  verify_compose_mounts services || return
-  if [[ -n "$minimum_free_gib" ]]; then
-    require_release_cleanup_space \
-      "$cleanup_root" "$minimum_free_gib" "$db_path" "$node_path" || return
-  fi
-  release_compose down --remove-orphans || return
-  verify_compose_mounts unmounted || return
-
-  root_device=$(stat -c '%d' "$cleanup_root") || return
-  host_mounts=$(
-    findmnt --json --output TARGET |
-      jq -er '.filesystems[] | recurse(.children[]?) | .target'
-  ) || return
-  for data_path in "$db_path" "$node_path"; do
-    if [[ "$data_path" == "$db_path" ]]; then
-      expected_identity=$db_identity
-    else
-      expected_identity=$node_identity
-    fi
-    if [[ "$(realpath -e "$data_path")" != "$data_path" ]]; then
-      echo "Refusing cleanup of a non-canonical data path: $data_path" >&2
+  for path in "$cleanup_root" "$db_path" "$node_path"; do
+    if [[ ! -d "$path" || -L "$path" || "$(realpath -e "$path")" != "$path" ]]; then
+      echo "Expected a real, canonical data directory: $path" >&2
       return 1
     fi
-    if [[ "$(stat -c '%d' "$data_path")" != "$root_device" ]]; then
-      echo "Refusing cleanup across a different filesystem: $data_path" >&2
-      return 1
-    fi
-    if [[ "$(stat -c '%d:%i' "$data_path")" != "$expected_identity" ]]; then
-      echo "Data directory identity changed immediately before cleanup: $data_path" >&2
-      return 1
-    fi
-    while IFS= read -r mount; do
-      if [[ "$mount" == "$data_path" || "$mount" == "$data_path"/* ]]; then
-        echo "Refusing cleanup across host mount $mount under $data_path." >&2
-        return 1
-      fi
-    done <<< "$host_mounts"
   done
 
-  cd "$cleanup_root" || return
-  sudo find ./sql_data ./node_data -xdev -mindepth 1 -delete || return
-  if [[ -z "$minimum_free_gib" ]]; then
-    echo "Compose release data removed."
-    return 0
+  stop_compose_release || return
+  sudo find "$db_path" "$node_path" -xdev -mindepth 1 -delete || return
+  if [[ -n "$minimum_free_gib" ]]; then
+    require_release_free_space "$cleanup_root" "$minimum_free_gib" || return
   fi
-
-  free_bytes=$(df --output=avail -B1 "$cleanup_root" |
-    awk 'NR == 2 {print $1}') || return
-  [[ "$free_bytes" =~ ^[0-9]+$ ]] || {
-    echo "Could not measure free space after Compose cleanup." >&2
-    return 1
-  }
-  free_gib=$((free_bytes / 1024 / 1024 / 1024))
-  minimum_free_bytes=$((minimum_free_gib * 1024 * 1024 * 1024))
-  if (( free_bytes < minimum_free_bytes )); then
-    echo "Compose reset left $free_bytes bytes free (${free_gib}GiB); at least ${minimum_free_gib}GiB is required before installation." >&2
-    return 1
-  fi
-  echo "Compose release data removed with ${free_gib}GiB available."
+  echo "Compose release data removed."
 }
