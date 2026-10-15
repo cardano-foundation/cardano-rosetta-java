@@ -20,6 +20,8 @@ jobs:
       cancel-in-progress: false
     timeout-minutes: 60
     env:
+      # Share the PR image tag between build and cleanup.
+      RELEASE_VERSION: pr-${{ github.event.pull_request.number }}-${{ github.sha }}
       REMOVE_SPENT_UTXOS: "false"
       DB_PORT: "5433"
       TOKEN_REGISTRY_ENABLED: "true"
@@ -66,9 +68,6 @@ jobs:
         id: deployment
         run: |
           cd /home/integration/git/cardano-rosetta-java
-
-          # Use PR-specific tag for API and indexer to force rebuild
-          export RELEASE_VERSION=pr-${{ github.event.pull_request.number }}-${{ github.sha }}
 
           # Build and start all services
           docker compose \
@@ -217,6 +216,7 @@ jobs:
 
       # Stop our project even if checkout or deployment failed, before reporting.
       - name: Stop PR Preprod deployment and retain data
+        id: shutdown
         if: always()
         run: |
           set -euo pipefail
@@ -226,6 +226,18 @@ jobs:
             --env-file .env.docker-compose-profile-mid-level \
             -f docker-compose.yaml \
             down --remove-orphans
+
+      - name: Remove PR API and indexer images
+        if: always() && steps.deployment.outcome != 'skipped' && steps.shutdown.outcome == 'success'
+        run: |
+          set -euo pipefail
+          for component in api indexer; do
+            image="cardanofoundation/cardano-rosetta-java-${component}:${RELEASE_VERSION}"
+            image_id=$(docker image ls --quiet "$image")
+            if [[ -n "$image_id" ]]; then
+              docker image rm "$image"
+            fi
+          done
 
       - name: Verify Node.js for Allure 3
         if: always()
