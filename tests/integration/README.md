@@ -1,8 +1,6 @@
-# Rosetta API Construction Integration Test Validator
+# Rosetta API Golden Tests
 
-A integration testing tool for Rosetta API construction endpoints. It validates live API responses against both:
-- Snapshot expectations stored in JSON test files, and
-- The OpenAPI schema (when available) for structural correctness.
+Validate live API responses against JSON snapshot expectations and the OpenAPI response schema. Run with `uv`; schema validation is required.
 
 ## What is Snapshot Testing?
 
@@ -10,49 +8,30 @@ This validator implements snapshot testing - it compares actual API responses ag
 
 ## Quick Start
 
-### Option 1: Basic Mode (No Environment Setup)
-Run snapshot testing without schema validation - no dependencies needed:
+From `tests/integration/`:
 
 ```bash
-# Test all files with default parallel execution (10 workers)
-python3 test_golden_examples.py
-
-# Test specific endpoint with more workers for faster execution
-python3 test_golden_examples.py parse/ -j 20
-
-# Note: Schema validation will be skipped in this mode
-```
-
-### Option 2: Full Mode with uv (Includes Schema Validation)
-For full features including OpenAPI schema validation:
-
-```bash
-# Install uv if you don't have it
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Run the validator with full features (uv handles environment automatically)
+# Run all fixtures with 10 workers
 uv run test_golden_examples.py
 
-# Run with specific options and increased parallelism
-uv run test_golden_examples.py parse/ -v -j 15
+# Select an endpoint, with detailed output
+uv run test_golden_examples.py construction/parse/ -v -j 15
+
+# Save the report
 uv run test_golden_examples.py -o results.txt -j 20
 ```
 
-That's it! The `uv run` command automatically:
-- Creates a virtual environment (if needed)
-- Installs all dependencies (pyyaml, jsonschema)
-- Runs the script with full schema validation enabled
+`uv` installs the script's declared dependencies: PyYAML, jsonschema and Rich. Missing dependencies do not trigger a reduced-functionality mode. An unreadable or invalid OpenAPI document, missing response schema or broken local reference is an error, not a reason to skip validation.
 
 ## Features
 
 - **Parallel execution**: Run tests in parallel with configurable workers (10x+ speedup)
 - **Snapshot testing**: Detects API response changes against stored expectations
 - **Network flexibility**: Support for different networks via `{{networkId}}` placeholders and `--network-id` parameter
-- **Schema validation**: Validates responses against OpenAPI spec (when using uv environment)
-- **Two modes**: Basic (Python only) or Full (with uv for schema validation)
+- **Schema validation**: Validates responses against the OpenAPI spec on every response
 - **CLI interface**: Flexible path/pattern matching
 - **Detailed error reporting**: Shows actual API error details
-- **HTTP status validation**: Robust error detection using status codes
+- **HTTP status validation**: Checks HTTP 200 for success and HTTP 400/500 according to the fixture's declared `retriable` expectation
 - **File output**: Save results to file with `-o` option
 - **Dynamic field handling**: Ignores expected volatile fields (TTL, signatures)
 - **Execution timing**: Total test suite execution time tracking
@@ -60,20 +39,19 @@ That's it! The `uv run` command automatically:
 
 ## Detailed Usage Examples
 
-### With uv (Full Features)
 ```bash
 # Test all files with schema validation
 uv run test_golden_examples.py
 
 # Test specific endpoint
-uv run test_golden_examples.py parse/
+uv run test_golden_examples.py construction/parse/
 
 # Test with wildcards
-uv run test_golden_examples.py "parse/native_assets/*.json"
-uv run test_golden_examples.py "*/withdrawals/*.json"
+uv run test_golden_examples.py "construction/parse/native_assets/*.json"
+uv run test_golden_examples.py "construction/*/withdrawals/*.json"
 
 # Test specific file
-uv run test_golden_examples.py parse/native_assets/multiple_assets_different_policies.json
+uv run test_golden_examples.py construction/parse/native_assets/multiple_assets_different_policies.json
 
 # Use specific network (for CI/CD with different networks)
 uv run test_golden_examples.py --network-id devkit
@@ -98,16 +76,6 @@ uv run test_golden_examples.py -v    # verbose prints schema details per test
 uv run test_golden_examples.py --network-id devkit -v -u http://localhost:8080 -o results.txt -j 15
 ```
 
-### Without uv (Basic Mode)
-```bash
-# Same commands work with python3 directly (no schema validation)
-python3 test_golden_examples.py
-python3 test_golden_examples.py parse/ -v
-python3 test_golden_examples.py --network-id devkit  # for CI/CD with devkit network
-python3 test_golden_examples.py --no-schema  # explicitly skip schema
-python3 test_golden_examples.py -j 20  # parallel execution with 20 workers
-```
-
 ## CLI Options
 
 - `[paths/patterns...]` - Test file paths or patterns (positional, optional)
@@ -116,16 +84,16 @@ python3 test_golden_examples.py -j 20  # parallel execution with 20 workers
 - `-n, --network-id <id>` - Network ID to replace {{networkId}} placeholders (e.g., 'devkit', 'preprod', 'mainnet'). Defaults to 'preprod' when placeholders are found.
 - `-v, --verbose` - Show detailed output for each test
 - `-j, --workers <n>` - Number of parallel workers for test execution (default: 10)
-- `--openapi <path>` - OpenAPI spec file (YAML or JSON). Defaults to `api.yaml` next to the script
-- `--no-schema` - Disable schema validation (snapshot-only)
+- `--base-dir <path>` - Fixture root, defaulting to `golden_examples/rosetta_java` beside the script
+- `--openapi <path>` - OpenAPI spec file (YAML or JSON), defaulting to `api/src/main/resources/rosetta-specifications-1.4.15/api.yaml` in the repository
 - `--schema-details` - Force schema summary (redundant with `-v`, which enables it)
 
 ## Requirements
 
-- Python 3.6+ 
-- Running Rosetta API (configure via `-u` option)
+- `uv` and Python 3.10+
+- Running Rosetta API (configure via `-u`)
 - Test files in JSON format
-- For schema validation: `uv` (installs pyyaml & jsonschema automatically)
+- The repository's OpenAPI document, or another supplied with `--openapi`
 
 ## Test File Structure
 
@@ -133,6 +101,8 @@ Each test file should contain:
 - `request_body`: The API request payload
 - Either `expected_response` (success) or `expected_error` (failure)
 - Test metadata (name, description)
+
+Existing fixtures are unchanged. For errors, compare the declared `code`, `message` and `retriable` fields. When a fixture declares `retriable`, the expected HTTP status follows `GlobalExceptionHandler`: `false` means 400 and `true` means 500. This uses the fixture's expectation, not the received retry flag. Fixtures that omit `retriable` keep their partial expectations; no new field or HTTP value is invented. Schema validation remains mandatory.
 
 ### Network-specific tests
 
@@ -143,7 +113,8 @@ A test file that depends on real chain data may carry a top-level `"network"` fi
 ## Exit Codes
 
 - `0`: All tests passed
-- `1`: One or more tests failed or connection error
+- `1`: Test failure, transport error, schema configuration error or interruption
+- `2`: Invalid CLI arguments
 
 ## What It Validates
 
@@ -157,6 +128,6 @@ The script validates all Rosetta construction flow endpoints:
 - `/construction/hash`
 - `/construction/submit`
 
-For each test, it compares the actual API response against the expected response, accounting for dynamic fields like TTL and signatures.
+For each test, it compares the actual API response against the expected response. ADA decimals and all construction-response decimals are compared. Non-ADA token decimals on data endpoints retain the registry-enrichment exception. Existing volatile metadata and per-endpoint exclusions remain unchanged.
 
-If schema validation is enabled and the OpenAPI spec is available, it also validates the structure of the response (and error responses) against the schema. Schema failures are reported alongside snapshot diffs and will mark the test as failed.
+Both success and error responses are checked against the schema. Repeated references retain their constraints at every occurrence. Schema failures are reported alongside snapshot differences. The Rosetta spec declares the common error schema under HTTP 500; other error statuses use that schema when no exact or `default` response is declared. The HTTP check uses the existing fixture's `retriable` expectation when declared.

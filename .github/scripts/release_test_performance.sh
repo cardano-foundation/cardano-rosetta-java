@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Release-owned harness and data; reporting tool from the immutable automation checkout.
+# Harness/reporting from the immutable automation checkout; data from the release.
 
 run_release_stability() (
-  local endpoint=$1 tests_dir="$DEPLOY_DIR/tests/legacy-load-tests" run_log result_dir test_status
+  local endpoint=$1 tests_dir="$RELEASE_SCRIPTS/../../tests/legacy-load-tests" run_log result_dir test_status
   run_log="$tests_dir/release-test-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.log"
   test -w "$tests_dir"
   cd "$tests_dir"
   set +e
   python3 stability_test.py \
     --url="$endpoint" \
-    --csv=data/mainnet-data.csv \
+    --csv="$DEPLOY_DIR/tests/legacy-load-tests/data/mainnet-data.csv" \
     --network=mainnet \
     --release="$PRERELEASE_TAG" \
     --hardware-profile=mid_profile \

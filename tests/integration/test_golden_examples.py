@@ -1,104 +1,54 @@
 #!/usr/bin/env python3
 # /// script
-# requires-python = ">=3.8"
-# dependencies = [
-#   "pyyaml",
-#   "jsonschema",
-#   "rich"
-# ]
+# requires-python = ">=3.10"
+# dependencies = ["pyyaml", "jsonschema", "rich"]
 # ///
-"""
-Lean monolithic validator for Rosetta construction tests.
-Preserves features: snapshot diffs, HTTP status checks, optional OpenAPI
-schema validation (pyyaml/jsonschema), optional rich output, grouping,
-metrics, CLI options, and detailed final summary.
-"""
+"""Run Rosetta golden fixtures, compare responses and report the results."""
 
 from __future__ import annotations
 
 import argparse
-import copy
 import glob
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
 import urllib.request
-from collections import defaultdict
+from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from contextlib import ExitStack, nullcontext, redirect_stdout
+from functools import partial
+from itertools import chain
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, Iterator, List, Optional, Sequence, Tuple
 
-# Optional deps (graceful degradation)
-try:
-    import yaml  # type: ignore
-except Exception:  # pragma: no cover
-    yaml = None  # type: ignore
+import yaml
+from jsonschema import Draft4Validator
+from rich import box
+from rich.console import Console, Group
+from rich.live import Live
+from rich.panel import Panel
+from rich.table import Table
+from rich.text import Text
 
-try:
-    import jsonschema  # type: ignore
-    from jsonschema import Draft4Validator  # type: ignore
-except Exception:  # pragma: no cover
-    jsonschema = None  # type: ignore
-    Draft4Validator = None  # type: ignore
-
-try:
-    from rich.console import Console  # type: ignore
-    from rich.console import Group  # type: ignore
-    from rich.table import Table  # type: ignore
-    from rich.text import Text  # type: ignore
-    from rich.live import Live  # type: ignore
-    from rich.panel import Panel  # type: ignore
-    from rich import box  # type: ignore
-except Exception:  # pragma: no cover
-    Console = Group = Table = Text = Live = Panel = box = None  # type: ignore
-
-# Defaults
 DEFAULT_ROSETTA_URL = "http://localhost:8082"
-DEFAULT_BASE_DIR = (
-    Path(__file__).parent / "golden_examples/rosetta_java"
-).resolve()
+DEFAULT_BASE_DIR = (Path(__file__).parent / "golden_examples/rosetta_java").resolve()
 DEFAULT_OPENAPI_PATH = (
     Path(__file__).parent.parent.parent
     / "api/src/main/resources/rosetta-specifications-1.4.15/api.yaml"
 ).resolve()
+HTTP_TIMEOUT_SECONDS = 180
 
-# Globals updated via CLI
-BASE_PATH = DEFAULT_BASE_DIR
-ROSETTA_URL = DEFAULT_ROSETTA_URL
-VERBOSE = False
-SCHEMA_VALIDATION_ENABLED = True
-OPENAPI_SPEC_PATH: Optional[Path] = DEFAULT_OPENAPI_PATH
-SCHEMA_VALIDATOR: Optional["SchemaValidator"] = None
-SHOW_SCHEMA_DETAILS = False
-RICH_CONSOLE: Optional["Console"] = None  # type: ignore
-USE_RICH = False
-WORKERS = 10
-NETWORK_ID: Optional[str] = None
+RED, GREEN, YELLOW = "\033[91m", "\033[92m", "\033[93m"
+BLUE, MAGENTA, CYAN = "\033[94m", "\033[95m", "\033[96m"
+RESET, BOLD, DIM = "\033[0m", "\033[1m", "\033[2m"
 
-# ANSI colors
-RED = "\033[91m"
-GREEN = "\033[92m"
-YELLOW = "\033[93m"
-BLUE = "\033[94m"
-MAGENTA = "\033[95m"
-CYAN = "\033[96m"
-WHITE = "\033[97m"
-RESET = "\033[0m"
-BOLD = "\033[1m"
-DIM = "\033[2m"
-GRAY = "\033[90m"
-
-# Fields that should be ignored when diffing
-# Construction endpoints
 VOLATILE_FIELDS = {
     "metadata": ["metadata.ttl", "metadata.protocol_parameters.protocol"],
     "preprocess": ["options.transaction_size"],
 }
-
-# Data endpoints - add volatile fields if needed
-# (e.g., timestamps that change between runs)
 DATA_ENDPOINT_VOLATILE_FIELDS = {
     "search": [],
     "transactions": ["total_count"],
@@ -107,107 +57,79 @@ DATA_ENDPOINT_VOLATILE_FIELDS = {
     "network": [],
     "mempool": [],
 }
-
-# Regex patterns for paths that should be ignored during diffing.
-# Token registry enrichment adds decimals/metadata fields that vary by environment.
-import re
 VOLATILE_PATH_PATTERNS = [
-    re.compile(r"\.currency\.decimals$"),
     re.compile(r"\.currency\.metadata\."),
     re.compile(r"\.currency\.metadata$"),
 ]
 
-# Stats
-stats: Dict[str, Any] = {
-    "total_files": 0,
-    "files_tested": 0,
-    "files_passed": 0,
-    "files_failed": 0,
-    "files_skipped": 0,
-    "errors_by_endpoint": defaultdict(int),
-    "differences_found": [],
-    "endpoint_summaries": [],
-    "schema_checked": 0,
-    "schema_passed": 0,
-    "schema_failed": 0,
-    "schema_skipped": 0,
-    "schema_unavailable": 0,
-}
+
+# OpenAPI validation
 
 
-# --------------------- Schema Validation ---------------------
 class SchemaValidator:
-    def __init__(self, spec_path: Path, enabled: bool = True):
-        self.enabled = enabled
-        self.spec_path = spec_path
-        self.spec: Optional[Dict[str, Any]] = None
-        if enabled:
-            try:
-                txt = (
-                    spec_path.read_text(encoding="utf-8")
-                    if spec_path.exists()
-                    else None
-                )
-                if not txt:
-                    self.enabled = False
-                    return
-                self.spec = yaml.safe_load(txt) if yaml is not None else json.loads(txt)
-            except Exception:
-                try:
-                    self.spec = json.loads(txt or "{}")
-                except Exception:
-                    self.enabled = False
-                    self.spec = None
+    def __init__(self, spec_path: Path):
+        self.spec = yaml.safe_load(spec_path.read_text(encoding="utf-8"))
+        self._response_validators: Dict[
+            str, Dict[Optional[int], Callable[[Any], List[str]]]
+        ] = {}
+        self._prepare_validators()
 
-    def _path_item(self, endpoint: str) -> Optional[Dict[str, Any]]:
-        if not (self.enabled and isinstance(self.spec, dict)):
-            return None
-        return (self.spec.get("paths") or {}).get(endpoint)
-
-    def _response_schema(
-        self, endpoint: str, status_code: int
-    ) -> Optional[Dict[str, Any]]:
-        p = self._path_item(endpoint)
-        if not p:
-            return None
-        responses = (p.get("post") or {}).get("responses") or {}
-        obj = (
+    def _response_schema(self, endpoint: str, status_code: int) -> Dict[str, Any]:
+        responses = self.spec["paths"][endpoint]["post"]["responses"]
+        response = (
             responses.get(str(status_code))
             or responses.get("default")
-            or (responses.get("500") if status_code != 200 else None)
+            or responses["500" if status_code != 200 else "200"]
         )
-        content = (obj or {}).get("content") or {}
-        app = content.get("application/json") or {}
-        if isinstance(app, dict) and "schema" in app:
-            return app["schema"]
-        for v in content.values():
-            if isinstance(v, dict) and "schema" in v:
-                return v["schema"]
-        return None
+        return response["content"]["application/json"]["schema"]
+
+    def _prepare_validators(self) -> None:
+        for endpoint, path in self.spec["paths"].items():
+            responses = path["post"]["responses"]
+            codes = {int(code) for code in responses if str(code).isdecimal()} | {200}
+            validators = {
+                code: self._compile_response(endpoint, code) for code in codes
+            }
+            # Unknown errors use default/500; 200 retains its own schema selection.
+            validators[None] = self._compile_response(endpoint, -1)
+            self._response_validators[endpoint] = validators
+
+    def _compile_response(
+        self, endpoint: str, status_code: int
+    ) -> Callable[[Any], List[str]]:
+        schema = self._response_schema(endpoint, status_code)
+        validator = Draft4Validator(self._deref(schema))
+        return partial(self._validate_instance, validator)
+
+    @staticmethod
+    def _validate_instance(validator: Any, instance: Any) -> List[str]:
+        try:
+            return [
+                f"{'.'.join(str(part) for part in error.path) or '<root>'}: {error.message}"
+                for error in validator.iter_errors(instance)
+            ]
+        except Exception as error:
+            return [f"Validator error: {error}"]
+
+    def validate_response(
+        self, endpoint: str, status_code: int, instance: Any
+    ) -> List[str]:
+        validators = self._response_validators[endpoint]
+        validate = validators.get(status_code, validators[None])
+        return validate(instance)
 
     def describe_response_schema(self, endpoint: str, status_code: int) -> str:
-        if not self.enabled or self.spec is None:
-            return "unavailable"
-        s = self._response_schema(endpoint, status_code)
-        if not s:
-            return "none"
-        if isinstance(s, dict) and "$ref" in s:
-            return str(s["$ref"])  # e.g. #/components/schemas/Thing
-        t = s.get("title") if isinstance(s, dict) else None
-        return f"inline ({t})" if t else "inline"
+        schema = self._response_schema(endpoint, status_code)
+        if "$ref" in schema:
+            return str(schema["$ref"])
+        title = schema.get("title")
+        return f"inline ({title})" if title else "inline"
 
-    def _resolve_ref(self, ref: str) -> Optional[Dict[str, Any]]:
-        if not (isinstance(ref, str) and ref.startswith("#/")) or self.spec is None:
-            return None
-        node: Any = self.spec
-        try:
-            for part in ref.lstrip("#/").split("/"):
-                node = node.get(part) if isinstance(node, dict) else None
-                if node is None:
-                    return None
-            return node if isinstance(node, dict) else None
-        except Exception:
-            return None
+    def _resolve_ref(self, ref: str) -> Dict[str, Any]:
+        node = self.spec
+        for part in ref[2:].split("/"):
+            node = node[part.replace("~1", "/").replace("~0", "~")]
+        return node
 
     def _deref(self, node: Any, seen: Optional[set] = None) -> Any:
         seen = seen or set()
@@ -219,180 +141,136 @@ class SchemaValidator:
             ):
                 ref = node["$ref"]
                 if ref in seen:
-                    return {}
-                seen.add(ref)
+                    raise ValueError(f"Circular schema reference: {ref}")
                 target = self._resolve_ref(ref)
-                return self._deref(
-                    copy.deepcopy(target) if isinstance(target, dict) else node, seen
-                )
+                # Only ancestors are visited; sibling references keep their rules.
+                return self._deref(target, seen | {ref})
             return {
-                k: self._deref(v, seen) if k != "$ref" else v for k, v in node.items()
+                key: self._deref(value, seen) if key != "$ref" else value
+                for key, value in node.items()
             }
         if isinstance(node, list):
-            return [self._deref(v, seen) for v in node]
+            return [self._deref(value, seen) for value in node]
         return node
 
-    def _basic_sanity(self, instance: Any) -> List[str]:
-        if instance is None:
-            return ["<root>: Response is null"]
-        if not isinstance(instance, (dict, list)):
-            return [
-                f"<root>: Response type must be object/array, got {type(instance).__name__}"
-            ]
-        return []
+    def get_resolved_schema(self, endpoint: str, status_code: int) -> Dict[str, Any]:
+        return self._deref(self._response_schema(endpoint, status_code))
 
-    def get_resolved_schema(
-        self, endpoint: str, status_code: int
-    ) -> Optional[Dict[str, Any]]:
-        if not (self.enabled and self.spec):
-            return None
-        base = self._response_schema(endpoint, status_code)
-        return self._deref(base) if isinstance(base, dict) else None
-
-    def _stype(self, s: Dict[str, Any]) -> str:
-        if "type" in s:
-            return str(s["type"])
-        if "properties" in s:
+    def _stype(self, schema: Dict[str, Any]) -> str:
+        if "type" in schema:
+            return str(schema["type"])
+        if "properties" in schema:
             return "object"
-        if "items" in s:
+        if "items" in schema:
             return "array"
-        for k in ("oneOf", "anyOf", "allOf"):
-            if k in s:
-                return k
+        for key in ("oneOf", "anyOf", "allOf"):
+            if key in schema:
+                return key
         return "unknown"
 
-    def summarize_schema(self, s: Optional[Dict[str, Any]]) -> Optional[str]:
-        if not isinstance(s, dict):
-            return None
-        t = self._stype(s)
-        if t == "object":
-            req = ", ".join(s.get("required", [])) or "—"
-            props = s.get("properties", {}) or {}
-            lines = ["type: object", f"required: {req}"]
-            if props:
+    def summarize_schema(self, schema: Dict[str, Any]) -> str:
+        kind = self._stype(schema)
+        if kind == "object":
+            required = ", ".join(schema.get("required", [])) or "—"
+            properties = schema.get("properties", {}) or {}
+            lines = ["type: object", f"required: {required}"]
+            if properties:
                 lines.append("props:")
-                for k, v in props.items():
+                for key, value in properties.items():
                     lines.append(
-                        f"  - {k}: {self._stype(v) if isinstance(v, dict) else type(v).__name__}"
+                        f"  - {key}: {self._stype(value) if isinstance(value, dict) else type(value).__name__}"
                     )
             return "\n".join(lines)
-        if t == "array":
-            it = s.get("items")
-            return f"type: array\nitems: {self._stype(it) if isinstance(it, dict) else 'unknown'}"
-        if t in ("oneOf", "anyOf", "allOf"):
-            return f"{t}({len(s.get(t, []))} variants)"
-        return f"type: {t}"
-
-    def validate_response(
-        self, endpoint: str, status_code: int, instance: Any
-    ) -> List[str]:
-        if not self.enabled:
-            return []
-        if self.spec is None:
-            return self._basic_sanity(instance)
-        schema = self._response_schema(endpoint, status_code)
-        if not schema:
-            return self._basic_sanity(instance)
-        if jsonschema is None:
-            return self._basic_sanity(instance)
-        try:
-            d = self._deref(schema)
-            if Draft4Validator:
-                errs: List[str] = []
-                for e in Draft4Validator(d).iter_errors(instance):
-                    loc = ".".join([str(p) for p in e.path]) or "<root>"
-                    errs.append(f"{loc}: {e.message}")
-                return errs
-            jsonschema.validate(instance=instance, schema=d)  # type: ignore
-            return []
-        except Exception as e:
-            return [f"Validator error: {e}"]
+        if kind == "array":
+            items = schema.get("items")
+            return f"type: array\nitems: {self._stype(items) if isinstance(items, dict) else 'unknown'}"
+        if kind in ("oneOf", "anyOf", "allOf"):
+            return f"{kind}({len(schema.get(kind, []))} variants)"
+        return f"type: {kind}"
 
 
-# --------------------- HTTP + Diff utils ---------------------
-def replace_network_placeholder(payload: Dict[str, Any]) -> Tuple[Dict[str, Any], bool]:
-    """Replace {{networkId}} placeholders with actual network_id value.
-    Uses 'preprod' as default if no network_id is provided.
+# HTTP transport
 
-    Returns:
-        Tuple of (modified_payload, has_placeholder)
-    """
-    try:
-        # Convert to JSON string for safe replacement
-        json_str = json.dumps(payload)
 
-        # Check if placeholder exists
-        has_placeholder = "{{networkId}}" in json_str
-
-        if has_placeholder:
-            # Use provided network_id or default to 'preprod'
-            network_value = NETWORK_ID if NETWORK_ID is not None else "preprod"
-            json_str = json_str.replace("{{networkId}}", network_value)
-            # Parse back to dict
-            return json.loads(json_str), True
-
-        return payload, False
-    except Exception:
-        # If anything goes wrong, return original payload
-        return payload, False
+def replace_network_placeholder(
+    payload: Dict[str, Any], network_id: Optional[str]
+) -> Dict[str, Any]:
+    text = json.dumps(payload)
+    if "{{networkId}}" in text:
+        network = network_id if network_id is not None else "preprod"
+        return json.loads(text.replace("{{networkId}}", network))
+    return payload
 
 
 def call_api(
-    endpoint: str, payload: Dict[str, Any]
+    endpoint: str, payload: Dict[str, Any], base_url: str, network_id: Optional[str]
 ) -> Tuple[Optional[Dict[str, Any]], int, Optional[str], Dict[str, Any]]:
-    url = f"{ROSETTA_URL}{endpoint}"
     try:
-        # Replace network placeholders if needed
-        modified_payload, _ = replace_network_placeholder(payload)
-        data = json.dumps(modified_payload).encode("utf-8")
-        req = urllib.request.Request(
-            url, data=data, headers={"Content-Type": "application/json"}
+        modified_payload = replace_network_placeholder(payload, network_id)
+        request = urllib.request.Request(
+            f"{base_url}{endpoint}",
+            data=json.dumps(modified_payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
         )
         start = time.monotonic()
-        with urllib.request.urlopen(req, timeout=90) as resp:
-            raw = resp.read()
+        with urllib.request.urlopen(request, timeout=HTTP_TIMEOUT_SECONDS) as response:
+            raw = response.read()
             return (
                 json.loads(raw.decode("utf-8")),
-                resp.code,
+                response.code,
                 None,
                 {
                     "time_ms": (time.monotonic() - start) * 1000.0,
                     "size_bytes": len(raw),
                 },
             )
-    except urllib.error.HTTPError as e:
+    except urllib.error.HTTPError as error:
         try:
-            raw = e.read()
-            body = json.loads(raw.decode("utf-8"))
-            return body, e.code, None, {"time_ms": 0.0, "size_bytes": len(raw)}
+            raw = error.read()
+            return (
+                json.loads(raw.decode("utf-8")),
+                error.code,
+                None,
+                {"time_ms": 0.0, "size_bytes": len(raw)},
+            )
         except Exception:
             return (
                 None,
-                e.code,
-                f"HTTP {e.code}: {e.reason}",
+                error.code,
+                f"HTTP {error.code}: {error.reason}",
                 {"time_ms": 0.0, "size_bytes": 0},
             )
-    except urllib.error.URLError as e:
+    except urllib.error.URLError as error:
         return (
             None,
             0,
-            f"Connection error: {e.reason}",
+            f"Connection error: {error.reason}",
             {"time_ms": 0.0, "size_bytes": 0},
         )
-    except Exception as e:
-        return None, 0, f"Unexpected error: {e}", {"time_ms": 0.0, "size_bytes": 0}
+    except Exception as error:
+        return None, 0, f"Unexpected error: {error}", {"time_ms": 0.0, "size_bytes": 0}
+
+
+# Response comparisons. These functions perform no I/O.
+
+
+def get_ignore_paths(endpoint: str) -> List[str]:
+    key = endpoint.split("/")[-1]
+    return VOLATILE_FIELDS.get(key, DATA_ENDPOINT_VOLATILE_FIELDS.get(key, []))
 
 
 def deep_diff(
-    expected: Any, actual: Any, path: str = "", ignore_paths: Optional[List[str]] = None
+    expected: Any,
+    actual: Any,
+    path: str = "",
+    ignore_paths: Optional[List[str]] = None,
+    *,
+    ignore_token_decimals: bool = False,
 ) -> List[str]:
-    ignore_paths = ignore_paths or []
-    for p in ignore_paths:
-        if path.startswith(p):
-            return []
-    for pat in VOLATILE_PATH_PATTERNS:
-        if pat.search(path):
-            return []
+    if any(path.startswith(prefix) for prefix in ignore_paths or []):
+        return []
+    if any(pattern.search(path) for pattern in VOLATILE_PATH_PATTERNS):
+        return []
     if expected is None and actual is None:
         return []
     if expected is None or actual is None:
@@ -402,25 +280,47 @@ def deep_diff(
             f"{path}: Type mismatch - expected {type(expected).__name__} but got {type(actual).__name__}"
         ]
     if isinstance(expected, dict):
-        diffs: List[str] = []
-        ek, ak = set(expected.keys()), set(actual.keys())
-        for k in ek - ak:
-            diffs.append(f"{path}.{k}: Missing in actual response")
-        for k in ak - ek:
-            diffs.append(f"{path}.{k}: Unexpected in actual response")
-        for k in ek & ak:
-            nxt = f"{path}.{k}" if path else k
-            diffs.extend(deep_diff(expected[k], actual[k], nxt, ignore_paths))
-        return diffs
+        differences: List[str] = []
+        expected_keys, actual_keys = set(expected), set(actual)
+        for key in expected_keys - actual_keys:
+            differences.append(f"{path}.{key}: Missing in actual response")
+        for key in actual_keys - expected_keys:
+            differences.append(f"{path}.{key}: Unexpected in actual response")
+        for key in expected_keys & actual_keys:
+            if (
+                ignore_token_decimals
+                and key == "decimals"
+                and path.split(".")[-1] == "currency"
+                and expected.get("symbol") != "ADA"
+            ):
+                continue
+            child = f"{path}.{key}" if path else key
+            differences.extend(
+                deep_diff(
+                    expected[key],
+                    actual[key],
+                    child,
+                    ignore_paths,
+                    ignore_token_decimals=ignore_token_decimals,
+                )
+            )
+        return differences
     if isinstance(expected, list):
         if len(expected) != len(actual):
             return [
                 f"{path}: List length mismatch - expected {len(expected)} but got {len(actual)}"
             ]
-        out: List[str] = []
-        for i, (e, a) in enumerate(zip(expected, actual)):
-            out.extend(deep_diff(e, a, f"{path}[{i}]", ignore_paths))
-        return out
+        return [
+            difference
+            for index, (expected_item, actual_item) in enumerate(zip(expected, actual))
+            for difference in deep_diff(
+                expected_item,
+                actual_item,
+                f"{path}[{index}]",
+                ignore_paths,
+                ignore_token_decimals=ignore_token_decimals,
+            )
+        ]
     return (
         []
         if expected == actual
@@ -428,62 +328,313 @@ def deep_diff(
     )
 
 
-# --------------------- File + Result logic ---------------------
-def determine_endpoint(file_path: Path) -> str:
-    """Determine API endpoint from test file.
+def _normalize_req_ids(message: str) -> str:
+    return re.sub(r"request \d+:", "request [ID]:", message)
 
-    Priority:
-    1. Explicit 'endpoint' field in test file (preferred for data endpoints)
-    2. Path-based detection for construction/ directory structure
-    """
-    # Try to read endpoint from test file first
+
+def _success_differences(
+    expected: Any,
+    endpoint: str,
+    actual: Any,
+    http_status: int,
+    schema_errors: Sequence[str],
+) -> List[str]:
+    if http_status != 200:
+        error = (
+            (actual.get("error", actual) if isinstance(actual, dict) else {})
+            if actual
+            else {}
+        )
+        code, message = (
+            error.get("code", "unknown"),
+            error.get("message", "unknown message"),
+        )
+        details = error.get("details", {})
+        detail_message = (
+            f" - {details.get('message')}"
+            if isinstance(details, dict) and "message" in details
+            else (f" - {details}" if isinstance(details, str) else "")
+        )
+        return [
+            f"Expected successful response but got ERROR {code}: {message}{detail_message} (HTTP {http_status})"
+        ]
+    differences = deep_diff(
+        expected,
+        actual,
+        "",
+        get_ignore_paths(endpoint),
+        ignore_token_decimals=not endpoint.startswith("/construction/"),
+    )
+    differences.extend(f"Schema: {error}" for error in schema_errors)
+    return differences
+
+
+def _error_differences(
+    expected: Dict[str, Any],
+    actual: Any,
+    http_status: int,
+    schema_errors: Sequence[str],
+) -> List[str]:
+    if http_status == 200:
+        return ["Expected error but got successful response"]
+    error = actual.get("error", actual) if isinstance(actual, dict) else actual
+    if not isinstance(error, dict):
+        return ["Expected an error object"] + [
+            f"Schema: {message}" for message in schema_errors
+        ]
+    differences = [
+        difference
+        for field in ("code", "message", "retriable")
+        if field in expected
+        for difference in deep_diff(expected[field], error.get(field), field)
+    ]
+    if "retriable" in expected:
+        # GlobalExceptionHandler maps the expected retry flag to HTTP 400/500.
+        expected_status = 500 if expected["retriable"] else 400
+        if http_status != expected_status:
+            differences.append(
+                f"HTTP status: expected {expected_status} but got {http_status}"
+            )
+    if (
+        "details" in expected
+        and "details" in error
+        and isinstance(expected["details"], dict)
+        and isinstance(error["details"], dict)
+    ):
+        expected_message, actual_message = (
+            expected["details"].get("message"),
+            error["details"].get("message"),
+        )
+        if (
+            isinstance(expected_message, str)
+            and isinstance(actual_message, str)
+            and _normalize_req_ids(expected_message)
+            != _normalize_req_ids(actual_message)
+        ):
+            differences.append(
+                f'details.message: Expected "{expected_message}" but got "{actual_message}"'
+            )
+    differences.extend(f"Schema: {error}" for error in schema_errors)
+    return differences
+
+
+def evaluate_response(
+    fixture: Dict[str, Any],
+    endpoint: str,
+    actual: Any,
+    http_status: int,
+    schema_errors: Sequence[str] = (),
+) -> Tuple[str, List[str]]:
+    if "expected_response" in fixture:
+        differences = _success_differences(
+            fixture["expected_response"], endpoint, actual, http_status, schema_errors
+        )
+    else:
+        differences = _error_differences(
+            fixture["expected_error"], actual, http_status, schema_errors
+        )
+    return ("failed" if differences else "passed"), differences
+
+
+# Fixture loading and execution
+
+
+def collect_files(paths: List[str], base_dir: Path) -> List[Path]:
+    """Select JSON files from file paths, recursive directories or glob filters."""
+    files = set()
+    for pattern in paths or [str(base_dir)]:
+        local_exists = Path(pattern).exists()
+        # Existing local paths keep priority over base_dir.
+        locations = (
+            (pattern,) if local_exists else (pattern, os.path.join(base_dir, pattern))
+        )
+        for location in locations:
+            path = Path(location)
+            matches = glob.iglob(
+                glob.escape(location) if local_exists else location, recursive=True
+            )
+            directory_files = path.rglob("*.json") if path.is_dir() else ()
+            candidates = chain(map(Path, matches), directory_files)
+            files.update(
+                candidate.resolve()
+                for candidate in candidates
+                if candidate.suffix == ".json" and candidate.is_file()
+            )
+    return sorted(files)
+
+
+def determine_endpoint(path: Path, base_dir: Path, fixture: Any) -> str:
+    """Prefer the declared endpoint; otherwise use the fixture-root layout."""
+    if isinstance(fixture, dict) and "endpoint" in fixture:
+        return fixture["endpoint"]
+    parts = path.resolve().relative_to(base_dir.resolve()).parts
+    endpoint = parts[1] if parts[0] == "construction" else parts[0]
+    return f"/construction/{endpoint}"
+
+
+def load_fixture(path: Path, base_dir: Path) -> Dict[str, Any]:
+    fixture, error = None, None
     try:
-        test = json.loads(file_path.read_text(encoding="utf-8"))
-        if "endpoint" in test:
-            return test["endpoint"]
-    except Exception:
-        pass
+        fixture = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as failure:
+        error = f"Invalid JSON in file: {failure}"
+    except Exception as failure:
+        error = f"Unexpected error: {failure}"
+    return {
+        "path": path,
+        "endpoint": determine_endpoint(path, base_dir, fixture),
+        "fixture": fixture,
+        "read_error": error,
+    }
 
-    # Fallback: derive from path (construction endpoints)
+
+def _fixture_skip_reason(
+    fixture: Dict[str, Any], network_id: Optional[str]
+) -> Tuple[bool, Any]:
+    if "skip_reason" in fixture:
+        return True, fixture["skip_reason"]
+    if "network" in fixture and network_id and fixture["network"] != network_id:
+        return (
+            True,
+            f"Requires network '{fixture['network']}', running on '{network_id}'",
+        )
+    if "request_body" not in fixture:
+        return True, "No request_body found"
+    if not ("expected_response" in fixture or "expected_error" in fixture):
+        return True, fixture.get(
+            "description", "No expected_response or expected_error found"
+        )
+    return False, None
+
+
+def _schema_info(
+    endpoint: str,
+    http_status: int,
+    actual: Any,
+    validator: SchemaValidator,
+    show_details: bool,
+) -> Dict[str, Any]:
+    errors = validator.validate_response(endpoint, http_status, actual)
+    summary = (
+        validator.summarize_schema(validator.get_resolved_schema(endpoint, http_status))
+        if show_details
+        else None
+    )
+    return {
+        "status": "failed" if errors else "passed",
+        "endpoint": endpoint,
+        "http_status": http_status,
+        "descriptor": validator.describe_response_schema(endpoint, http_status),
+        "errors": errors,
+        "summary": summary,
+    }
+
+
+def validate_fixture(
+    case: Dict[str, Any],
+    options: argparse.Namespace,
+    validator: SchemaValidator,
+) -> Dict[str, Any]:
+    result: Dict[str, Any] = {
+        "file": str(case["path"].relative_to(options.base_dir)),
+        "status": "unknown",
+        "differences": [],
+        "error": None,
+    }
+    if case["read_error"]:
+        return dict(result, status="error", error=case["read_error"])
     try:
-        rel = file_path.resolve().relative_to(Path(BASE_PATH).resolve())
-        # Handle both old structure (construction/X) and new (construction/X or data/X)
-        if rel.parts[0] == "construction" and len(rel.parts) > 1:
-            return f"/construction/{rel.parts[1]}"
-        return f"/construction/{rel.parts[0]}"
-    except Exception:
-        parts = list(file_path.resolve().parts)
-        for i, p in enumerate(parts):
-            if p == "construction" and i + 1 < len(parts):
-                return f"/construction/{parts[i + 1]}"
-        return f"/construction/{file_path.parent.name}"
+        fixture, endpoint = case["fixture"], case["endpoint"]
+        skipped, reason = _fixture_skip_reason(fixture, options.network_id)
+        if skipped:
+            return dict(result, status="skipped", error=reason)
+        actual, http_status, error, metrics = call_api(
+            endpoint, fixture["request_body"], options.url, options.network_id
+        )
+        if error:
+            return dict(result, status="error", error=f"API call failed: {error}")
+        schema_info = _schema_info(
+            endpoint, http_status, actual, validator, options.schema_details
+        )
+        result["schema_info"] = schema_info
+        result["metrics"] = {
+            "status": http_status,
+            "time_ms": metrics["time_ms"],
+            "size_bytes": metrics["size_bytes"],
+        }
+        if "expected_error" in fixture:
+            fixture = dict(
+                fixture,
+                expected_error=replace_network_placeholder(
+                    fixture["expected_error"], options.network_id
+                ),
+            )
+        result["status"], result["differences"] = evaluate_response(
+            fixture, endpoint, actual, http_status, schema_info["errors"]
+        )
+    except Exception as failure:
+        result.update(status="error", error=f"Unexpected error: {failure}")
+    return result
 
 
-def get_ignore_paths(endpoint: str) -> List[str]:
-    endpoint_key = endpoint.split("/")[-1]
-    return VOLATILE_FIELDS.get(endpoint_key, DATA_ENDPOINT_VOLATILE_FIELDS.get(endpoint_key, []))
+def group_fixtures(
+    fixtures: List[Dict[str, Any]], base_dir: Path
+) -> Iterator[Tuple[str, Dict[str, List[Dict[str, Any]]]]]:
+    endpoints: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+    for case in fixtures:
+        endpoints[case["endpoint"]].append(case)
+    for endpoint in sorted(endpoints):
+        groups: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+        for case in sorted(endpoints[endpoint], key=lambda case: case["path"]):
+            relative = case["path"].resolve().relative_to(base_dir.resolve())
+            name = relative.parts[1] if len(relative.parts) > 1 else "_root"
+            groups[name].append(case)
+        yield endpoint, dict(sorted(groups.items()))
 
 
-def _fmt_bytes(n: Any) -> str:
-    try:
-        n = int(n)
-    except Exception:
-        return str(n)
-    u = ["B", "KB", "MB", "GB"]
-    s = float(n)
-    for unit in u:
-        if s < 1024.0 or unit == u[-1]:
-            return f"{int(s)} {unit}" if unit == "B" else f"{s:.1f} {unit}"
-        s /= 1024.0
-    return f"{s:.1f} {u[-1]}"  # Fallback return for edge cases
+def run_group(
+    cases: List[Dict[str, Any]],
+    options: argparse.Namespace,
+    validator: SchemaValidator,
+    ordered: bool,
+) -> Iterator[Dict[str, Any]]:
+    with ThreadPoolExecutor(max_workers=options.workers) as executor:
+        futures = {
+            executor.submit(validate_fixture, case, options, validator): index
+            for index, case in enumerate(cases)
+        }
+        completed = (
+            (futures[future], future.result()) for future in as_completed(futures)
+        )
+        if ordered:
+            completed = iter(sorted(completed, key=lambda item: item[0]))
+        for _, result in completed:
+            yield result
 
 
-def _fmt_ms(ms: Any) -> str:
-    try:
-        v = float(ms)
-    except Exception:
-        return str(ms)
-    return f"{v:.0f} ms" if v < 1000 else f"{v / 1000.0:.2f} s"
+# Presentation. Both output modes consume the same results.
+
+
+def _fmt_bytes(value: int) -> str:
+    size = float(value)
+    for unit in ("B", "KB", "MB"):
+        if size < 1024.0:
+            return f"{int(size)} {unit}" if unit == "B" else f"{size:.1f} {unit}"
+        size /= 1024.0
+    return f"{size:.1f} GB"
+
+
+def _fmt_ms(value: float) -> str:
+    return f"{value:.0f} ms" if value < 1000 else f"{value / 1000.0:.2f} s"
+
+
+def _schema_desc(descriptor: str) -> str:
+    return (
+        descriptor.split("/")[-1]
+        if isinstance(descriptor, str)
+        and descriptor.startswith("#/components/schemas/")
+        else descriptor
+    )
 
 
 def _status_text(status: str) -> str:
@@ -494,291 +645,212 @@ def _status_text(status: str) -> str:
     }.get(status, f"{MAGENTA}ERROR{RESET}")
 
 
-def _schema_desc(d: str) -> str:
-    return (
-        d.split("/")[-1]
-        if isinstance(d, str) and d.startswith("#/components/schemas/")
-        else d
+def _rich_group(
+    endpoint: str, name: str, validator: SchemaValidator
+) -> Tuple[Any, Any]:
+    success = validator.summarize_schema(validator.get_resolved_schema(endpoint, 200))
+    error = validator.summarize_schema(validator.get_resolved_schema(endpoint, 500))
+    schemas = Table(box=box.SIMPLE, expand=True)
+    schemas.add_column("Success schema", style="green", overflow="fold")
+    schemas.add_column("Error schema", style="yellow", overflow="fold")
+    schemas.add_row(success, error)
+    schemas_panel = Panel(schemas, title="Schemas", border_style="cyan")
+    table = Table.grid(expand=True, padding=(1, 1))
+    for label, ratio in [
+        ("File", 6),
+        ("Status", 2),
+        ("HTTP", 1),
+        ("Time", 1),
+        ("Size", 1),
+        ("Schema", 4),
+    ]:
+        table.add_column(label, ratio=ratio, overflow="fold")
+    table.add_row(
+        *(
+            Text(label, style="bold")
+            for label in ["File", "Status", "HTTP", "Time", "Size", "Schema"]
+        )
     )
+    root = Panel(
+        Group(schemas_panel, table),
+        title=f"{endpoint.split('/')[-1]}/{name}",
+        border_style="white",
+        expand=True,
+    )
+    return table, root
 
 
-def _rate_style(pr: float) -> str:
-    try:
-        v = float(pr)
-    except Exception:
-        return "green"
-    if v >= 90.0:
-        return "green"
-    if v >= 50.0:
-        return "yellow"
-    return "red"
+def _print_rich_result(result: Dict[str, Any], table: Any, console: Any) -> None:
+    schema, metrics = result.get("schema_info", {}), result.get("metrics", {})
+    filename = Path(result["file"]).name
+    table.add_row(
+        filename,
+        _status_text(result["status"]),
+        str(metrics.get("status", "")),
+        _fmt_ms(metrics.get("time_ms", 0)),
+        _fmt_bytes(metrics.get("size_bytes", 0)),
+        _schema_desc(schema.get("descriptor", "")),
+    )
+    if result["status"] == "failed" and result.get("differences"):
+        details = Text()
+        for difference in result["differences"]:
+            details.append(f"• {difference}\n", style="red")
+        console.print(Panel(details, title=f"Details: {filename}", border_style="red"))
+    elif result["status"] == "error" and result.get("error"):
+        console.print(
+            Panel(
+                Text(str(result["error"])),
+                title=f"Error: {filename}",
+                border_style="magenta",
+            )
+        )
 
 
 def print_result(
-    res: Dict[str, Any], verbose: bool = False, rich_collect: bool = False
-) -> Optional[Dict[str, str]]:
-    s = res["status"]
-    color, sym = (
-        (GREEN, ".")
-        if s == "passed"
-        else (
-            (RED, "F")
-            if s == "failed"
-            else ((YELLOW, "S") if s == "skipped" else (MAGENTA, "E"))
-        )
-    )
-    if verbose and rich_collect and USE_RICH and RICH_CONSOLE is not None:
-        schema_info = res.get("schema_info", {})
-        met = res.get("metrics", {})
-        return {
-            "file": res.get("file", ""),
-            "status": _status_text(s),
-            "http": str(met.get("status", "")),
-            "time": _fmt_ms(met.get("time_ms", 0)),
-            "size": _fmt_bytes(met.get("size_bytes", 0)),
-            "schema": _schema_desc(schema_info.get("descriptor", "")),
-        }
-    if verbose:
-        print(f"  {res['file']}: {color}{s.upper()}{RESET}")
-        sch = res.get("schema_info", {})
-        if sch:
-            print(
-                f"    - Schema: {_schema_desc(sch.get('descriptor', 'unavailable'))} [{(sch.get('status', 'unavailable') or '').upper()}]"
-            )
-            if SHOW_SCHEMA_DETAILS and sch.get("summary"):
-                print(f"    - Schema details: {sch['summary']}")
-        met = res.get("metrics", {})
-        if met:
-            print(
-                f"    - HTTP: {met.get('status', '')} • Time: {_fmt_ms(met.get('time_ms', 0))} • Size: {_fmt_bytes(met.get('size_bytes', 0))}"
-            )
-        if s == "failed" and res.get("differences"):
-            for d in res["differences"]:
-                print(f"    - {d}")
-        elif s == "error" and res.get("error"):
-            print(f"    - {res['error']}")
-    else:
-        sys.stdout.write(f"{color}{sym}{RESET}")
+    result: Dict[str, Any],
+    options: argparse.Namespace,
+    table: Any = None,
+    console: Any = None,
+) -> None:
+    if table is not None:
+        _print_rich_result(result, table, console)
+        return
+    status = result["status"]
+    color, symbol = {
+        "passed": (GREEN, "."),
+        "failed": (RED, "F"),
+        "skipped": (YELLOW, "S"),
+    }.get(status, (MAGENTA, "E"))
+    if not options.verbose:
+        sys.stdout.write(f"{color}{symbol}{RESET}")
         sys.stdout.flush()
-    return None
+        return
+    print(f"  {result['file']}: {color}{status.upper()}{RESET}")
+    schema = result.get("schema_info", {})
+    if schema:
+        print(
+            f"    - Schema: {_schema_desc(schema['descriptor'])} [{schema['status'].upper()}]"
+        )
+        if options.schema_details and schema.get("summary"):
+            print(f"    - Schema details: {schema['summary']}")
+    metrics = result.get("metrics", {})
+    if metrics:
+        print(
+            f"    - HTTP: {metrics.get('status', '')} • Time: {_fmt_ms(metrics.get('time_ms', 0))} • Size: {_fmt_bytes(metrics.get('size_bytes', 0))}"
+        )
+    if status == "failed" and result.get("differences"):
+        for difference in result["differences"]:
+            print(f"    - {difference}")
+    elif status == "error" and result.get("error"):
+        print(f"    - {result['error']}")
 
 
-def _normalize_req_ids(msg: str) -> str:
-    import re
+def result_counts(results: List[Dict[str, Any]]) -> Counter:
+    counts = Counter(result["status"] for result in results)
+    counts["total"] = len(results)
+    counts["errors"] = (
+        len(results) - counts["passed"] - counts["failed"] - counts["skipped"]
+    )
+    return counts
 
-    return re.sub(r"request \d+:", "request [ID]:", msg)
 
-
-def validate_file(file_path: Path) -> Dict[str, Any]:
-    res: Dict[str, Any] = {
-        "file": str(file_path.relative_to(BASE_PATH)),
-        "status": "unknown",
-        "differences": [],
-        "error": None,
+def print_endpoint_summary(
+    endpoint: str, results: List[Dict[str, Any]], console: Any
+) -> Dict[str, Any]:
+    counts = result_counts(results)
+    total = counts["total"]
+    rate = counts["passed"] / total * 100.0 if total else 0.0
+    timings = [
+        float(result.get("metrics", {}).get("time_ms", 0.0) or 0.0)
+        for result in results
+    ]
+    elapsed = sum(timings)
+    size = sum(
+        int(result.get("metrics", {}).get("size_bytes", 0) or 0) for result in results
+    )
+    slowest = max(zip(timings, results), key=lambda item: item[0], default=(0.0, None))
+    color = GREEN if rate >= 90 else (YELLOW if rate >= 50 else RED)
+    first_line = (
+        f"Files {CYAN}{total}{RESET} • Passed {GREEN}{counts['passed']}{RESET} • "
+        f"Failed {RED}{counts['failed']}{RESET} • Skipped {YELLOW}{counts['skipped']}{RESET} • "
+        f"Errors {MAGENTA}{counts['errors']}{RESET} • Pass {color}{rate:.1f}%{RESET}"
+    )
+    second_line = (
+        f"Total {CYAN}{_fmt_ms(elapsed)}{RESET} • Avg {CYAN}{_fmt_ms(elapsed / total if total else 0.0)}{RESET} • "
+        f"Data {CYAN}{_fmt_bytes(size)}{RESET}"
+    )
+    if slowest[0] > 0:
+        second_line += f" • Slowest {BLUE}{Path(slowest[1]['file']).name}{RESET} ({YELLOW}{_fmt_ms(slowest[0])}{RESET})"
+    if console is not None:
+        console.print(
+            Panel(
+                Text.from_ansi(first_line + "\n" + second_line),
+                title=f"\nSummary {endpoint}",
+                border_style="white",
+                expand=True,
+            )
+        )
+    else:
+        print(f"\n  Summary: {first_line}\n  Time: {second_line}")
+    for status, title in [
+        ("failed", "Failing tests"),
+        ("error", "Errors"),
+        ("skipped", "Skipped tests"),
+    ]:
+        cases = [result for result in results if result["status"] == status]
+        if cases:
+            print(f"\n  {BOLD}{title}:{RESET}")
+        for result in cases:
+            if status == "failed" and result.get("differences"):
+                print(
+                    f"    - {BLUE}{result['file']}{RESET} ::\n      {result['differences'][0]}"
+                )
+            elif status != "failed":
+                reason = result.get("error") or (
+                    "skipped" if status == "skipped" else "error"
+                )
+                print(
+                    f"    - {BLUE}{result['file']}{RESET} :: {YELLOW if status == 'skipped' else MAGENTA}{reason}{RESET}"
+                )
+    return {
+        "endpoint": endpoint,
+        **{key: counts[key] for key in ["passed", "failed", "skipped", "errors"]},
     }
-    try:
-        test = json.loads(Path(file_path).read_text(encoding="utf-8"))
-        if "skip_reason" in test:
-            res.update({"status": "skipped", "error": test["skip_reason"]})
-            return res
-        if "network" in test and NETWORK_ID and test["network"] != NETWORK_ID:
-            res.update({"status": "skipped", "error": f"Requires network '{test['network']}', running on '{NETWORK_ID}'"})
-            return res
-        if "request_body" not in test:
-            res.update({"status": "skipped", "error": "No request_body found"})
-            return res
-        has_ok, has_err = ("expected_response" in test), ("expected_error" in test)
-        if not (has_ok or has_err):
-            skip_reason = test.get(
-                "description", "No expected_response or expected_error found"
-            )
-            res.update(
-                {
-                    "status": "skipped",
-                    "error": skip_reason,
-                }
-            )
-            return res
-
-        endpoint = determine_endpoint(file_path)
-        actual, http, err, metrics = call_api(endpoint, test["request_body"])
-        if err:
-            res.update({"status": "error", "error": f"API call failed: {err}"})
-            return res
-
-        # Schema
-        sch_errs: List[str] = []
-        sch_desc, sch_status, sch_summary = "unavailable", "unavailable", None
-        if SCHEMA_VALIDATOR is not None and actual is not None:
-            try:
-                sch_errs = SCHEMA_VALIDATOR.validate_response(endpoint, http, actual)
-                sch_desc = SCHEMA_VALIDATOR.describe_response_schema(endpoint, http)
-            except Exception as e:
-                sch_errs, sch_desc = [f"Schema validator exception: {e}"], "exception"
-        if (
-            not SCHEMA_VALIDATOR
-            or not getattr(SCHEMA_VALIDATOR, "enabled", False)
-            or getattr(SCHEMA_VALIDATOR, "spec", None) is None
-        ):
-            stats["schema_unavailable"] += 1
-            sch_status = "unavailable"
-        else:
-            if sch_desc == "none":
-                stats["schema_skipped"] += 1
-                sch_status = "skipped"
-            else:
-                stats["schema_checked"] += 1
-                if sch_errs:
-                    stats["schema_failed"] += 1
-                    sch_status = "failed"
-                else:
-                    stats["schema_passed"] += 1
-                    sch_status = "passed"
-        if SHOW_SCHEMA_DETAILS and SCHEMA_VALIDATOR and SCHEMA_VALIDATOR.enabled:
-            r = SCHEMA_VALIDATOR.get_resolved_schema(endpoint, http)
-            sch_summary = (
-                SCHEMA_VALIDATOR.summarize_schema(r) if r is not None else None
-            )
-        res["schema_info"] = {
-            "enabled": bool(
-                SCHEMA_VALIDATOR and getattr(SCHEMA_VALIDATOR, "enabled", False)
-            ),
-            "status": sch_status,
-            "endpoint": endpoint,
-            "http_status": http,
-            "descriptor": sch_desc,
-            "errors": sch_errs,
-            "summary": sch_summary,
-        }
-        res["metrics"] = {
-            "status": http,
-            "time_ms": float((metrics or {}).get("time_ms", 0.0)),
-            "size_bytes": int((metrics or {}).get("size_bytes", 0)),
-        }
-
-        # Expectations
-        if has_ok:
-            if http != 200:
-                err_obj = (
-                    (actual.get("error", actual) if isinstance(actual, dict) else {})
-                    if actual
-                    else {}
-                )
-                code = err_obj.get("code", "unknown")
-                msg = err_obj.get("message", "unknown message")
-                det = err_obj.get("details", {})
-                dm = (
-                    f" - {det.get('message')}"
-                    if isinstance(det, dict) and "message" in det
-                    else (f" - {det}" if isinstance(det, str) else "")
-                )
-                res.update(
-                    {
-                        "status": "failed",
-                        "differences": [
-                            f"Expected successful response but got ERROR {code}: {msg}{dm} (HTTP {http})"
-                        ],
-                    }
-                )
-            else:
-                diffs = deep_diff(
-                    test["expected_response"], actual, "", get_ignore_paths(endpoint)
-                )
-                if sch_errs:
-                    diffs.extend([f"Schema: {m}" for m in sch_errs])
-                res.update(
-                    {"status": "failed", "differences": diffs}
-                ) if diffs else res.update({"status": "passed"})
-        else:  # has_err
-            if http != 200:
-                exp, _ = replace_network_placeholder(test["expected_error"])
-                act_obj: Dict[str, Any] = actual if isinstance(actual, dict) else {}
-                act = act_obj.get("error", act_obj)
-                if "code" in exp and "code" in act and exp["code"] != act["code"]:
-                    res.update(
-                        {
-                            "status": "failed",
-                            "differences": [
-                                f"Error code mismatch: expected {exp['code']} but got {act['code']}"
-                            ],
-                        }
-                    )
-                else:
-                    diffs: List[str] = []
-                    if (
-                        "message" in exp
-                        and "message" in act
-                        and exp["message"] != act["message"]
-                    ):
-                        diffs.append(
-                            f'message: Expected "{exp["message"]}" but got "{act["message"]}"'
-                        )
-                    if (
-                        "details" in exp
-                        and "details" in act
-                        and isinstance(exp["details"], dict)
-                        and isinstance(act["details"], dict)
-                    ):
-                        em, am = (
-                            exp["details"].get("message"),
-                            act["details"].get("message"),
-                        )
-                        if (
-                            isinstance(em, str)
-                            and isinstance(am, str)
-                            and _normalize_req_ids(em) != _normalize_req_ids(am)
-                        ):
-                            diffs.append(
-                                f'details.message: Expected "{em}" but got "{am}"'
-                            )
-                    if sch_errs:
-                        diffs.extend([f"Schema: {m}" for m in sch_errs])
-                    res.update(
-                        {"status": "failed", "differences": diffs}
-                    ) if diffs else res.update({"status": "passed"})
-            else:
-                res.update(
-                    {
-                        "status": "failed",
-                        "differences": ["Expected error but got successful response"],
-                    }
-                )
-    except json.JSONDecodeError as e:
-        res.update({"status": "error", "error": f"Invalid JSON in file: {e}"})
-    except Exception as e:
-        res.update({"status": "error", "error": f"Unexpected error: {e}"})
-    return res
 
 
-# --------------------- Reporting ---------------------
-def print_summary(elapsed_time: float = 0) -> None:
+def print_summary(statistics: Dict[str, Any], elapsed_time: float = 0) -> None:
+    counts = result_counts(statistics["results"])
+    schemas = Counter(
+        result["schema_info"]["status"]
+        for result in statistics["results"]
+        if "schema_info" in result
+    )
+    total, passed, failed = counts["total"], counts["passed"], counts["failed"]
+    skipped, errors = counts["skipped"], counts["errors"]
+    rate = passed / total * 100 if total else 0
     print("\n" + "=" * 80)
     print(f"{BOLD}VALIDATION SUMMARY{RESET}")
     print("=" * 80)
-    total = stats["files_tested"]
-    passed = stats["files_passed"]
-    failed = stats["files_failed"]
-    skipped = stats["files_skipped"]
-    errors = total - passed - failed - skipped
-    rate = (passed / total * 100) if total > 0 else 0
-    print(f"\nTotal files found: {stats['total_files']}")
-    print(f"Files tested: {total}")
+    print(f"\nTotal files found: {statistics['total_files']}\nFiles tested: {total}")
     print(f"  {GREEN}✓ Passed: {passed} ({rate:.1f}%){RESET}")
-    print(f"  {RED}✗ Failed: {failed}{RESET}")
-    print(f"  {YELLOW}○ Skipped: {skipped}{RESET}")
-    print(f"  {MAGENTA}⚠ Errors: {errors}{RESET}")
+    print(
+        f"  {RED}✗ Failed: {failed}{RESET}\n  {YELLOW}○ Skipped: {skipped}{RESET}\n  {MAGENTA}⚠ Errors: {errors}{RESET}"
+    )
     print(f"\n{BOLD}Schema validation:{RESET}")
     print(
-        f"  checked: {stats['schema_checked']}, {GREEN}passed: {stats['schema_passed']}{RESET}, {RED}failed: {stats['schema_failed']}{RESET}, {YELLOW}skipped: {stats['schema_skipped']}{RESET}, {MAGENTA}unavailable: {stats['schema_unavailable']}{RESET}"
+        f"  checked: {schemas['passed'] + schemas['failed']}, {GREEN}passed: {schemas['passed']}{RESET}, "
+        f"{RED}failed: {schemas['failed']}{RESET}"
     )
     print(f"\n{BOLD}Per-endpoint status:{RESET}")
-    sums = stats.get("endpoint_summaries", [])
-    if sums:
-        for s in sums:
-            tot = s["passed"] + s["failed"] + s["skipped"] + s["errors"]
-            print(
-                f"  {s['endpoint']}: {GREEN}{s['passed']}{RESET}/{tot} passed, {RED}{s['failed']}{RESET} failed, {YELLOW}{s['skipped']}{RESET} skipped, {MAGENTA}{s['errors']}{RESET} errors"
-            )
+    for summary in statistics["endpoint_summaries"]:
+        endpoint_total = sum(
+            summary[key] for key in ["passed", "failed", "skipped", "errors"]
+        )
+        print(
+            f"  {summary['endpoint']}: {GREEN}{summary['passed']}{RESET}/{endpoint_total} passed, "
+            f"{RED}{summary['failed']}{RESET} failed, {YELLOW}{summary['skipped']}{RESET} skipped, "
+            f"{MAGENTA}{summary['errors']}{RESET} errors"
+        )
     if elapsed_time > 0:
         print(f"\n{BOLD}Total execution time:{RESET} {CYAN}{elapsed_time:.2f}s{RESET}")
     print("\n" + "=" * 80)
@@ -787,48 +859,20 @@ def print_summary(elapsed_time: float = 0) -> None:
     )
 
 
-# --------------------- CLI + Runner ---------------------
-def _collect_files(args_paths: List[str]) -> List[Path]:
-    if not args_paths:
-        return list(Path(BASE_PATH).rglob("*.json"))
-    out: List[Path] = []
-    for pattern in args_paths:
-        if os.path.exists(pattern):
-            p = Path(pattern)
-            if p.is_file() and p.suffix == ".json":
-                out.append(p.resolve())
-            elif p.is_dir():
-                out.extend(p.rglob("*.json"))
-            continue
-        out.extend(
-            Path(f).resolve()
-            for f in glob.glob(pattern, recursive=True)
-            if f.endswith(".json")
-        )
-        base_pat = str(Path(BASE_PATH) / pattern)
-        out.extend(
-            Path(f) for f in glob.glob(base_pat, recursive=True) if f.endswith(".json")
-        )
-        if os.path.isdir(Path(BASE_PATH) / pattern):
-            out.extend((Path(BASE_PATH) / pattern).rglob("*.json"))
-    # de-dup
-    return list({p.resolve() for p in out})
+# CLI and orchestration
 
 
-def main() -> None:
-    start_time = time.time()
+def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Validate Rosetta construction test files against a running API",
+        description="Validate Rosetta golden test files against a running API",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Examples:\n"
-            "  python3 test_construction_api.py\n"
-            "  python3 test_construction_api.py -u http://localhost:8080 -v\n"
-            "  python3 test_construction_api.py 'preprocess/**/*.json'\n"
-            "  python3 test_construction_api.py --base-dir /path/to/golden_examples/rosetta_java/construction\n"
-            "  python3 test_construction_api.py -j 20  # Run with 20 parallel workers\n"
-            "  python3 test_construction_api.py --network-id devkit  # Replace {{networkId}} with 'devkit'\n"
-            "  python3 test_construction_api.py -n preprod -v  # Use preprod network with verbose output\n"
+            "  uv run test_golden_examples.py\n"
+            "  uv run test_golden_examples.py -u http://localhost:8080 -v\n"
+            "  uv run test_golden_examples.py 'construction/preprocess/**/*.json'\n"
+            "  uv run test_golden_examples.py -j 20\n"
+            "  uv run test_golden_examples.py --network-id devkit\n"
         ),
     )
     parser.add_argument(
@@ -838,7 +882,8 @@ def main() -> None:
     )
     parser.add_argument(
         "--base-dir",
-        default=str(DEFAULT_BASE_DIR),
+        type=Path,
+        default=DEFAULT_BASE_DIR,
         help="Root directory with construction tests",
     )
     parser.add_argument(
@@ -846,11 +891,9 @@ def main() -> None:
     )
     parser.add_argument(
         "--openapi",
-        default=str(DEFAULT_OPENAPI_PATH),
+        type=Path,
+        default=DEFAULT_OPENAPI_PATH,
         help="OpenAPI spec file (YAML/JSON)",
-    )
-    parser.add_argument(
-        "--no-schema", action="store_true", help="Disable schema validation"
     )
     parser.add_argument("-o", "--output", help="Write full report to this file")
     parser.add_argument(
@@ -874,425 +917,77 @@ def main() -> None:
         default="preprod",
         help="Network ID to replace {{networkId}} placeholders in test files (e.g., 'devkit', 'preprod', 'mainnet')",
     )
-    args = parser.parse_args()
+    options = parser.parse_args(argv)
+    options.base_dir = options.base_dir.resolve()
+    options.schema_details = bool(options.schema_details or options.verbose)
+    return options
 
-    global \
-        ROSETTA_URL, \
-        VERBOSE, \
-        BASE_PATH, \
-        SCHEMA_VALIDATION_ENABLED, \
-        OPENAPI_SPEC_PATH, \
-        SCHEMA_VALIDATOR, \
-        SHOW_SCHEMA_DETAILS, \
-        RICH_CONSOLE, \
-        USE_RICH, \
-        WORKERS, \
-        NETWORK_ID
-    ROSETTA_URL = args.url
-    VERBOSE = args.verbose
-    BASE_PATH = Path(args.base_dir)
-    SCHEMA_VALIDATION_ENABLED = not args.no_schema
-    OPENAPI_SPEC_PATH = Path(args.openapi) if args.openapi else None
-    SHOW_SCHEMA_DETAILS = bool(args.schema_details or args.verbose)
-    WORKERS = args.workers
-    NETWORK_ID = args.network_id
 
-    original_stdout = sys.stdout
-    if args.output:
-        sys.stdout = open(args.output, "w", encoding="utf-8")
-
-    try:
-        if VERBOSE and Console is not None:
-            RICH_CONSOLE = Console()
-            USE_RICH = True
-        else:
-            RICH_CONSOLE = None
-            USE_RICH = False
-
-        if SCHEMA_VALIDATION_ENABLED and OPENAPI_SPEC_PATH is not None:
-            SCHEMA_VALIDATOR = SchemaValidator(OPENAPI_SPEC_PATH, enabled=True)
-        else:
-            SCHEMA_VALIDATOR = None
-
-        print("\nScanning for test files...")
-        files = _collect_files(args.paths)
-        stats["total_files"] = len(files)
-        print(f"Found {len(files)} test files\n")
-
-        files_by_endpoint: Dict[str, List[Path]] = defaultdict(list)
-        for fp in files:
-            files_by_endpoint[determine_endpoint(fp)].append(fp)
-
-        for endpoint in sorted(files_by_endpoint):
-            flist = files_by_endpoint[endpoint]
-            name = endpoint.split("/")[-1]
-            print("")
-            print(f"{BOLD}Testing {endpoint} ({len(flist)} files){RESET}")
-            print("-" * 40)
-
-            ep_passed = ep_failed = ep_skipped = ep_errors = 0
-            ep_failures: List[Tuple[str, str]] = []
-            ep_error_cases: List[Tuple[str, str]] = []
-            ep_skips: List[Tuple[str, str]] = []
-            ep_total_time_ms = 0.0
-            ep_total_bytes = 0
-            ep_slowest_ms = 0.0
-            ep_slowest_file = ""
-
-            groups: Dict[str, List[Path]] = defaultdict(list)
-            for fp in sorted(flist):
-                try:
-                    rel = fp.resolve().relative_to(Path(BASE_PATH).resolve())
-                    group = rel.parts[1] if len(rel.parts) > 1 else "_root"
-                except Exception:
-                    group = fp.parent.name
-                groups[group].append(fp)
-
-            collecting = bool(
-                VERBOSE
-                and USE_RICH
-                and RICH_CONSOLE is not None
-                and Table is not None
-                and Live is not None
-            )
-            for gname in sorted(groups):
-                gfiles = groups[gname]
-                if collecting:
-                    assert (
-                        RICH_CONSOLE is not None
-                        and Live is not None
-                        and Table is not None
-                    )
-                    schemas_panel = None
-                    if SCHEMA_VALIDATOR and SCHEMA_VALIDATOR.enabled:
-                        suc = SCHEMA_VALIDATOR.get_resolved_schema(endpoint, 200)
-                        err = SCHEMA_VALIDATOR.get_resolved_schema(endpoint, 500)
-                        ssum = SCHEMA_VALIDATOR.summarize_schema(suc) if suc else None
-                        esum = SCHEMA_VALIDATOR.summarize_schema(err) if err else None
-                        if ssum or esum:
-                            st = Table(box=box.SIMPLE if box else None, expand=True)
-                            st.add_column(
-                                "Success schema", style="green", overflow="fold"
-                            )
-                            st.add_column(
-                                "Error schema", style="yellow", overflow="fold"
-                            )
-                            st.add_row(ssum or "—", esum or "—")
-                            schemas_panel = (
-                                Panel(st, title="Schemas", border_style="cyan")
-                                if Panel is not None
-                                else st
-                            )
-
-                    rt = Table.grid(expand=True, padding=(1, 1))
-                    rt.add_column("File", ratio=6, overflow="fold")
-                    rt.add_column("Status", ratio=2)
-                    rt.add_column("HTTP", ratio=1)
-                    rt.add_column("Time", ratio=1)
-                    rt.add_column("Size", ratio=1)
-                    rt.add_column("Schema", ratio=4, overflow="fold")
-                    rt.add_row(
-                        *(
-                            Text(h, style="bold") if Text else h
-                            for h in (
-                                "File",
-                                "Status",
-                                "HTTP",
-                                "Time",
-                                "Size",
-                                "Schema",
-                            )
-                        )
-                    )
-
-                    root = (
-                        Panel(
-                            Group(schemas_panel, rt),
-                            title=f"{name}/{gname}",
-                            border_style="white",
-                            expand=True,
-                        )
-                        if Panel and Group
-                        else rt
-                    )
-                    with Live(root, console=RICH_CONSOLE, refresh_per_second=8):
-                        # Process files in parallel, maintain order for display
-                        with ThreadPoolExecutor(max_workers=WORKERS) as executor:
-                            future_to_fp = {
-                                executor.submit(validate_file, fp): fp for fp in gfiles
-                            }
-                            results = []
-                            for future in as_completed(future_to_fp):
-                                fp = future_to_fp[future]
-                                r = future.result()
-                                results.append((fp, r))
-
-                            # Sort results back to original order for consistent display
-                            results.sort(key=lambda x: gfiles.index(x[0]))
-
-                            # Process results in order
-                            for fp, r in results:
-                                stats["files_tested"] += 1
-                                if r["status"] == "passed":
-                                    stats["files_passed"] += 1
-                                    ep_passed += 1
-                                elif r["status"] == "failed":
-                                    stats["files_failed"] += 1
-                                    stats["errors_by_endpoint"][name] += 1
-                                    ep_failed += 1
-                                    (
-                                        ep_failures.append(
-                                            (
-                                                r["file"],
-                                                (r.get("differences") or [""])[0],
-                                            )
-                                        )
-                                        if r.get("differences")
-                                        else None
-                                    )
-                                elif r["status"] == "skipped":
-                                    stats["files_skipped"] += 1
-                                    ep_skipped += 1
-                                    ep_skips.append(
-                                        (r["file"], r.get("error") or "skipped")
-                                    )
-                                else:
-                                    stats["errors_by_endpoint"][name] += 1
-                                    ep_errors += 1
-                                    ep_error_cases.append(
-                                        (r["file"], r.get("error") or "error")
-                                    )
-                                row = print_result(
-                                    r, verbose=VERBOSE, rich_collect=True
-                                )
-                                if row is not None:
-                                    rt.add_row(
-                                        fp.name,
-                                        row["status"],
-                                        row["http"],
-                                        row["time"],
-                                        row["size"],
-                                        row["schema"],
-                                    )
-                                    m = r.get("metrics") or {}
-                                    ms = float(m.get("time_ms", 0.0) or 0.0)
-                                    sz = int(m.get("size_bytes", 0) or 0)
-                                    ep_total_time_ms += ms
-                                    ep_total_bytes += sz
-                                    if ms > ep_slowest_ms:
-                                        ep_slowest_ms = ms
-                                        ep_slowest_file = fp.name
-                                # In verbose mode, show details immediately for failures/errors
-                                if r["status"] in ("failed", "error"):
-                                    if Panel is not None and Text is not None:
-                                        if r["status"] == "failed" and r.get(
-                                            "differences"
-                                        ):
-                                            details_text = Text()
-                                            for d in r.get("differences", []):
-                                                details_text.append(
-                                                    f"• {d}\n", style="red"
-                                                )
-                                            RICH_CONSOLE.print(
-                                                Panel(
-                                                    details_text,
-                                                    title=f"Details: {fp.name}",
-                                                    border_style="red",
-                                                )
-                                            )
-                                        elif r["status"] == "error" and r.get("error"):
-                                            RICH_CONSOLE.print(
-                                                Panel(
-                                                    Text(str(r.get("error"))),
-                                                    title=f"Error: {fp.name}",
-                                                    border_style="magenta",
-                                                )
-                                            )
-                                    else:
-                                        # Fallback plain output
-                                        if r["status"] == "failed" and r.get(
-                                            "differences"
-                                        ):
-                                            print(f"\n  Details: {fp.name}")
-                                            for d in r.get("differences", []):
-                                                print(f"    - {d}")
-                                        elif r["status"] == "error" and r.get("error"):
-                                            print(
-                                                f"\n  Error: {fp.name} :: {r.get('error')}"
-                                            )
-                else:
-                    print(f"\n  {DIM}[{name}/{gname}]{RESET}")
-                    # Process files in parallel
-                    with ThreadPoolExecutor(max_workers=WORKERS) as executor:
-                        future_to_fp = {
-                            executor.submit(validate_file, fp): fp for fp in gfiles
-                        }
-                        for future in as_completed(future_to_fp):
-                            fp = future_to_fp[future]
-                            r = future.result()
-                            stats["files_tested"] += 1
-                            if r["status"] == "passed":
-                                stats["files_passed"] += 1
-                                ep_passed += 1
-                            elif r["status"] == "failed":
-                                stats["files_failed"] += 1
-                                stats["errors_by_endpoint"][name] += 1
-                                ep_failed += 1
-                                (
-                                    ep_failures.append(
-                                        (r["file"], (r.get("differences") or [""])[0])
-                                    )
-                                    if r.get("differences")
-                                    else None
-                                )
-                            elif r["status"] == "skipped":
-                                stats["files_skipped"] += 1
-                                ep_skipped += 1
-                                ep_skips.append(
-                                    (r["file"], r.get("error") or "skipped")
-                                )
-                            else:
-                                stats["errors_by_endpoint"][name] += 1
-                                ep_errors += 1
-                                ep_error_cases.append(
-                                    (r["file"], r.get("error") or "error")
-                                )
-                            print_result(r, verbose=VERBOSE)
-                            m = r.get("metrics") or {}
-                            ms = float(m.get("time_ms", 0.0) or 0.0)
-                            sz = int(m.get("size_bytes", 0) or 0)
-                            ep_total_time_ms += ms
-                            ep_total_bytes += sz
-                            if ms > ep_slowest_ms:
-                                ep_slowest_ms = ms
-                                ep_slowest_file = fp.name
-
-            total_ep = ep_passed + ep_failed + ep_skipped + ep_errors
-            pr = (ep_passed / total_ep * 100.0) if total_ep else 0.0
-            if VERBOSE and USE_RICH and RICH_CONSOLE is not None and Panel is not None:
-                avg_ms = (ep_total_time_ms / total_ep) if total_ep else 0.0
-                if Group is not None and Text is not None:
-                    # Rich-colored two-line compact summary
-                    line1 = Text()
-                    line1.append("Files ")
-                    line1.append(str(total_ep), style="cyan")
-                    line1.append(" • Passed ")
-                    line1.append(str(ep_passed), style="green")
-                    line1.append(" • Failed ")
-                    line1.append(str(ep_failed), style="red")
-                    line1.append(" • Skipped ")
-                    line1.append(str(ep_skipped), style="yellow")
-                    line1.append(" • Errors ")
-                    line1.append(str(ep_errors), style="magenta")
-                    line1.append(" • Pass ")
-                    line1.append(f"{pr:.1f}%", style=_rate_style(pr))
-
-                    line2 = Text()
-                    line2.append("Total ")
-                    line2.append(_fmt_ms(ep_total_time_ms), style="cyan")
-                    line2.append(" • Avg ")
-                    line2.append(_fmt_ms(avg_ms), style="cyan")
-                    line2.append(" • Data ")
-                    line2.append(_fmt_bytes(ep_total_bytes), style="cyan")
-                    if ep_slowest_file:
-                        line2.append(" • Slowest ")
-                        line2.append(ep_slowest_file, style="blue")
-                        line2.append(" (")
-                        line2.append(_fmt_ms(ep_slowest_ms), style="yellow")
-                        line2.append(")")
-                    content = Group(line1, line2)
-                else:
-                    # Fallback to ANSI-colored strings
-                    base_line = (
-                        f"Files {CYAN}{total_ep}{RESET} • "
-                        f"Passed {GREEN}{ep_passed}{RESET} • "
-                        f"Failed {RED}{ep_failed}{RESET} • "
-                        f"Skipped {YELLOW}{ep_skipped}{RESET} • "
-                        f"Errors {MAGENTA}{ep_errors}{RESET} • "
-                        f"Pass {GREEN if pr >= 90 else (YELLOW if pr >= 50 else RED)}{pr:.1f}%{RESET}"
-                    )
-                    metrics_line = (
-                        f"Total {CYAN}{_fmt_ms(ep_total_time_ms)}{RESET} • "
-                        f"Avg {CYAN}{_fmt_ms(avg_ms)}{RESET} • "
-                        f"Data {CYAN}{_fmt_bytes(ep_total_bytes)}{RESET}"
-                    )
-                    if ep_slowest_file:
-                        metrics_line += f" • Slowest {BLUE}{ep_slowest_file}{RESET} ({YELLOW}{_fmt_ms(ep_slowest_ms)}{RESET})"
-                    content = base_line + "\n" + metrics_line
-                RICH_CONSOLE.print(
-                    Panel(
-                        content,
-                        title=f"\nSummary {endpoint}",
-                        border_style="white",
-                        expand=True,
-                    )
-                )
-            else:
-                print("")
-                pr_color = GREEN if pr >= 90 else (YELLOW if pr >= 50 else RED)
-                print(
-                    "  Summary: "
-                    f"{GREEN}{ep_passed}{RESET}/{CYAN}{total_ep}{RESET} passed • "
-                    f"{RED}{ep_failed}{RESET} failed • "
-                    f"{YELLOW}{ep_skipped}{RESET} skipped • "
-                    f"{MAGENTA}{ep_errors}{RESET} errors • "
-                    f"pass {pr_color}{pr:.1f}%{RESET}"
-                )
-                avg_ms = (ep_total_time_ms / total_ep) if total_ep else 0.0
-                extra = f"  Time: total {CYAN}{_fmt_ms(ep_total_time_ms)}{RESET} • avg {CYAN}{_fmt_ms(avg_ms)}{RESET} • Data: {CYAN}{_fmt_bytes(ep_total_bytes)}{RESET}"
-                if ep_slowest_file:
-                    extra += f" • Slowest: {BLUE}{ep_slowest_file}{RESET} ({YELLOW}{_fmt_ms(ep_slowest_ms)}{RESET})"
-                print(extra)
-            if ep_failed and ep_failures:
-                print(f"\n  {BOLD}Failing tests:{RESET}")
-                for fn, diff in ep_failures:
-                    print(f"    - {BLUE}{fn}{RESET} ::")
-                    print(f"      {diff}")
-            if ep_errors and ep_error_cases:
-                print(f"\n  {BOLD}Errors:{RESET}")
-                for fn, reason in ep_error_cases:
-                    print(f"    - {BLUE}{fn}{RESET} :: {MAGENTA}{reason}{RESET}")
-            if ep_skipped and ep_skips:
-                print(f"\n  {BOLD}Skipped tests:{RESET}")
-                for fn, reason in ep_skips:
-                    print(f"    - {BLUE}{fn}{RESET} :: {YELLOW}{reason}{RESET}")
-
-            stats["endpoint_summaries"].append(
-                {
-                    "endpoint": endpoint,
-                    "passed": ep_passed,
-                    "failed": ep_failed,
-                    "skipped": ep_skipped,
-                    "errors": ep_errors,
-                }
-            )
-
-        elapsed = time.time() - start_time
-        print_summary(elapsed)
-
-        # Exit with proper code based on test results
-        failed = stats["files_failed"]
-        errors = (
-            stats["files_tested"]
-            - stats["files_passed"]
-            - stats["files_failed"]
-            - stats["files_skipped"]
+def execute(
+    options: argparse.Namespace,
+    validator: SchemaValidator,
+    console: Any,
+    statistics: Dict[str, Any],
+) -> None:
+    print("\nScanning for test files...")
+    files = collect_files(options.paths, options.base_dir)
+    statistics["total_files"] = len(files)
+    print(f"Found {len(files)} test files\n")
+    fixtures = [load_fixture(path, options.base_dir) for path in files]
+    for endpoint, groups in group_fixtures(fixtures, options.base_dir):
+        print(
+            f"\n{BOLD}Testing {endpoint} ({sum(len(cases) for cases in groups.values())} files){RESET}"
         )
-        if failed > 0 or errors > 0:
-            sys.exit(1)  # Fail CI when tests fail or have errors
-    finally:
-        if args.output:
-            sys.stdout.close()
-            sys.stdout = original_stdout
+        print("-" * 40)
+        endpoint_results: List[Dict[str, Any]] = []
+        for name, cases in groups.items():
+            table, live = None, nullcontext()
+            if console is not None:
+                table, root = _rich_group(endpoint, name, validator)
+                live = Live(root, console=console, refresh_per_second=8)
+            else:
+                print(f"\n  {DIM}[{endpoint.split('/')[-1]}/{name}]{RESET}")
+            with live:
+                for result in run_group(
+                    cases, options, validator, ordered=console is not None
+                ):
+                    statistics["results"].append(result)
+                    endpoint_results.append(result)
+                    print_result(result, options, table, console)
+        statistics["endpoint_summaries"].append(
+            print_endpoint_summary(endpoint, endpoint_results, console)
+        )
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    options = parse_args(argv)
+    start = time.time()
+    statistics: Dict[str, Any] = {
+        "total_files": 0,
+        "results": [],
+        "endpoint_summaries": [],
+    }
+    try:
+        with ExitStack() as stack:
+            if options.output:
+                output = stack.enter_context(
+                    open(options.output, "w", encoding="utf-8")
+                )
+                stack.enter_context(redirect_stdout(output))
+            console = Console() if options.verbose else None
+            validator = SchemaValidator(options.openapi)
+            execute(options, validator, console, statistics)
+            print_summary(statistics, time.time() - start)
+    except KeyboardInterrupt:
+        print(f"\n{YELLOW}Validation interrupted by user{RESET}")
+        print_summary(statistics, 0)
+        return 1
+    except Exception as failure:
+        print(f"\n{RED}Fatal error: {failure}{RESET}")
+        return 1
+    counts = result_counts(statistics["results"])
+    return int(counts["failed"] > 0 or counts["errors"] > 0)
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        print(f"\n{YELLOW}Validation interrupted by user{RESET}")
-        print_summary(0)
-        sys.exit(1)
-    except Exception as e:
-        print(f"\n{RED}Fatal error: {e}{RESET}")
-        sys.exit(1)
+    sys.exit(main())
