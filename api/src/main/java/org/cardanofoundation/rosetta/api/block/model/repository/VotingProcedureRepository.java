@@ -1,12 +1,13 @@
 package org.cardanofoundation.rosetta.api.block.model.repository;
 
-import org.cardanofoundation.rosetta.api.block.model.entity.VoterType;
-import org.cardanofoundation.rosetta.api.block.model.entity.VotingProcedureEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.VotingProcedureId;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import org.cardanofoundation.rosetta.api.block.model.entity.VoterType;
+import org.cardanofoundation.rosetta.api.block.model.entity.VotingProcedureEntity;
+import org.cardanofoundation.rosetta.api.block.model.entity.VotingProcedureId;
 
 /**
  * Repository for querying voting procedures from the voting_procedure table.

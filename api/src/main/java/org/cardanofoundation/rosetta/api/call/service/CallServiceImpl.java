@@ -1,20 +1,21 @@
 package org.cardanofoundation.rosetta.api.call.service;
 
+import java.util.*;
+import javax.annotation.Nullable;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.openapitools.client.model.CallRequest;
+import org.openapitools.client.model.CallResponse;
+
 import org.cardanofoundation.rosetta.api.error.model.domain.BlockParsingErrorReviewDTO;
 import org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus;
 import org.cardanofoundation.rosetta.api.error.model.entity.ErrorReviewEntity;
 import org.cardanofoundation.rosetta.api.error.service.BlockParsingErrorReviewService;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.openapitools.client.model.CallRequest;
-import org.openapitools.client.model.CallResponse;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import javax.annotation.Nullable;
-import java.util.*;
 
 import static org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus.UNREVIEWED;
 
@@ -25,7 +26,7 @@ public class CallServiceImpl implements CallService {
 
     private static final String METHOD_GET_PARSE_ERROR_BLOCKS = "get_parse_error_blocks";
     private static final String METHOD_MARK_PARSE_ERROR_BLOCK_CHECKED = "mark_parse_error_block_checked";
-    
+
     private final BlockParsingErrorReviewService blockParsingErrorReviewService;
 
     @Override
@@ -51,22 +52,22 @@ public class CallServiceImpl implements CallService {
     @Transactional(readOnly = true)
     public CallResponse getParseErrorBlocks(@Nullable ReviewStatus status) {
         log.info("Getting parse error blocks with status filter: {}", status);
-        
+
         List<BlockParsingErrorReviewDTO> errorBlocks = blockParsingErrorReviewService.findTop1000(status);
-        
+
         // Build the response according to the API specification
         Map<String, Object> result = new LinkedHashMap<>();
 
         List<Map<String, Object>> parseErrorBlocks = errorBlocks.stream()
                 .map(this::mapToParseErrorBlock)
                 .toList();
-        
+
         result.put("parse_error_blocks", parseErrorBlocks);
-        
+
         CallResponse response = new CallResponse();
         response.setResult(result);
         response.setIdempotent(false);
-        
+
         log.info("Returning {} parse error blocks", parseErrorBlocks.size());
 
         return response;
@@ -91,7 +92,7 @@ public class CallServiceImpl implements CallService {
 
         return Optional.empty();
     }
-    
+
     @Override
     @Transactional(readOnly = false) // Explicitly allow writes
     public CallResponse markParseErrorBlockChecked(Map<String, Object> params) {
@@ -107,12 +108,12 @@ public class CallServiceImpl implements CallService {
         if (reviewStatus == UNREVIEWED) {
             throw ExceptionFactory.invalidBlockErrorReviewStatus();
         }
-        
+
         String checkedBy = (String) params.get("checked_by");
         String comment = (String) params.get("comment");
-        
+
         log.info("Marking parse error block {} as checked with reviewStatus: {}", blockNumber, reviewStatus);
-        
+
         // Find all errors for this block number
         List<BlockParsingErrorReviewDTO> errorBlocks = blockParsingErrorReviewService.findTop1000ByBlockNumber(blockNumber);
 
@@ -131,7 +132,7 @@ public class CallServiceImpl implements CallService {
         CallResponse response = new CallResponse();
         response.setResult(result);
         response.setIdempotent(true);
-        
+
         log.info("Updated {} errors for block {}", errors.size(), blockNumber);
 
         return response;

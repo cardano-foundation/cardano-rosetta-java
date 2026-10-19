@@ -1,5 +1,10 @@
 package org.cardanofoundation.rosetta.common.util;
 
+import java.util.*;
+import javax.annotation.Nullable;
+
+import lombok.extern.slf4j.Slf4j;
+
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.common.model.Network;
@@ -13,8 +18,9 @@ import com.bloxbean.cardano.client.transaction.spec.governance.DRep;
 import com.bloxbean.cardano.client.transaction.spec.governance.DRepType;
 import com.bloxbean.cardano.client.util.HexUtil;
 import io.vavr.control.Either;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.openapitools.client.model.*;
+
 import org.cardanofoundation.rosetta.api.block.model.domain.DRepDelegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.GovernancePoolVote;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
@@ -23,11 +29,6 @@ import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.model.cardano.CertificateWithAddress;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.*;
 import org.cardanofoundation.rosetta.common.model.cardano.pool.PoolRetirement;
-import javax.annotation.Nullable;
-
-import org.openapitools.client.model.*;
-
-import java.util.*;
 
 @Slf4j
 public class ProcessConstructions {
@@ -390,7 +391,7 @@ public class ProcessConstructions {
 
             throw ExceptionFactory.invalidGovernanceVote("Parameter 'governance_action_hash' not provided!");
         }
-        
+
         // Validate the governance action format
         GovActionParamsUtil.parseAndValidate(governanceActionHash);
         GovVoteParams voteParams = poolGovernanceVoteParams.getVote();

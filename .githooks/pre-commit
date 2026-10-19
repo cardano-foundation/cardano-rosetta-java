@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+#
+# Blocks a commit when staged Java files fail the Spotless formatting check.
+# Only the staged .java files are checked, so this stays fast.
+#
+# Enable once per clone:   git config core.hooksPath .githooks
+# Fix violations with:     mvn spotless:apply
+# Bypass (not recommended; CI still enforces it):  git commit --no-verify
+#
+# Note: Spotless checks the files as they are in the working tree. If a file is
+# only partially staged, the check covers its unstaged changes too.
+
+set -uo pipefail
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR -- '*.java')
+[ -z "$staged" ] && exit 0
+
+if ! command -v mvn >/dev/null 2>&1; then
+  echo "[spotless] 'mvn' not found on PATH - skipping the formatting check (CI still enforces it)." >&2
+  exit 0
+fi
+
+# spotlessFiles takes comma-separated regexes matched against absolute paths.
+patterns=$(printf '%s\n' "$staged" | sed -e 's/\./\\./g' -e 's|^|.*/|' | paste -sd, -)
+
+if ! mvn -q spotless:check -DspotlessFiles="$patterns" >/tmp/spotless-pre-commit.log 2>&1; then
+  echo "" >&2
+  echo "[spotless] Commit blocked: staged Java files are not formatted." >&2
+  grep -E '\.java' /tmp/spotless-pre-commit.log | sed -E 's/^\[ERROR\] *//' | sort -u | sed 's/^/    /' >&2
+  echo "" >&2
+  echo "  Run:  mvn spotless:apply   then re-stage the files and commit again." >&2
+  exit 1
+fi
+exit 0

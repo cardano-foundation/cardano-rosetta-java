@@ -31,6 +31,9 @@ services:
       CONTINUE_PARSING_ON_ERROR: ${CONTINUE_PARSING_ON_ERROR}
       PEER_DISCOVERY: ${PEER_DISCOVERY}
       LOG: ${LOG}
+      LOG_FILE_NAME: ${LOG_FILE_NAME}
+      LOG_FILE_MAX_SIZE: ${LOG_FILE_MAX_SIZE}
+      LOG_FILE_MAX_HISTORY: ${LOG_FILE_MAX_HISTORY}
 
       # Native index management (see docs/docs/advanced-configuration/index-management.md)
       INDEX_STALL_TIMEOUT_MINUTES: ${INDEX_STALL_TIMEOUT_MINUTES:-360}

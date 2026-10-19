@@ -1,12 +1,13 @@
 package org.cardanofoundation.rosetta.api.common.model;
 
+import javax.annotation.Nullable;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.HexUtils;
-
-import javax.annotation.Nullable;
 
 @Data
 @AllArgsConstructor

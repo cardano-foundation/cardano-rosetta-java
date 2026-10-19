@@ -1,16 +1,18 @@
 package org.cardanofoundation.rosetta.api.account.model.repository.h2;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.account.model.repository.AddressHistoryRepository;
-import org.jooq.*;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+import org.jooq.*;
+
+import org.cardanofoundation.rosetta.api.account.model.repository.AddressHistoryRepository;
 
 import static org.cardanofoundation.rosetta.api.jooq.Tables.*;
 
@@ -33,7 +35,7 @@ public class AddressHistoryRepositoryH2Impl implements AddressHistoryRepository 
 
         // H2 doesn't handle CTEs as efficiently as PostgreSQL, so we'll use two separate queries
         // and combine the results in Java
-        
+
         // Query 1: Get all transactions where the address received outputs
         List<String> outputTransactions = dsl.selectDistinct(ADDRESS_UTXO.TX_HASH)
                 .from(ADDRESS_UTXO)

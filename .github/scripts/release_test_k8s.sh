@@ -161,7 +161,6 @@ release_helm() {
     "${storage_args[@]}" \
     --set-string rosetta-api.env.removeSpentUtxos=false \
     --set-string rosetta-api.env.tokenRegistryEnabled="$TOKEN_REGISTRY_ENABLED" \
-    --set-string rosetta-api.env.tokenRegistryBaseUrl="$TOKEN_REGISTRY_BASE_URL" \
     --set-string yaci-indexer.env.removeSpentUtxos=false
 }
 

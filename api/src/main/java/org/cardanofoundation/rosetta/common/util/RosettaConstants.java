@@ -1,13 +1,14 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import org.cardanofoundation.rosetta.common.exception.Details;
-import org.cardanofoundation.rosetta.common.exception.Error;
-import org.openapitools.client.model.OperationStatus;
-
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
+
+import org.openapitools.client.model.OperationStatus;
+
+import org.cardanofoundation.rosetta.common.exception.Details;
+import org.cardanofoundation.rosetta.common.exception.Error;
 
 public class RosettaConstants {
 

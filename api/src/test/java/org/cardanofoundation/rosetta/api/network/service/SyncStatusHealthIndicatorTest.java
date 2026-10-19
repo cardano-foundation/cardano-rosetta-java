@@ -1,20 +1,22 @@
 package org.cardanofoundation.rosetta.api.network.service;
 
-import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
-import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
+import java.util.Optional;
+
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.Status;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.openapitools.client.model.SyncStatus;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.openapitools.client.model.SyncStatus;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.Status;
 
-import java.util.Optional;
+import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
+import org.cardanofoundation.rosetta.api.block.service.LedgerBlockService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;

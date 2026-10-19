@@ -1,11 +1,12 @@
 package org.cardanofoundation.rosetta.api.common.mapper;
 
-import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
-import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.openapitools.client.model.CurrencyMetadataResponse;
 import org.openapitools.client.model.LogoType;
+
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
+import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
 
 /**
  * Mapper for converting domain TokenRegistryCurrencyData to view/serialization CurrencyMetadataResponse.

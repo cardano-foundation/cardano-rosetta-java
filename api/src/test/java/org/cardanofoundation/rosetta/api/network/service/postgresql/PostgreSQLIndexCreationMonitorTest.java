@@ -1,19 +1,21 @@
 package org.cardanofoundation.rosetta.api.network.service.postgresql;
 
-import org.cardanofoundation.rosetta.api.network.service.IndexCreationMonitor.IndexCreationProgress;
-import org.cardanofoundation.rosetta.api.network.service.RosettaIndexConfig;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import org.jooq.DSLContext;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import org.cardanofoundation.rosetta.api.network.service.IndexCreationMonitor.IndexCreationProgress;
+import org.cardanofoundation.rosetta.api.network.service.RosettaIndexConfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;

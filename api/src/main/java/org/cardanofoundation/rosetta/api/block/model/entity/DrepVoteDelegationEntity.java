@@ -1,16 +1,17 @@
 package org.cardanofoundation.rosetta.api.block.model.entity;
 
-import com.bloxbean.cardano.yaci.core.model.certs.StakeCredType;
-import com.bloxbean.cardano.yaci.core.model.governance.DrepType;
+import java.time.LocalDateTime;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import javax.annotation.Nullable;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.annotation.Nullable;
-import java.time.LocalDateTime;
+import com.bloxbean.cardano.yaci.core.model.certs.StakeCredType;
+import com.bloxbean.cardano.yaci.core.model.governance.DrepType;
 
 @Getter
 @Setter

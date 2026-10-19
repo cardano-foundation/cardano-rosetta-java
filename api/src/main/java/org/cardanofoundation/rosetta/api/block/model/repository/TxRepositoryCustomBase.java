@@ -1,23 +1,25 @@
 package org.cardanofoundation.rosetta.api.block.model.repository;
 
+import java.util.List;
+import java.util.Set;
+import javax.annotation.Nullable;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.data.domain.Page;
+import org.springframework.transaction.annotation.Transactional;
+import org.jooq.Condition;
+import org.jooq.DSLContext;
+import org.jooq.SelectJoinStep;
+import org.jooq.impl.DSL;
+
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.repository.util.TxRepositoryQueryBuilder;
 import org.cardanofoundation.rosetta.api.search.model.Currency;
 import org.cardanofoundation.rosetta.common.spring.OffsetBasedPageRequest;
 import org.cardanofoundation.rosetta.common.validation.PolicyIdValidator;
 import org.cardanofoundation.rosetta.common.validation.SymbolValidator;
-import org.jooq.Condition;
-import org.jooq.DSLContext;
-import org.jooq.SelectJoinStep;
-import org.jooq.impl.DSL;
-import org.springframework.data.domain.Page;
-import org.springframework.transaction.annotation.Transactional;
-
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Set;
 
 import static org.cardanofoundation.rosetta.api.jooq.Tables.*;
 
@@ -29,7 +31,7 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
     protected final TxRepositoryQueryBuilder queryBuilder;
 
     protected abstract TxRepositoryQueryBuilder.CurrencyConditionBuilder getCurrencyConditionBuilder();
-    
+
     /**
      * Base class for currency condition builders that handles common logic.
      */
@@ -71,7 +73,7 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
         protected abstract Condition buildLovelaceCondition();
         protected abstract Condition buildSymbolOnlyCondition(String validatedSymbol);
     }
-    
+
     /**
      * Builds a base query with common JOINs.
      * Currency filtering uses EXISTS subqueries, so no currency JOIN is ever needed.
@@ -79,17 +81,17 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
      */
     protected SelectJoinStep<?> buildBaseResultsQuery(@Nullable Boolean isSuccess) {
         var baseQuery = queryBuilder.buildTransactionSelectQuery(dsl);
-        
+
         // Always include block JOIN for consistency with count queries
         baseQuery = baseQuery.leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH));
-        
+
         if (isSuccess != null) {
             baseQuery = baseQuery.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
         }
-        
+
         return baseQuery.leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH));
     }
-    
+
     /**
      * Builds a count query with necessary JOINs.
      * Currency filtering uses EXISTS subqueries, so no currency JOIN is ever needed.
@@ -97,17 +99,17 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
      */
     protected SelectJoinStep<org.jooq.Record1<Integer>> buildBaseCountQuery(@Nullable Boolean isSuccess) {
         var countQuery = dsl.selectCount().from(TRANSACTION);
-        
+
         // Always include block JOIN for consistency with results queries
         countQuery = countQuery.leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH));
-        
+
         if (isSuccess != null) {
             countQuery = countQuery.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
         }
 
         return countQuery;
     }
-    
+
     /**
      * Creates a page result using separate count and results queries.
      * This is the only supported approach - window functions are not used.

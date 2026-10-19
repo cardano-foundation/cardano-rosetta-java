@@ -7,11 +7,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeSet;
 
-import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.bloxbean.cardano.yaci.core.model.certs.CertificateType;
 import org.assertj.core.util.introspection.CaseFormatUtils;
-import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.openapitools.client.model.Amount;
 import org.openapitools.client.model.CoinAction;
 import org.openapitools.client.model.CoinChange;
@@ -33,6 +31,8 @@ import org.cardanofoundation.rosetta.api.block.model.domain.PoolRetirement;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakePoolDelegation;
 import org.cardanofoundation.rosetta.api.block.model.domain.StakeRegistration;
 import org.cardanofoundation.rosetta.api.block.model.domain.Withdrawal;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.common.enumeration.OperationType;
 import org.cardanofoundation.rosetta.common.util.Constants;
 

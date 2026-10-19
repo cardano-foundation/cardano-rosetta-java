@@ -1,21 +1,22 @@
 package org.cardanofoundation.rosetta.yaciindexer.indexes;
 
-import com.bloxbean.cardano.yaci.store.common.domain.SyncStatus;
-import com.bloxbean.cardano.yaci.store.core.service.SyncStatusService;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.util.ReflectionTestUtils;
-
 import java.sql.Connection;
 import java.sql.Statement;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.util.ReflectionTestUtils;
+import com.bloxbean.cardano.yaci.store.common.domain.SyncStatus;
+import com.bloxbean.cardano.yaci.store.core.service.SyncStatusService;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;

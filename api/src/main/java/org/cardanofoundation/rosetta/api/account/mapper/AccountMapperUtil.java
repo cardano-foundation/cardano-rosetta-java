@@ -1,6 +1,16 @@
 package org.cardanofoundation.rosetta.api.account.mapper;
 
+import java.math.BigInteger;
+import java.util.*;
+import javax.annotation.Nullable;
+
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.stereotype.Component;
+import org.mapstruct.Context;
+import org.mapstruct.Named;
+import org.openapitools.client.model.*;
+
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
 import org.cardanofoundation.rosetta.api.account.model.domain.Amt;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
@@ -8,15 +18,6 @@ import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.util.Constants;
-import org.mapstruct.Context;
-import org.mapstruct.Named;
-import org.openapitools.client.model.*;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
-import java.math.BigInteger;
-import java.util.*;
 
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA;
 import static org.cardanofoundation.rosetta.common.util.Constants.ADA_DECIMALS;
@@ -64,7 +65,7 @@ public class AccountMapperUtil {
             amounts.add(
                     dataMapper.mapAmount(b.quantity().toString(),
                             symbol,
-                            getDecimalsWithFallback(metadata),
+                            metadata.getDecimals(),
                             metadata)
             );
         }
@@ -125,7 +126,7 @@ public class AccountMapperUtil {
                     Amount tokenAmount = dataMapper.mapAmount(
                             amount.getQuantity().toString(),
                             symbol,
-                            getDecimalsWithFallback(metadata),
+                            metadata.getDecimals(),
                             metadata
                     );
 
@@ -138,11 +139,6 @@ public class AccountMapperUtil {
                 .toList();
 
         return coinTokens.isEmpty() ? null : Map.of(coinIdentifier, coinTokens);
-    }
-
-    private static int getDecimalsWithFallback(@NotNull TokenRegistryCurrencyData metadata) {
-        return Optional.ofNullable(metadata.getDecimals())
-                .orElse(0);
     }
 
     private CurrencyResponse getAdaCurrency() {

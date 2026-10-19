@@ -1,14 +1,15 @@
 package org.cardanofoundation.rosetta.yaciindexer.health;
 
-import org.cardanofoundation.rosetta.yaciindexer.indexes.IndexLifecycleState;
-import org.cardanofoundation.rosetta.yaciindexer.indexes.IndexService;
+import java.time.Duration;
+import java.time.Instant;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.time.Instant;
+import org.cardanofoundation.rosetta.yaciindexer.indexes.IndexLifecycleState;
+import org.cardanofoundation.rosetta.yaciindexer.indexes.IndexService;
 
 @Component("indexStall")
 public class IndexStallIndicator implements HealthIndicator {

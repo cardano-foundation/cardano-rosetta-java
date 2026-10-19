@@ -1,6 +1,14 @@
 package org.cardanofoundation.rosetta.config;
 
+import javax.sql.DataSource;
+
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 import org.jooq.conf.RenderNameCase;
@@ -8,13 +16,6 @@ import org.jooq.conf.RenderQuotedNames;
 import org.jooq.conf.Settings;
 import org.jooq.impl.DefaultConfiguration;
 import org.jooq.impl.DefaultDSLContext;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
-
-import javax.sql.DataSource;
 
 @Configuration
 @Slf4j
@@ -28,7 +29,7 @@ public class JooqConfig {
 
         // Wrap the DataSource with TransactionAwareDataSourceProxy to ensure
         // JOOQ uses the same connection as Spring's transaction manager
-        TransactionAwareDataSourceProxy transactionAwareDataSource = 
+        TransactionAwareDataSourceProxy transactionAwareDataSource =
             new TransactionAwareDataSourceProxy(dataSource);
 
         Settings settings = new Settings()
@@ -36,7 +37,7 @@ public class JooqConfig {
                 .withRenderCatalog(false)
                 .withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_UNQUOTED)
                 .withRenderNameCase(RenderNameCase.UPPER);
-        
+
         return new DefaultConfiguration()
                 .set(SQLDialect.H2)
                 .set(settings)
@@ -54,19 +55,19 @@ public class JooqConfig {
     @ConditionalOnProperty(name = "spring.jooq.sql-dialect", havingValue = "POSTGRES", matchIfMissing = true)
     public org.jooq.Configuration postgresJooqConfiguration(DataSource dataSource) {
         log.info("Configuring jOOQ for PostgreSQL database with transaction-aware connection management");
-        
+
         // Wrap the DataSource with TransactionAwareDataSourceProxy to ensure
         // JOOQ uses the same connection as Spring's transaction manager
         // This is crucial for temporary table operations that must share the same connection
-        TransactionAwareDataSourceProxy transactionAwareDataSource = 
+        TransactionAwareDataSourceProxy transactionAwareDataSource =
             new TransactionAwareDataSourceProxy(dataSource);
-        
+
         Settings settings = new Settings()
                 .withRenderSchema(false)
                 .withRenderCatalog(false)
                 .withRenderQuotedNames(RenderQuotedNames.EXPLICIT_DEFAULT_UNQUOTED)
                 .withRenderNameCase(RenderNameCase.LOWER);
-        
+
         return new DefaultConfiguration()
                 .set(SQLDialect.POSTGRES)
                 .set(settings)

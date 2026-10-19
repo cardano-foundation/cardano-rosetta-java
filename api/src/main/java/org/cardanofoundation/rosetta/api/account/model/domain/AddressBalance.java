@@ -1,11 +1,11 @@
 package org.cardanofoundation.rosetta.api.account.model.domain;
 
 import java.math.BigInteger;
+import javax.annotation.Nullable;
 
 import lombok.Builder;
-import org.cardanofoundation.rosetta.common.util.Constants;
 
-import javax.annotation.Nullable;
+import org.cardanofoundation.rosetta.common.util.Constants;
 
 @Builder
 public record AddressBalance(String address,

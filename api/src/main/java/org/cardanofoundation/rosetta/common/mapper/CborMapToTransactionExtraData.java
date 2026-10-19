@@ -1,17 +1,18 @@
 package org.cardanofoundation.rosetta.common.mapper;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.DataItem;
 import co.nstant.in.cbor.model.Map;
 import co.nstant.in.cbor.model.UnicodeString;
+import org.openapitools.client.model.Operation;
+
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionExtraData;
 import org.cardanofoundation.rosetta.common.util.Constants;
-import org.openapitools.client.model.Operation;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 public class CborMapToTransactionExtraData {
 

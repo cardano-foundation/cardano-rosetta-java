@@ -1,10 +1,10 @@
 package org.cardanofoundation.rosetta.yaciindexer.indexes;
 
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.boot.actuate.endpoint.annotation.Endpoint;
 import org.springframework.boot.actuate.endpoint.annotation.ReadOperation;
 import org.springframework.stereotype.Component;
-
-import lombok.RequiredArgsConstructor;
 
 @Component
 @Endpoint(id = "rosettaIndexes")

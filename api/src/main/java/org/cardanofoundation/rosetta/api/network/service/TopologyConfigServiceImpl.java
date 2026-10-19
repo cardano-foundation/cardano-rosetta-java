@@ -1,24 +1,26 @@
 package org.cardanofoundation.rosetta.api.network.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.PostConstruct;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.openapitools.client.model.Peer;
+
 import org.cardanofoundation.rosetta.api.network.model.BootstrapPeer;
 import org.cardanofoundation.rosetta.api.network.model.TopologyConfig;
 import org.cardanofoundation.rosetta.client.YaciHttpGateway;
 import org.cardanofoundation.rosetta.client.model.domain.DiscoveredPeer;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.util.FileUtils;
-import org.openapitools.client.model.Peer;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 @Service
 @Slf4j
@@ -106,7 +108,7 @@ public class TopologyConfigServiceImpl implements TopologyConfigService {
     try {
       List<DiscoveredPeer> discoveredPeers = yaciHttpGateway.getDiscoveredPeers();
       log.debug("[getDiscoveredPeers] Found {} discovered peers", discoveredPeers.size());
-      
+
       return discoveredPeers.stream()
               .map(this::mapDiscoveredPeerToPeer)
               .toList();

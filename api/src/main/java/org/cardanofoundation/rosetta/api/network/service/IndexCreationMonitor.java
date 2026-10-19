@@ -1,7 +1,7 @@
 package org.cardanofoundation.rosetta.api.network.service;
 
-import javax.annotation.Nullable;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * Interface for monitoring database index readiness status.

@@ -139,14 +139,8 @@ spec:
               value: {{ .Values.env.devkitPort | toString | quote }}
             - name: TOKEN_REGISTRY_ENABLED
               value: {{ .Values.env.tokenRegistryEnabled | toString | quote }}
-            - name: TOKEN_REGISTRY_BASE_URL
-              value: {{ .Values.env.tokenRegistryBaseUrl | quote }}
-            - name: TOKEN_REGISTRY_CACHE_TTL_HOURS
-              value: {{ .Values.env.tokenRegistryCacheTtlHours | toString | quote }}
             - name: TOKEN_REGISTRY_LOGO_FETCH
               value: {{ .Values.env.tokenRegistryLogoFetch | toString | quote }}
-            - name: TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS
-              value: {{ .Values.env.tokenRegistryRequestTimeoutSeconds | toString | quote }}
             {{- $profile := (include "rosetta-api.profile" .) }}
             {{- $db := index .Values.global.profiles $profile "db" }}
             - name: API_DB_POOL_MIN_COUNT

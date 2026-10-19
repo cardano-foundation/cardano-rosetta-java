@@ -1,14 +1,5 @@
 package org.cardanofoundation.rosetta.api.network.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.validation.constraints.NotNull;
-import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.network.model.PeerSnapshotConfig;
-import org.cardanofoundation.rosetta.api.network.model.Relay;
-import org.cardanofoundation.rosetta.common.util.FileUtils;
-import org.openapitools.client.model.Peer;
-import org.springframework.stereotype.Service;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -17,6 +8,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import jakarta.validation.constraints.NotNull;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.openapitools.client.model.Peer;
+
+import org.cardanofoundation.rosetta.api.network.model.PeerSnapshotConfig;
+import org.cardanofoundation.rosetta.api.network.model.Relay;
+import org.cardanofoundation.rosetta.common.util.FileUtils;
 
 /**
  * Implementation of PeerSnapshotService for loading peers from Genesis mode peer snapshot files.

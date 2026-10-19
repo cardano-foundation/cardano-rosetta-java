@@ -1,21 +1,23 @@
 package org.cardanofoundation.rosetta.api.error.service;
 
-import org.cardanofoundation.rosetta.api.error.model.domain.BlockParsingErrorReviewDTO;
-import org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus;
-import org.cardanofoundation.rosetta.api.error.model.entity.ErrorReviewEntity;
-import org.cardanofoundation.rosetta.api.error.model.repository.ErrorReviewRepository;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.domain.PageRequest;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageRequest;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import org.cardanofoundation.rosetta.api.error.model.domain.BlockParsingErrorReviewDTO;
+import org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus;
+import org.cardanofoundation.rosetta.api.error.model.entity.ErrorReviewEntity;
+import org.cardanofoundation.rosetta.api.error.model.repository.ErrorReviewRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -112,7 +114,7 @@ class ErrorReviewServiceTest {
         void shouldReturnTop1000BlockParsingErrors() {
             // given
             List<BlockParsingErrorReviewDTO> expectedResults = List.of(
-                new BlockParsingErrorReviewDTO(1, 123456L, "PARSE_ERROR", "Failed to parse", "Details", 
+                new BlockParsingErrorReviewDTO(1, 123456L, "PARSE_ERROR", "Failed to parse", "Details",
                     ReviewStatus.UNREVIEWED, null, null, "Note", LocalDateTime.now())
             );
             when(errorReviewRepository.findAllBlockParsingErrors(any(PageRequest.class)))
@@ -140,7 +142,7 @@ class ErrorReviewServiceTest {
             // given
             ReviewStatus status = ReviewStatus.UNREVIEWED;
             List<BlockParsingErrorReviewDTO> expectedResults = List.of(
-                new BlockParsingErrorReviewDTO(1, 123456L, "PARSE_ERROR", "Failed to parse", "Details", 
+                new BlockParsingErrorReviewDTO(1, 123456L, "PARSE_ERROR", "Failed to parse", "Details",
                     status, null, null, "Note", LocalDateTime.now())
             );
             when(errorReviewRepository.findAllBlockParsingErrorsByReviewStatus(any(ReviewStatus.class), any(PageRequest.class)))
@@ -166,7 +168,7 @@ class ErrorReviewServiceTest {
             // given
             long blockNumber = 123456L;
             List<BlockParsingErrorReviewDTO> expectedResults = List.of(
-                new BlockParsingErrorReviewDTO(1, blockNumber, "PARSE_ERROR", "Failed to parse", "Details", 
+                new BlockParsingErrorReviewDTO(1, blockNumber, "PARSE_ERROR", "Failed to parse", "Details",
                     ReviewStatus.UNREVIEWED, null, null, "Note", LocalDateTime.now())
             );
             when(errorReviewRepository.findAllBlockParsingErrorsByBlockNumber(any(Long.class), any(PageRequest.class)))
