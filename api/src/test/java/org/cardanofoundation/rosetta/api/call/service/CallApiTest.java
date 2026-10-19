@@ -22,8 +22,8 @@ import static org.assertj.core.api.Assertions.catchThrowableOfType;
 
 class CallApiTest extends IntegrationTest {
 
-  private static final String SMART_WALLET_USER = "addr_test1zqvca3jpwpvrtd0fvexseqs55em0zg0zkr26hzs7e0qw6w9afxpncxpaxjsg9k3etntnk8ypdup8ryr6navxyz72c62qhg2h67";
-  private static final String SMART_WALLET_STAKE = "addr_test1zqvca3jpwpvrtd0fvexseqs55em0zg0zkr26hzs7e0qw6wqqzppp5sllda3lrk5k7txy6kg5w2afqpfh2spwxxjc7t2srfn3an";
+  private static final String SMART_WALLET_USER = "addr_test1zzl9nam4pfweg7akf8ns646dqenermp55807u2sg0jz3rcaafxpncxpaxjsg9k3etntnk8ypdup8ryr6navxyz72c62q4ja877";
+  private static final String SMART_WALLET_STAKE = "addr_test1zzl9nam4pfweg7akf8ns646dqenermp55807u2sg0jz3rccqzppp5sllda3lrk5k7txy6kg5w2afqpfh2spwxxjc7t2spnypen";
 
   @Autowired
   private CallService callService;
