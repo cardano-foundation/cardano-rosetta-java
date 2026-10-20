@@ -134,6 +134,10 @@ For comprehensive documentation on native token operations, including sign conve
 Assets will be returned sorted by name.
 :::
 
+:::note Zero-value withdrawals
+Withdrawals of 0 ADA are script invocations (the withdraw-zero pattern used, for example, by [CIP-113 programmable tokens](/docs/user-guides/cip-113/)) and do not change any balance. They are not returned as `withdrawal` operations by `/block`, `/block/transaction` and `/search/transactions`.
+:::
+
 ### `/account/balance`
 
 For accounts that have a multi asset balance, these will be returned with the corresponding policy passed as metadata at `currency` as follows:
@@ -204,8 +208,10 @@ Following the Rosetta specification, this endpoint returns an Enterprise address
 In addition to that, Cardano Rosetta Java allows the creation of Reward and Base addresses, which aren't supported in the Rosetta specification.
 Therefore, following optional parameters were added as metadata:
 
-- `address_type`: Either `Reward`, `Base` or `Enterprise`. It will default to `Enterprise` and will throw an error if any other value is provided.
-- `staking_credential`: The public key that will be used for creating a Base address. This field is only mandatory if the provided `address_type` is `Base`. It's ignored in other cases since the Reward and the Enterprise addresses are created with the public key already included in the request.
+- `address_type`: Either `Reward`, `Base`, `Enterprise` or `CIP-113` (added in 2.4.0). It will default to `Enterprise` and will throw an error if any other value is provided. The value is case-sensitive.
+- `staking_credential`: The public key that will be used for creating a Base address. This field is only mandatory if the provided `address_type` is `Base`. It's ignored in the `Reward` and `Enterprise` cases since those addresses are created with the public key already included in the request. It is **not allowed** with `CIP-113` and is rejected with error `5062`.
+
+The `CIP-113` address type returns the [programmable address](/docs/user-guides/cip-113/) of the public key: a base address whose payment credential is the configured programmable logic base script hash (`CIP113_BASE_SCRIPT_HASH`) and whose stake credential slot holds the hash of the public key.
 
 #### Examples
 
@@ -250,6 +256,27 @@ import TabItem from '@theme/TabItem';
   },
   "metadata": {
     "address_type": "Reward"
+  }
+}
+```
+
+  </TabItem>
+  <TabItem value="cip113" label="CIP-113 programmable address">
+
+The public key is the only input. Sending `staking_credential` with this address type is an error.
+
+```json
+{
+  "network_identifier": {
+    "blockchain": "cardano",
+    "network": "preprod"
+  },
+  "public_key": {
+    "hex_bytes": "1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F",
+    "curve_type": "edwards25519"
+  },
+  "metadata": {
+    "address_type": "CIP-113"
   }
 }
 ```
@@ -375,6 +402,27 @@ In order to support Byron addresses an extra field called `chain_code` in the `a
   ]
 }
 ```
+
+### `/call`
+
+Besides the methods that manage [unparsed blocks](/docs/advanced-configuration/unparsed_blocks), the `/call` endpoint supports `resolve_smart_wallet_addr` (added in 2.4.0). It converts a supported address into the [CIP-113 programmable address](/docs/user-guides/cip-113/addresses) of the same owner, using the configured `CIP113_BASE_SCRIPT_HASH`.
+
+```json
+{
+  "network_identifier": {
+    "blockchain": "cardano",
+    "network": "preprod"
+  },
+  "method": "resolve_smart_wallet_addr",
+  "parameters": {
+    "address": "addr_test1vpwcgn22xnj8gnen0snfcjgyqp0jfgc6kufgmjlk2fm7mvg5ys3p3"
+  }
+}
+```
+
+- `parameters.address` (required): an enterprise address with a key payment credential, a base address with key payment and key stake credentials, or an address that is already a programmable address. It must belong to the requested network.
+- The response result contains `account_identifier.address`, and `idempotent` is `true`.
+- Errors: `5051` (missing address), `5063` and `5064` (hash not configured or invalid), `5065` (script address that is not a programmable address), `5066` (unsupported address type) and `5067` (invalid address or wrong network).
 
 ## Other considerations
 
