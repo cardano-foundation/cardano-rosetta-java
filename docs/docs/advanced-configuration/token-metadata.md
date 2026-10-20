@@ -45,7 +45,8 @@ The integration adds the following optional fields to the `currency.metadata` ob
 | `description` | Token description | `"Utility Token for..."` |
 | `ticker` | Token ticker/symbol | `"MKT"` |
 | `url` | Project website URL | `"https://example.com"` |
-| `decimals` | Number of decimal places | `6` |
+
+The number of decimal places is not part of `currency.metadata`. It is returned in the `currency.decimals` field (default `0` when the token has no registered decimals).
 
 #### Before and After Examples
 

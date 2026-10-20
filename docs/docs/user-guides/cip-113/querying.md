@@ -241,7 +241,7 @@ A programmable token is identified exactly like every native asset: by **policy 
 | `currency.metadata.policyId`          | Policy ID of the token                                                |
 | `currency.decimals`                   | `0` unless the token registry provides a value                        |
 
-To show a readable name, ticker, description or the real number of decimals, enable the token registry integration described in [Enabling Token Metadata](../../advanced-configuration/token-metadata.md). Rosetta then adds `subject`, `name`, `description`, `ticker`, `url` and `decimals` to `currency.metadata`, for programmable tokens as for any other native asset. The guide shows a before and after example. Tokens that are not in the registry keep only the `policyId`, which is not an error.
+To show a readable name, ticker, description or the real number of decimals, enable the token registry integration described in [Enabling Token Metadata](../../advanced-configuration/token-metadata.md). Rosetta then adds `subject`, `name`, `description`, `ticker` and `url` to `currency.metadata`, and the registered decimals to `currency.decimals`, for programmable tokens as for any other native asset. The guide shows a before and after example. Tokens that are not in the registry keep only the `policyId` in the metadata and `decimals` of `0`, which is not an error.
 
 Companion assets of a programmable policy, such as a CIP-68 reference NFT, are the responsibility of the token's module, not of the CIP-113 base layer. Check with the issuer how a given token publishes its metadata.
 

@@ -101,7 +101,7 @@ flowchart TD
    - **`unfracking`**: a holder-driven restructuring of the holder's own UTxOs.
 3. For a transfer, the delegate checks that the owner consented and that the token is registered, then requires the token's own **module** logic to run.
 
-All of these validators are triggered with **withdraw-zero**: a withdrawal of 0 ADA from a script's stake address. It runs the script without moving any funds, once per transaction instead of once per UTxO.
+PLB is a *spending* validator: it runs when a programmable UTxO is spent. The dispatcher, the delegates and the module logic are *stake* validators triggered with **withdraw-zero**: a withdrawal of 0 ADA from a script's stake address. It runs the script without moving any funds, once per transaction instead of once per UTxO.
 
 :::note Withdraw-zero operations are filtered
 Zero-value withdrawals are script invocations, not balance changes. Cardano Rosetta Java does not return them as `withdrawal` operations in `/block`, `/block/transaction` and `/search/transactions`, so the operations you receive describe the actual movement of ADA and tokens.
