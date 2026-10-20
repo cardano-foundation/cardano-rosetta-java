@@ -134,7 +134,7 @@ The API uses the name **smart wallet address** in the `/call` method `resolve_sm
 | Capability                                                                 | Supported |
 | -------------------------------------------------------------------------- | :-------: |
 | Derive a programmable address from a public key (`/construction/derive`)   |    Yes    |
-| Resolve an enterprise, base or programmable address (`/call`)              |    Yes    |
+| Resolve an enterprise, base or key-owned programmable address (`/call`)    |    Yes    |
 | Balance and UTxOs of a programmable address (`/account/balance`, `/account/coins`) | Yes |
 | Transactions of a programmable address (`/search/transactions`, `/block`, `/block/transaction`) | Yes |
 | Token names, tickers and decimals through the token registry               |    Yes    |

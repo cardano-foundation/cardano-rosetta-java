@@ -420,9 +420,9 @@ Besides the methods that manage [unparsed blocks](/docs/advanced-configuration/u
 }
 ```
 
-- `parameters.address` (required): an enterprise address with a key payment credential, a base address with key payment and key stake credentials, or an address that is already a programmable address. It must belong to the requested network.
+- `parameters.address` (required): an enterprise address with a key payment credential, a base address with key payment and key stake credentials, or an address that is already a key-owned programmable address. It must belong to the requested network.
 - The response result contains `account_identifier.address`, and `idempotent` is `true`.
-- Errors: `5051` (missing address), `5063` and `5064` (hash not configured or invalid), `5065` (script address that is not a programmable address), `5066` (unsupported address type) and `5067` (invalid address or wrong network).
+- Errors: `5051` (missing, blank or non-string address), `5063` and `5064` (hash not configured or invalid), `5065` (script payment credential that cannot be mapped to a key owner), `5066` (unsupported address type, including a base address with a script stake credential) and `5067` (invalid address or wrong network).
 
 ## Other considerations
 

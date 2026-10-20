@@ -52,7 +52,7 @@ The response has the same structure as for any address (see the [balance example
 - The list contains **everything** held at the address: ADA plus every asset, programmable or not. Rosetta does not filter by asset type.
 - Each token is a separate entry. Its `currency.metadata.policyId` is the policy ID and `currency.symbol` is the asset name, hex-encoded (see [Token names](#token-names-tickers-and-decimals)).
 - Add `block_identifier` (`index` or `hash`) to get the balance as of a past block.
-- Use the `currencies` filter to restrict the response to some tokens. The filter matches on `symbol` only; it does not look at the policy ID, so two policies that use the same asset name are not distinguished by it.
+- Use the `currencies` filter to restrict the response to some tokens. On `/account/balance` the filter matches on `symbol` only and does not look at the policy ID, so two policies that use the same asset name are not distinguished. Check `currency.metadata.policyId` in the result. `/account/coins` matches on policy ID and symbol.
 
 ## Coins (UTxOs)
 
@@ -228,7 +228,7 @@ How to read it:
 The token bundle is **not balanced**: 6 tokens go in and 3 come out. Rosetta has no operation type for minting or burning, so the difference is the burned (or minted) amount. See [Minting and Burning Observations](../multi-assets.md#operations-with-native-tokens). The withdraw-zero script invocations that this transaction contains do not appear as operations (see [filtering](./index.md#what-happens-when-programmable-tokens-move)).
 
 :::note Third-party actions
-A seizure, clawback or freeze enforcement by the issuer is a *third-party action*, not a voluntary transfer, and it needs no signature of the holder. In the Data API it is still reported as ordinary `input` and `output` operations. If you need to tell the two apart, decode the transaction on your side and look at the redeemer of the `programmable_logic_global` withdrawal: `ThirdPartyAct` marks a third-party action.
+A seizure, clawback or freeze enforcement by the issuer is a *third-party action*, not a voluntary transfer, and it needs no signature of the holder. In the Data API it is still reported as ordinary `input` and `output` operations. If you need to tell the two apart, decode the transaction on your side and look at the redeemer of the `programmable_logic_global` withdrawal: `ThirdPartyAct` marks a third-party action (see [For Indexers and Explorers](https://github.com/cardano-foundation/cip113-programmable-tokens/blob/main/documentation/08-INTEGRATION-GUIDES.md) in the CIP-113 repository, which also covers `TransferAct` and `UnfrackingAct`).
 :::
 
 ## Token names, tickers and decimals
@@ -237,7 +237,7 @@ A programmable token is identified exactly like every native asset: by **policy 
 
 | Field in the response                 | Meaning                                                               |
 | ------------------------------------- | --------------------------------------------------------------------- |
-| `currency.symbol`                     | Asset name, hex-encoded (`524550` is `REP`)                           |
+| `currency.symbol`                     | Asset name, hex-encoded in Data API responses (`524550` is `REP`)     |
 | `currency.metadata.policyId`          | Policy ID of the token                                                |
 | `currency.decimals`                   | `0` unless the token registry provides a value                        |
 
@@ -260,7 +260,7 @@ Rosetta does not expose the registry, so this lookup is done with the CIP-113 to
 | Expecting a mint or burn operation                             | There is none. A token bundle that does not balance between inputs and outputs means tokens were minted or burned.                                       |
 | Expecting zero-value withdrawals in the operations             | They are filtered. The remaining operations describe only the movement of ADA and tokens.                                                                |
 | Treating a script owner as a person                            | A programmable address can be owned by a script (a dApp or a DAO). Its stake credential slot is a script hash. Do not assume that every owner is a wallet. |
-| Using the `currencies` filter to separate policies             | The filter matches on the symbol only. Check `currency.metadata.policyId` in the result.                                                                 |
+| Using the `/account/balance` `currencies` filter to separate policies | The filter matches on the symbol only. Check `currency.metadata.policyId` in the result. `/account/coins` matches on policy ID and symbol. |
 
 ## Next steps
 

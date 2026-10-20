@@ -503,10 +503,10 @@ paths:
         - `idempotent`: true
 
         **Errors:**
-        - `5051`: `parameters.address` is missing or blank
+        - `5051`: `parameters.address` is missing, blank or not a string
         - `5063`, `5064`: `CIP113_BASE_SCRIPT_HASH` is not configured or is not a 28-byte hex string
-        - `5065`: the address has a script payment credential that cannot be mapped to a key owner (an enterprise script address, or a base address whose script is not the configured programmable logic base)
-        - `5066`: the address type is not supported (reward, pointer, Byron, or a base address with a script stake credential)
+        - `5065`: the address has a script payment credential that cannot be mapped to a key owner (an enterprise script address, or a base address with a key stake credential whose payment script is not the configured programmable logic base)
+        - `5066`: the address type is not supported (reward, pointer, Byron, or a base address with a script stake credential, which includes a script-owned programmable address)
         - `5067`: the address is malformed or belongs to another network
       operationId: call
       tags:
