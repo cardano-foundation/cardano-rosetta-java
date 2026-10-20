@@ -358,6 +358,82 @@ class TestBlockTransactionErrors:
 
 
 @allure.feature("Block")
+@allure.story("Balance Reconciliation")
+class TestBlockBalanceReconciliation:
+    @pytest.mark.parametrize("account_type", ["smart_wallet", "enterprise"])
+    @pytest.mark.requires_full_history
+    def test_successful_operations_match_ada_balance_change(
+        self, client, network, network_data, is_pruned_instance, account_type
+    ):
+        """Successful ADA operations must reconcile for script and key payment accounts."""
+        case = network_data.get("balance_reconciliation")
+        if case is None:
+            pytest.skip(f"No balance reconciliation data configured for {network}")
+        if is_pruned_instance:
+            pytest.skip("Historical balance reconciliation requires full history")
+        account = case["accounts"][account_type]
+
+        response = client.block(block_identifier=case["block_identifier"])
+        assert response.status_code == 200
+        block_response = response.json()
+        block = block_response["block"]
+        assert block["block_identifier"] == case["block_identifier"]
+        transactions = list(block["transactions"])
+        for tx_id in block_response.get("other_transactions", []):
+            response = client.block_transaction(
+                block_identifier=block["block_identifier"], transaction_identifier=tx_id
+            )
+            assert response.status_code == 200
+            transaction = response.json()["transaction"]
+            assert transaction["transaction_identifier"] == tx_id
+            transactions.append(transaction)
+        response = client.network_options()
+        assert response.status_code == 200
+        successful_statuses = {
+            status["status"]
+            for status in response.json()["allow"]["operation_statuses"]
+            if status["successful"]
+        }
+        assert successful_statuses, "Network must declare a successful operation status"
+
+        balances = {}
+        for label, block_id in (
+            ("before", block["parent_block_identifier"]),
+            ("after", block["block_identifier"]),
+        ):
+            response = client.account_balance(
+                account_identifier=account, block_identifier=block_id
+            )
+            assert response.status_code == 200
+            data = response.json()
+            assert data["block_identifier"] == block_id
+            ada = [
+                int(amount["value"])
+                for amount in data["balances"]
+                if amount["currency"]["symbol"] == "ADA"
+            ]
+            assert len(ada) == 1, f"Expected one ADA balance {label} the block"
+            balances[label] = ada[0]
+
+        balance_delta = balances["after"] - balances["before"]
+        assert balance_delta != 0, "The fixture must exercise a real balance change"
+        operation_delta = sum(
+            int(op["amount"]["value"])
+            for tx in transactions
+            for op in tx["operations"]
+            if op["status"] in successful_statuses
+            and op.get("account", {}).get("address") == account["address"]
+            and op.get("amount", {}).get("currency", {}).get("symbol") == "ADA"
+        )
+        assert operation_delta == balance_delta, (
+            f"Block {block['block_identifier']['index']}, account {account['address']}: "
+            f"successful operations sum to {operation_delta} lovelace, "
+            f"but balance changed by {balance_delta} "
+            f"({balances['before']} -> {balances['after']})."
+        )
+
+
+@allure.feature("Block")
 @allure.story("Operation Invariants")
 class TestBlockOperationInvariants:
     """Operations must be ordered and sequential in all block transactions."""
