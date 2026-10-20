@@ -100,8 +100,9 @@ class CallServiceImplTest {
   }
 
   private ApiException resolveError(String network, Map<String, Object> parameters) {
+    CallRequest request = request(network, parameters);
     return catchThrowableOfType(
-        () -> underTest.resolveSmartWalletAddress(request(network, parameters)), ApiException.class);
+        () -> underTest.resolveSmartWalletAddress(request), ApiException.class);
   }
 
   private void assertCode(ApiException exception, RosettaErrorType expected) {
