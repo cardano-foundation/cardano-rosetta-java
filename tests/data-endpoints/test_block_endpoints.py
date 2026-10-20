@@ -267,6 +267,40 @@ class TestBlockTransactionLookup:
         returned_tx = response.json()["transaction"]["transaction_identifier"]["hash"]
         assert returned_tx == tx_id["hash"]
 
+    def test_transaction_consistency_across_endpoints(self, client, network, network_data):
+        """The configured transaction must match across search, block/transaction and block."""
+        case = network_data.get("transaction_consistency")
+        if case is None:
+            pytest.skip(f"No transaction consistency data configured for {network}")
+        block_id = case["block_identifier"]
+        tx_id = case["transaction_identifier"]
+
+        search_response = client.search_transactions(transaction_identifier=tx_id)
+        assert search_response.status_code == 200
+        matches = search_response.json()["transactions"]
+        assert len(matches) == 1, "Hash search must return exactly the selected transaction"
+        assert matches[0]["block_identifier"] == block_id
+        search_tx = matches[0]["transaction"]
+        assert search_tx["transaction_identifier"] == tx_id
+
+        transaction_response = client.block_transaction(
+            block_identifier=block_id,
+            transaction_identifier=tx_id,
+        )
+        assert transaction_response.status_code == 200
+        returned_tx = transaction_response.json()["transaction"]
+        assert returned_tx == search_tx, "/block/transaction differs from /search/transactions"
+
+        block_response = client.block(block_identifier=block_id)
+        assert block_response.status_code == 200
+        block = block_response.json()["block"]
+        assert block["block_identifier"] == block_id
+        block_matches = [
+            tx for tx in block["transactions"] if tx["transaction_identifier"] == tx_id
+        ]
+        assert len(block_matches) == 1, "Block must contain the selected transaction exactly once"
+        assert block_matches[0] == returned_tx, "/block differs from /block/transaction"
+
     def test_requires_block_hash_not_just_index(self, client, network):
         """block_identifier requires both index AND hash."""
         # Get a transaction
