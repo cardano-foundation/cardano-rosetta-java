@@ -1,0 +1,23 @@
+{
+  "test_name": "(-) cip113 resolve oversized enterprise payload",
+  "description": "Append one zero byte to cip113_resolve_enterprise's 29-byte payload and recompute its Bech32 checksum. The valid checksum isolates rejection of the 30-byte Enterprise payload.",
+  "endpoint": "/call",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "method": "resolve_smart_wallet_addr",
+    "parameters": {
+      "address": "addr_test1vz75nqeurq7nfgyzmgu4e4emrjqk7qn3jpaf7krzp09vd9qqw4flv5"
+    }
+  },
+  "expected_error": {
+    "code": 5067,
+    "message": "Invalid address for resolve_smart_wallet_addr",
+    "retriable": false,
+    "details": {
+      "message": "Address payload contains trailing bytes"
+    }
+  }
+}
