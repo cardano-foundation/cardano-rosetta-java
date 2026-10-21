@@ -5,6 +5,9 @@ sidebar_label: Querying Balances, Coins and Transactions
 description: Read the programmable tokens held at a CIP-113 programmable address with the standard Rosetta Data API endpoints
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Querying Balances, Coins and Transactions
 
 ## Overview
@@ -33,7 +36,10 @@ The enterprise address holds ADA and regular native tokens. The programmable add
 
 ## Balance
 
-Send the programmable address as `account_identifier.address`:
+Send the programmable address as `account_identifier.address`. The example is the real preprod programmable address used throughout this guide, queried at block `5317690`:
+
+<Tabs>
+  <TabItem value="request" label="Request" default>
 
 ```json
 {
@@ -47,16 +53,151 @@ Send the programmable address as `account_identifier.address`:
 }
 ```
 
-The response has the same structure as for any address (see the [balance example](../multi-assets.md#account-balance-and-utxo-queries)): the `block_identifier` of the latest indexed block and a `balances` list.
+  </TabItem>
+  <TabItem value="response" label="Response">
+
+```json
+{
+  "block_identifier": {
+    "index": 5317690,
+    "hash": "f3d1a03283bd1089ae95b9d1d0a4f1db71020e40ac537f4a2a5f9d513f1b2fe8"
+  },
+  "balances": [
+    {
+      "value": "19100000",
+      "currency": {
+        "symbol": "ADA",
+        "decimals": 6
+      }
+    },
+    {
+      "value": "7",
+      "currency": {
+        "symbol": "524550",
+        "decimals": 0,
+        "metadata": {
+          "policyId": "ba74882344a7946a04139263c4896703a7107f522bbf061c311aac6c"
+        }
+      }
+    },
+    {
+      "value": "78",
+      "currency": {
+        "symbol": "524550",
+        "decimals": 0,
+        "metadata": {
+          "policyId": "5568d71be0b1614f2942f0efbfd98c4d01a2eabe1d97ddf65b92ef86"
+        }
+      }
+    },
+    {
+      "value": "7",
+      "currency": {
+        "symbol": "524550",
+        "decimals": 0,
+        "metadata": {
+          "policyId": "c4e75d70e0df490e4f208681889f62615bc19a89490f81caa39e86db"
+        }
+      }
+    }
+  ]
+}
+```
+
+  </TabItem>
+</Tabs>
+
+The address holds 19.1 ADA (the minimum ADA that travels with its 13 outputs) and tokens of three programmable token policies. All three use the same asset name, `524550` (`REP`), so each entry is told apart by its `policyId`. The token registry has no metadata for them, so `decimals` is `0` and there is no name or ticker.
 
 - The list contains **everything** held at the address: ADA plus every asset, programmable or not. Rosetta does not filter by asset type.
 - Each token is a separate entry. Its `currency.metadata.policyId` is the policy ID and `currency.symbol` is the asset name, hex-encoded (see [Token names](#token-names-tickers-and-decimals)).
 - Add `block_identifier` (`index` or `hash`) to get the balance as of a past block.
 - Use the `currencies` filter to restrict the response to some tokens. On `/account/balance` the filter matches on `symbol` only and does not look at the policy ID, so two policies that use the same asset name are not distinguished. Check `currency.metadata.policyId` in the result. `/account/coins` matches on policy ID and symbol.
 
+:::note Balances are snapshots
+Programmable tokens are ordinary on-chain assets, and their holders move them. Re-running these requests later returns different numbers. The `block_identifier` in the response tells you which block the answer is for.
+:::
+
 ## Coins (UTxOs)
 
-`/account/coins` returns the unspent outputs at the programmable address. Use the same request as for the balance. Each entry has a `coin_identifier` (`<transaction hash>:<output index>`), the ADA `amount` of the output, and the tokens of that output in `metadata`, keyed by the coin identifier. The `coin_identifier` is the value an input operation references in its `coin_change`. The structure is identical to the one used for regular native tokens (see the [UTxO example](../multi-assets.md#account-balance-and-utxo-queries)).
+`/account/coins` returns the unspent outputs at the programmable address. Use the same request as for the balance. Each entry has a `coin_identifier` (`<transaction hash>:<output index>`), the ADA `amount` of the output, and the tokens of that output in `metadata`, keyed by the coin identifier. The `coin_identifier` is the value an input operation references in its `coin_change`.
+
+The address above has 13 unspent outputs. The response below shows the first two. They are the outputs created by the two transactions in the [example further down](#example-splitting-and-burning-tokens): `83dbb697...:0` holds the 3 tokens left after the burn, and `54938c56...:0` holds the 4 tokens that were split off.
+
+```json
+{
+  "block_identifier": {
+    "index": 5317690,
+    "hash": "f3d1a03283bd1089ae95b9d1d0a4f1db71020e40ac537f4a2a5f9d513f1b2fe8"
+  },
+  "coins": [
+    {
+      "coin_identifier": {
+        "identifier": "83dbb697e580ef9406b640edbe56cf926853c1bf41a027d963e3ca163cc72b30:0"
+      },
+      "amount": {
+        "value": "1300000",
+        "currency": {
+          "symbol": "ADA",
+          "decimals": 6
+        }
+      },
+      "metadata": {
+        "83dbb697e580ef9406b640edbe56cf926853c1bf41a027d963e3ca163cc72b30:0": [
+          {
+            "policyId": "ba74882344a7946a04139263c4896703a7107f522bbf061c311aac6c",
+            "tokens": [
+              {
+                "value": "3",
+                "currency": {
+                  "symbol": "524550",
+                  "decimals": 0,
+                  "metadata": {
+                    "policyId": "ba74882344a7946a04139263c4896703a7107f522bbf061c311aac6c"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "coin_identifier": {
+        "identifier": "54938c566d8f4c045afb5e2892a5416f2f06c913ba2a444b1ea43c9b45232361:1"
+      },
+      "amount": {
+        "value": "1300000",
+        "currency": {
+          "symbol": "ADA",
+          "decimals": 6
+        }
+      },
+      "metadata": {
+        "54938c566d8f4c045afb5e2892a5416f2f06c913ba2a444b1ea43c9b45232361:1": [
+          {
+            "policyId": "ba74882344a7946a04139263c4896703a7107f522bbf061c311aac6c",
+            "tokens": [
+              {
+                "value": "4",
+                "currency": {
+                  "symbol": "524550",
+                  "decimals": 0,
+                  "metadata": {
+                    "policyId": "ba74882344a7946a04139263c4896703a7107f522bbf061c311aac6c"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+The structure is identical to the one used for regular native tokens (see the [UTxO example](../multi-assets.md#account-balance-and-utxo-queries)).
 
 ## Transactions
 
@@ -241,9 +382,85 @@ A programmable token is identified exactly like every native asset: by **policy 
 | `currency.metadata.policyId`          | Policy ID of the token                                                |
 | `currency.decimals`                   | `0` unless the token registry provides a value                        |
 
-To show a readable name, ticker, description or the real number of decimals, enable the token registry integration described in [Enabling Token Metadata](../../advanced-configuration/token-metadata.md). Rosetta then adds `subject`, `name`, `description`, `ticker` and `url` to `currency.metadata`, and the registered decimals to `currency.decimals`, for programmable tokens as for any other native asset. The guide shows a before and after example. Tokens that are not in the registry keep only the `policyId` in the metadata and `decimals` of `0`, which is not an error.
+To show a readable name, ticker, description or the real number of decimals, enable the token registry integration described in [Enabling Token Metadata](../../advanced-configuration/token-metadata.md). Rosetta then adds `subject`, `name`, `description`, `ticker` and `version` to `currency.metadata`, and the registered decimals to `currency.decimals`, for programmable tokens as for any other native asset. Tokens that are not in the registry keep only the `policyId` in the metadata and `decimals` of `0`, which is not an error.
 
-Companion assets of a programmable policy, such as a CIP-68 reference NFT, are the responsibility of the token's module, not of the CIP-113 base layer. Check with the issuer how a given token publishes its metadata.
+### Example: a CIP-68 programmable token
+
+Two programmable tokens on preprod, `fes-token-cip68` and `Brale Dollar (BRLT)`, have metadata in the Cardano token metadata registry and follow CIP-68. Their asset name starts with the CIP-67 label `0014df10` (label 333, a fungible user token), followed by the token name. The example is the holder of `fes-token-cip68`, queried at block `5317690`:
+
+<Tabs>
+  <TabItem value="request" label="Request" default>
+
+```json
+{
+  "network_identifier": {
+    "blockchain": "cardano",
+    "network": "preprod"
+  },
+  "account_identifier": {
+    "address": "addr_test1zzl9nam4pfweg7akf8ns646dqenermp55807u2sg0jz3rcm2va2et07ep03aanyq05zsjq5v5vapp3gnmdt0g3rgzhqscj8urd"
+  }
+}
+```
+
+  </TabItem>
+  <TabItem value="response" label="Response">
+
+```json
+{
+  "block_identifier": {
+    "index": 5317690,
+    "hash": "f3d1a03283bd1089ae95b9d1d0a4f1db71020e40ac537f4a2a5f9d513f1b2fe8"
+  },
+  "balances": [
+    {
+      "value": "1267140",
+      "currency": {
+        "symbol": "ADA",
+        "decimals": 6
+      }
+    },
+    {
+      "value": "1000000000",
+      "currency": {
+        "symbol": "0014df106665732d746f6b656e2d6369703638",
+        "decimals": 6,
+        "metadata": {
+          "policyId": "0cc8b56b16f99695c68567fbef98a19d527897c76cb6db452b608e63",
+          "subject": "0cc8b56b16f99695c68567fbef98a19d527897c76cb6db452b608e630014df106665732d746f6b656e2d6369703638",
+          "name": "fes-token-cip68",
+          "description": "Programmable Token w/ CIP68 Metadata",
+          "ticker": "FES68",
+          "version": 1
+        }
+      }
+    }
+  ]
+}
+```
+
+  </TabItem>
+</Tabs>
+
+How to read the token entry:
+
+- `currency.symbol` is the full asset name in hex. It keeps the `0014df10` label prefix; the part after it, `6665732d746f6b656e2d6369703638`, decodes to `fes-token-cip68`.
+- `currency.decimals` is `6` and comes from the registry. The balance `1000000000` is therefore 1,000 tokens.
+- `currency.metadata` carries `subject` (policy ID followed by asset name), `name`, `description`, `ticker` (`FES68`) and `version`.
+- Decimals are **not** repeated in `currency.metadata`.
+
+Companion assets of a programmable policy, such as a CIP-68 reference NFT (label 100, asset name prefix `000643b0`), are the responsibility of the token's module, not of the CIP-113 base layer. They appear in the balance like any other asset, with no registry metadata. Check with the issuer how a given token publishes its metadata.
+
+### Example: the same asset name under two policies
+
+The holder of Brale Dollar tokens shows why you must read the policy ID. Its balance contains the same asset name, `0014df1042524c54` (the `0014df10` label followed by `BRLT`), under two different policies:
+
+| Policy ID | Quantity | `decimals` | Token registry metadata |
+| --------- | -------: | ---------: | ----------------- |
+| `b75439f519ab6bf19c8702cfcb906e39c78c74ae7643d4e909d026fd` | 1000000 | `6` | `Brale Dollar`, ticker `BRLT` |
+| `baddd482c787be3b2f11dd2cf916755bd7a30f0c41070011ec7190ee` | 1000000 | `0` | none |
+
+Both entries have the same `currency.symbol`. Only the policy ID tells them apart, and only the first one has token metadata registry data (both policies are programmable tokens). Never match tokens by `symbol` or `ticker` alone.
 
 ## Is a token programmable?
 
@@ -260,7 +477,7 @@ Rosetta does not expose the registry, so this lookup is done with the CIP-113 to
 | Expecting a mint or burn operation                             | There is none. A token bundle that does not balance between inputs and outputs means tokens were minted or burned.                                       |
 | Expecting zero-value withdrawals in the operations             | They are filtered. The remaining operations describe only the movement of ADA and tokens.                                                                |
 | Treating a script owner as a person                            | A programmable address can be owned by a script (a dApp or a DAO). Its stake credential slot is a script hash. Do not assume that every owner is a wallet. |
-| Using the `/account/balance` `currencies` filter to separate policies | The filter matches on the symbol only. Check `currency.metadata.policyId` in the result. `/account/coins` matches on policy ID and symbol. |
+| Identifying a token by symbol or ticker                        | Different policies can use the same asset name, as in [the BRLT example](#example-the-same-asset-name-under-two-policies). Key on `policyId` plus `symbol`. The `/account/balance` `currencies` filter matches on the symbol only, so check `currency.metadata.policyId` in the result. `/account/coins` matches on policy ID and symbol. |
 
 ## Next steps
 
