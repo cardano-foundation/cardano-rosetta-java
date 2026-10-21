@@ -328,8 +328,15 @@ def deep_diff(
     )
 
 
-def _normalize_req_ids(message: str) -> str:
-    return re.sub(r"request \d+:", "request [ID]:", message)
+def _normalized_error_detail_message(error: Dict[str, Any]) -> Any:
+    """Read details.message, normalizing variable request IDs."""
+    details = error.get("details")
+    if not isinstance(details, dict):
+        return None
+    message = details.get("message")
+    if isinstance(message, str):
+        return re.sub(r"request \d+:", "request [ID]:", message)
+    return message
 
 
 def _success_differences(
@@ -382,12 +389,16 @@ def _error_differences(
         return ["Expected an error object"] + [
             f"Schema: {message}" for message in schema_errors
         ]
-    differences = [
-        difference
-        for field in ("code", "message", "retriable")
-        if field in expected
-        for difference in deep_diff(expected[field], error.get(field), field)
-    ]
+    differences = []
+    for field in ("code", "message", "retriable"):
+        if field in expected:
+            differences.extend(deep_diff(expected[field], error.get(field), field))
+
+    expected_message = _normalized_error_detail_message(expected)
+    if isinstance(expected_message, str):
+        actual_message = _normalized_error_detail_message(error)
+        differences.extend(deep_diff(expected_message, actual_message, "details.message"))
+
     if "retriable" in expected:
         # GlobalExceptionHandler maps the expected retry flag to HTTP 400/500.
         expected_status = 500 if expected["retriable"] else 400
@@ -395,25 +406,7 @@ def _error_differences(
             differences.append(
                 f"HTTP status: expected {expected_status} but got {http_status}"
             )
-    if (
-        "details" in expected
-        and "details" in error
-        and isinstance(expected["details"], dict)
-        and isinstance(error["details"], dict)
-    ):
-        expected_message, actual_message = (
-            expected["details"].get("message"),
-            error["details"].get("message"),
-        )
-        if (
-            isinstance(expected_message, str)
-            and isinstance(actual_message, str)
-            and _normalize_req_ids(expected_message)
-            != _normalize_req_ids(actual_message)
-        ):
-            differences.append(
-                f'details.message: Expected "{expected_message}" but got "{actual_message}"'
-            )
+
     differences.extend(f"Schema: {error}" for error in schema_errors)
     return differences
 

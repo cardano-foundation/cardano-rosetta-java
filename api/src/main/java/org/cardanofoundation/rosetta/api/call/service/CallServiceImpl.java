@@ -34,6 +34,7 @@ public class CallServiceImpl implements CallService {
     private static final String METHOD_GET_PARSE_ERROR_BLOCKS = "get_parse_error_blocks";
     private static final String METHOD_MARK_PARSE_ERROR_BLOCK_CHECKED = "mark_parse_error_block_checked";
     private static final String METHOD_RESOLVE_SMART_WALLET_ADDR = "resolve_smart_wallet_addr";
+    private static final String BYRON_NOT_SUPPORTED_DETAIL = "Byron addresses are not supported";
     private static final int CREDENTIAL_HASH_LENGTH = 28;
     private static final int ENTERPRISE_ADDRESS_LENGTH = 1 + CREDENTIAL_HASH_LENGTH;
     private static final int BASE_ADDRESS_LENGTH = 1 + (2 * CREDENTIAL_HASH_LENGTH);
@@ -76,7 +77,7 @@ public class CallServiceImpl implements CallService {
         }
         if (eraAddressType == EraAddressType.BYRON) {
             throw ExceptionFactory.cip113AddressTypeNotSupported(
-                    "Byron addresses are not supported");
+                    BYRON_NOT_SUPPORTED_DETAIL);
         }
 
         Address address = new Address(inputAddress);
@@ -84,7 +85,7 @@ public class CallServiceImpl implements CallService {
         // has no HRP for that type, so it must be rejected before the canonical-prefix check.
         if (address.getAddressType() == AddressType.Byron) {
             throw ExceptionFactory.cip113AddressTypeNotSupported(
-                    "Byron addresses are not supported");
+                    BYRON_NOT_SUPPORTED_DETAIL);
         }
 
         requireCanonicalPrefix(address);
@@ -127,7 +128,7 @@ public class CallServiceImpl implements CallService {
                     "Reward addresses are not supported");
             // Rejected before prefix validation; retained so the switch stays exhaustive.
             case Byron -> throw ExceptionFactory.cip113AddressTypeNotSupported(
-                    "Byron addresses are not supported");
+                    BYRON_NOT_SUPPORTED_DETAIL);
         };
     }
 
