@@ -405,24 +405,15 @@ In order to support Byron addresses an extra field called `chain_code` in the `a
 
 ### `/call`
 
-Besides the methods that manage [unparsed blocks](/docs/advanced-configuration/unparsed_blocks), the `/call` endpoint supports `resolve_smart_wallet_addr` (added in 2.4.0). It converts a supported address into the [CIP-113 programmable address](/docs/user-guides/cip-113/addresses) of the same owner, using the configured `CIP113_BASE_SCRIPT_HASH`.
+The `/call` endpoint of the Mesh specification is network-specific: each implementation defines its own methods. Cardano Rosetta Java supports three:
 
-```json
-{
-  "network_identifier": {
-    "blockchain": "cardano",
-    "network": "preprod"
-  },
-  "method": "resolve_smart_wallet_addr",
-  "parameters": {
-    "address": "addr_test1vpwcgn22xnj8gnen0snfcjgyqp0jfgc6kufgmjlk2fm7mvg5ys3p3"
-  }
-}
-```
+| Method                              | Purpose                                                                                          | Idempotent | Details                                                                                          |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------ | :--------: | ------------------------------------------------------------------------------------------------ |
+| `get_parse_error_blocks`            | List blocks that could not be fully parsed, filtered by review status                            |     No     | [Handling Unparsed Blocks](/docs/advanced-configuration/unparsed_blocks)                         |
+| `mark_parse_error_block_checked`    | Mark the parse errors of a block as reviewed                                                     |     No     | [Handling Unparsed Blocks](/docs/advanced-configuration/unparsed_blocks)                         |
+| `resolve_smart_wallet_addr`         | Convert an address into the [CIP-113](/docs/user-guides/cip-113/) programmable address of the same owner (added in 2.4.0) |    Yes     | [Resolving an address](/docs/user-guides/cip-113/addresses#resolving-an-address-call)            |
 
-- `parameters.address` (required): an enterprise address with a key payment credential, a base address with key payment and key stake credentials, or an address that is already a key-owned programmable address. It must belong to the requested network.
-- The response result contains `account_identifier.address`, and `idempotent` is `true`.
-- Errors: `5051` (missing, blank or non-string address), `5063` and `5064` (hash not configured or invalid), `5065` (script payment credential that cannot be mapped to a key owner), `5066` (unsupported address type, including a base address with a script stake credential) and `5067` (invalid address or wrong network).
+Every call carries the usual `network_identifier`, the `method` name and its `parameters`. Unsupported methods are rejected. See the [API reference](/cardano-rosetta-java/api#tag/call/post/call) for the request and response schemas.
 
 ## Other considerations
 
