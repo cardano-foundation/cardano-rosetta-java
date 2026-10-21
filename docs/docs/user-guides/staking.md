@@ -199,6 +199,10 @@ No amount is needed for this operation. The refund will be calculated using the 
   </TabItem>
 </Tabs>
 
+:::note Zero-value withdrawals
+Withdrawals of 0 ADA do not change any balance. They are not returned as `withdrawal` operations by `/block`, `/block/transaction` and `/search/transactions`.
+:::
+
 ## Required Metadata
 
 Each staking operation requires specific metadata:

@@ -134,10 +134,6 @@ For comprehensive documentation on native token operations, including sign conve
 Assets will be returned sorted by name.
 :::
 
-:::note Zero-value withdrawals
-Withdrawals of 0 ADA are script invocations (the withdraw-zero pattern used, for example, by [CIP-113 programmable tokens](/docs/user-guides/cip-113/)) and do not change any balance. They are not returned as `withdrawal` operations by `/block`, `/block/transaction` and `/search/transactions`.
-:::
-
 ### `/account/balance`
 
 For accounts that have a multi asset balance, these will be returned with the corresponding policy passed as metadata at `currency` as follows:
@@ -261,27 +257,6 @@ import TabItem from '@theme/TabItem';
 ```
 
   </TabItem>
-  <TabItem value="cip113" label="CIP-113 programmable address">
-
-The public key is the only input. Sending `staking_credential` with this address type is an error.
-
-```json
-{
-  "network_identifier": {
-    "blockchain": "cardano",
-    "network": "preprod"
-  },
-  "public_key": {
-    "hex_bytes": "1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F",
-    "curve_type": "edwards25519"
-  },
-  "metadata": {
-    "address_type": "CIP-113"
-  }
-}
-```
-
-  </TabItem>
   <TabItem value="enterprise" label="Enterprise address">
 
 In this case the metadata is optional. If it's provided, then the `address_type` should be `Enterprise` and any `staking_credential` will be ignored.
@@ -298,6 +273,27 @@ In this case the metadata is optional. If it's provided, then the `address_type`
   },
   "metadata": {
     "address_type": "Enterprise"
+  }
+}
+```
+
+  </TabItem>
+  <TabItem value="cip113" label="CIP-113 programmable address">
+
+The public key is the only input. Sending `staking_credential` with this address type is an error.
+
+```json
+{
+  "network_identifier": {
+    "blockchain": "cardano",
+    "network": "preprod"
+  },
+  "public_key": {
+    "hex_bytes": "1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F",
+    "curve_type": "edwards25519"
+  },
+  "metadata": {
+    "address_type": "CIP-113"
   }
 }
 ```

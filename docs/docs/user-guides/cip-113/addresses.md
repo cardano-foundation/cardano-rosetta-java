@@ -339,5 +339,5 @@ All errors are also listed by `/network/options`.
 
 ## Next steps
 
-- [Querying Balances, Coins and Transactions](./querying.md): read the tokens held at the programmable address.
+- [Querying a Programmable Address](./querying.md): read the tokens held at the programmable address.
 - [API Reference](/cardano-rosetta-java/api): request and response schemas for `/construction/derive` and `/call`.

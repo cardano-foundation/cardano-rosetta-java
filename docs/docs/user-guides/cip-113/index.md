@@ -9,16 +9,12 @@ description: What CIP-113 programmable tokens are, how they are held on Cardano,
 
 ## Overview
 
-**Programmable tokens** are native Cardano assets with an additional layer of validation logic that runs on every transfer, mint or burn. They are the building block for regulated assets such as stablecoins and tokenized securities, where an issuer must be able to enforce rules (for example sanctions screening, or freezing and seizing a holding) at the protocol level.
+**Programmable tokens** are native Cardano assets with an additional layer of validation logic that runs on every transfer. They are the building block for regulated assets such as stablecoins and tokenized securities, where an issuer must be able to enforce rules (for example sanctions screening, or freezing and seizing a holding) at the protocol level.
 
-They are defined by [CIP-113](https://github.com/cardano-foundation/CIPs/pull/444) and implemented by the Cardano Foundation in two repositories:
+They are defined by [CIP-113](https://cips.cardano.org/cip/CIP-0113) and implemented by the Cardano Foundation in two repositories:
 
 - [`cip113-programmable-tokens`](https://github.com/cardano-foundation/cip113-programmable-tokens): the on-chain smart contracts (Aiken)
 - [`cip113-programmable-tokens-platform`](https://github.com/cardano-foundation/cip113-programmable-tokens-platform): the off-chain platform, reference frontend and example modules
-
-:::note
-At the time of writing, CIP-113 has been accepted by the CIP editors and is awaiting merge. The terminology on this page follows the two repositories above. Check them for the latest status of the standard.
-:::
 
 Cardano Rosetta Java supports programmable tokens from version **2.4.0**. Rosetta is mainly concerned with the **holder's address**, so the guides in this section focus on how an exchange or custodian can:
 
@@ -112,23 +108,6 @@ Zero-value withdrawals are script invocations, not balance changes. Cardano Rose
 - The **registry** (also called the directory) is an on-chain sorted linked list with one entry per registered programmable token policy. An entry points to the logic scripts that govern the token.
 - A **module** is the pluggable rule set a token obeys. The platform repository ships a `dummy` (permissioned transfer), a `freeze-and-seize` (denylist, freeze and seize), a `kyc` and a `kyc-extended` module.
 
-## Terminology
-
-The repositories and the Rosetta API use slightly different words for the same things:
-
-| Official term (CIP-113 repositories)                | Rosetta Java term                                   |
-| --------------------------------------------------- | --------------------------------------------------- |
-| Programmable token                                  | Native asset (reported in `tokenBundle`)            |
-| Programmable (logic) address                        | **Smart wallet address**                            |
-| `programmable_logic_base` (PLB) script hash         | `CIP113_BASE_SCRIPT_HASH`                           |
-| Owner credential (stake credential slot)            | User credential                                     |
-| Dispatcher (`programmable_logic_global`)            | not exposed                                         |
-| Module, registry, denylist                          | not exposed                                         |
-
-:::info Smart wallet address
-The API uses the name **smart wallet address** in the `/call` method `resolve_smart_wallet_addr` and in error messages. It is exactly the programmable address described above. These guides use *programmable address* and say *smart wallet address* only when naming API elements.
-:::
-
 ## What Rosetta supports
 
 | Capability                                                                 | Supported |
@@ -139,7 +118,6 @@ The API uses the name **smart wallet address** in the `/call` method `resolve_sm
 | Transactions of a programmable address (`/search/transactions`, `/block`, `/block/transaction`) | Yes |
 | Token names, tickers and decimals through the token registry               |    Yes    |
 | Build, sign or submit programmable-token transfers (`/construction/*`)     |    No     |
-| Mint or burn programmable tokens                                           |    No     |
 | Tell whether a policy is programmable, or read denylist and freeze state   |    No     |
 
 :::important Not covered yet
@@ -160,6 +138,6 @@ If the variable is empty, the data endpoints keep working, but derive with `CIP-
 ## Next steps
 
 - [Deriving and Resolving Addresses](./addresses.md): get the programmable address of a customer.
-- [Querying Balances, Coins and Transactions](./querying.md): read the tokens held at that address.
+- [Querying a Programmable Address](./querying.md): read the tokens held at that address.
 - [Native Tokens](../multi-assets.md): how tokens are represented in Rosetta operations.
 - [Enabling Token Metadata](../../advanced-configuration/token-metadata.md): show token names, tickers and decimals.
