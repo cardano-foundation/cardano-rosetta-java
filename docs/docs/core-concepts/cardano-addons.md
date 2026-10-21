@@ -413,7 +413,7 @@ The `/call` endpoint of the Mesh specification is network-specific: each impleme
 | `mark_parse_error_block_checked`    | Mark the parse errors of a block as reviewed                                                     |     No     | [Handling Unparsed Blocks](/docs/advanced-configuration/unparsed_blocks)                         |
 | `resolve_smart_wallet_addr`         | Convert an address into the [CIP-113](/docs/user-guides/cip-113/) programmable address of the same owner (added in 2.4.0) |    Yes     | [Resolving an address](/docs/user-guides/cip-113/addresses#resolving-an-address-call)            |
 
-Every call carries the usual `network_identifier`, the `method` name and its `parameters`. Unsupported methods are rejected. See the [API reference](/cardano-rosetta-java/api#tag/call/post/call) for the request and response schemas.
+Every call carries the usual `network_identifier`, the `method` name and its `parameters`. Unsupported methods are rejected. See the [API reference](/cardano-rosetta-java/api) for the request and response schemas.
 
 ## Other considerations
 
