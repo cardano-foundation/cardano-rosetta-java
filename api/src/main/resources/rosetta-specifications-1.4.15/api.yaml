@@ -484,7 +484,7 @@ paths:
         - `idempotent`: false (as this operation modifies error review status)
 
         ### resolve_smart_wallet_addr
-        Resolves a supported Cardano address to the CIP-113 smart-wallet address (the programmable address) of the same owner, using the server's configured programmable logic base script hash (`CIP113_BASE_SCRIPT_HASH`). The input address must match the requested network. See the CIP-113 user guide in the documentation for background.
+        Resolves a supported Cardano address to the CIP-113 smart wallet address of the same owner, using the server's configured programmable logic base script hash (`CIP113_BASE_SCRIPT_HASH`). The input address must match the requested network. See the CIP-113 user guide in the documentation for background.
 
         The owner credential is taken from the input as follows:
         - Enterprise address with a key payment credential: the payment key hash.
@@ -506,7 +506,7 @@ paths:
         - `5051`: `parameters.address` is missing, blank or not a string
         - `5063`, `5064`: `CIP113_BASE_SCRIPT_HASH` is not configured or is not a 28-byte hex string
         - `5065`: the address has a script payment credential that cannot be mapped to a key owner (an enterprise script address, or a base address with a key stake credential whose payment script is not the configured programmable logic base)
-        - `5066`: the address type is not supported (reward, pointer, Byron, or a base address with a script stake credential, which includes a script-owned programmable address)
+        - `5066`: the address type is not supported (reward, pointer, Byron, or a base address with a script stake credential, which includes a script-owned smart wallet address)
         - `5067`: the address is malformed or belongs to another network
       operationId: call
       tags:
@@ -2030,7 +2030,7 @@ components:
       properties:
         address_type:
           type: string
-          description: AddressType is the type of address that will be derived from the PublicKey. This field is used to indicate that a PublicKey is associated with a particular address type. If this field is not populated, it is assumed that the PublicKey is associated with the default address type for the network. Supported derive values are Enterprise, Base, Reward, and CIP-113 (case-sensitive). CIP-113 returns the programmable address of the public key, a base address whose payment credential is the configured programmable logic base script hash (CIP113_BASE_SCRIPT_HASH) and whose stake credential slot holds the hash of the public key. staking_credential is not allowed with CIP-113 and is rejected with error 5062.
+          description: AddressType is the type of address that will be derived from the PublicKey. This field is used to indicate that a PublicKey is associated with a particular address type. If this field is not populated, it is assumed that the PublicKey is associated with the default address type for the network. Supported derive values are Enterprise, Base, Reward, and CIP-113 (case-sensitive). CIP-113 returns the smart wallet address of the public key, a base address whose payment credential is the configured programmable logic base script hash (CIP113_BASE_SCRIPT_HASH) and whose stake credential slot holds the hash of the public key. staking_credential is not allowed with CIP-113 and is rejected with error 5062.
         staking_credential:
           $ref: '#/components/schemas/PublicKey'
 
