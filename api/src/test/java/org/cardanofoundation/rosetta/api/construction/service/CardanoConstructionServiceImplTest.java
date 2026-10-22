@@ -5,6 +5,7 @@ import com.bloxbean.cardano.client.transaction.spec.Asset;
 import com.bloxbean.cardano.client.transaction.spec.MultiAsset;
 import com.bloxbean.cardano.client.transaction.spec.TransactionOutput;
 import com.bloxbean.cardano.client.transaction.spec.Value;
+import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.util.HexUtil;
 import com.bloxbean.cardano.yaci.core.exception.CborRuntimeException;
 import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
@@ -16,6 +17,7 @@ import org.cardanofoundation.rosetta.common.exception.Error;
 import org.cardanofoundation.rosetta.common.mapper.CborArrayToTransactionData;
 import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
+import org.cardanofoundation.rosetta.common.services.Cip113AddressServiceImpl;
 import org.cardanofoundation.rosetta.common.time.OfflineSlotServiceImpl;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
@@ -47,31 +49,40 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.bloxbean.cardano.client.crypto.Blake2bUtil.blake2bHash224;
 import static com.bloxbean.cardano.client.crypto.Blake2bUtil.blake2bHash256;
 import static com.bloxbean.cardano.client.util.HexUtil.decodeHexString;
 import static com.bloxbean.cardano.client.util.HexUtil.encodeHexString;
 import static org.cardanofoundation.rosetta.EntityGenerator.*;
 import static org.cardanofoundation.rosetta.api.construction.enumeration.AddressType.BASE;
 import static org.cardanofoundation.rosetta.api.construction.enumeration.AddressType.REWARD;
+import static org.cardanofoundation.rosetta.common.enumeration.NetworkEnum.MAINNET;
 import static org.cardanofoundation.rosetta.common.enumeration.NetworkEnum.PREPROD;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.openapitools.client.model.CurveType.EDWARDS25519;
+import static org.openapitools.client.model.CurveType.SECP256K1;
 
 @ExtendWith(MockitoExtension.class)
 class CardanoConstructionServiceImplTest {
 
   private final static String TRANSACTION_SIGNED = "8279025a3833613430303831383235383230326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663031303138323832353831643631626234306631613634376263383863316264366237333864623865623636333537643932363437346561356666643662616137366339666238323139323731306131353831636230643037643435666539353134663830323133663430323065356136313234313435386265363236383431636465373137636233386137613334393437373536393634366634333666363936653139303930363530346137353631366534333732373537613534366636623635366536313761366631393161306134373665373537343633366636393665313932373130383235383164363162623430663161363437626338386331626436623733386462386562363633353764393236343734656135666664366261613736633966623139396334303032313939633430303330306131303038313832353832303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303035383430303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303066356636a16a6f7065726174696f6e7381a7746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800647479706565696e707574667374617475736773756363657373676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26576616c7565662d39303030306863757272656e6379a26673796d626f6c6341444168646563696d616c73066b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74686d65746164617461a16b746f6b656e42756e646c6581a268706f6c69637949647838623064303764343566653935313466383032313366343032306535613631323431343538626536323638343163646537313763623338613766746f6b656e7383a26576616c756564323331306863757272656e6379a26673796d626f6c7234373735363936343666343336663639366568646563696d616c7300a26576616c756564363636366863757272656e6379a26673796d626f6c7820346137353631366534333732373537613534366636623635366536313761366668646563696d616c7300a26576616c75656531303030306863757272656e6379a26673796d626f6c6e366537353734363336663639366568646563696d616c7300";
   private final static String TRANSACTION_NOT_SIGNED = "82790132613530303831383235383230326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663031303138323832353831643631626234306631613634376263383863316264366237333864623865623636333537643932363437346561356666643662616137366339666230313832353831643631626234306631613634376263383863316264366237333864623865623636333537643932363437346561356666643662616137366339666230343032316130353762636566623033313930336538303438313832303138323030353831636262343066316136343762633838633162643662373338646238656236363335376439323634373465613566666436626161373663396662a16a6f7065726174696f6e7382a6746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800647479706565696e707574667374617475736773756363657373676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26576616c7565692d39303030303030306863757272656e6379a26673796d626f6c6341444168646563696d616c73066b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74a5746f7065726174696f6e5f6964656e746966696572a165696e646578036474797065767374616b654b65794465726567697374726174696f6e667374617475736773756363657373676163636f756e74a16761646472657373783b7374616b653175387a666e6b687034673676686e6565746d763271656e3766356e64726b6c716a7138653973326e636b3968333063667a36716d70686d65746164617461a2727374616b696e675f63726564656e7469616ca2696865785f62797465737840314234303044363041414633344541463644434241423942424134363030314132333439373838364346313130363646373834363933334433304535414433466a63757276655f747970656c6564776172647332353531396c726566756e64416d6f756e74a26576616c7565682d323030303030306863757272656e6379a26673796d626f6c6341444168646563696d616c7306";
-  private final static String COMBINE_UNSIGNED_TRANSACTION = "a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8";
-  private final static String COMBINE_SIGNED_TRANSACTION = "84a400d90102818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8a102d901028184582073fea80d424276ad0978d4fe5310e8bc2d485f5f6bb3bf87612989f112ad5a7d5840dc2a1948bfa9411b37e8d280b04c48a85af5588bcf509c0fca798f7b462ebca92d6733dacc1f1c6c1463623c085401be07ea422ad4f1c543375e7d3d2393aa0b5820dd75e154da417becec55cdd249327454138f082110297d5e87ab25e15fad150f41a0f5f6";
+  private static final String COMBINE_UNSIGNED_TRANSACTION = "a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8";
+  private static final String COMBINE_SIGNED_TRANSACTION = "84a400d90102818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8a102d901028184582073fea80d424276ad0978d4fe5310e8bc2d485f5f6bb3bf87612989f112ad5a7d5840dc2a1948bfa9411b37e8d280b04c48a85af5588bcf509c0fca798f7b462ebca92d6733dacc1f1c6c1463623c085401be07ea422ad4f1c543375e7d3d2393aa0b5820dd75e154da417becec55cdd249327454138f082110297d5e87ab25e15fad150f41a0f5f6";
+  private static final String CIP113_PLB_SCRIPT_HASH = "198ec641705835b5e9664d0c8214a676f121e2b0d5ab8a1ecbc0ed38";
+  private static final String CIP113_EXPECTED_ADDRESS = "addr_test1zqvca3jpwpvrtd0fvexseqs55em0zg0zkr26hzs7e0qw6w9mgrc6v3au3rqm66mn3kuwke340kfxga82tl7kh2nke8asgpvgzg";
+  private static final String CIP113_EXPECTED_MAINNET_ADDRESS = "addr1zyvca3jpwpvrtd0fvexseqs55em0zg0zkr26hzs7e0qw6w9mgrc6v3au3rqm66mn3kuwke340kfxga82tl7kh2nke8asth3gwh";
+  private static final String ALTERNATE_PLB_SCRIPT_HASH = "00000000000000000000000000000000000000000000000000000000";
 
   @Mock
   private RestTemplate restTemplate;
 
   @InjectMocks
   private CardanoConstructionServiceImpl cardanoService;
+
+  private Cip113AddressServiceImpl cip113AddressService;
 
   private MockedStatic<CompletableFuture> completableFutureMock;
 
@@ -83,8 +94,10 @@ class CardanoConstructionServiceImplTest {
 
   @BeforeEach
   void setup() {
+    cip113AddressService = new Cip113AddressServiceImpl();
     cardanoService = new CardanoConstructionServiceImpl(null, null,
-        new TransactionOperationParserImpl(), restTemplate, offlineSlotService);
+        new TransactionOperationParserImpl(), restTemplate, offlineSlotService,
+        cip113AddressService);
     completableFutureMock = Mockito.mockStatic(CompletableFuture.class, invocation -> {
       if (invocation.getMethod().getName().equals("supplyAsync")) {
         Supplier<?> supplier = invocation.getArgument(0);
@@ -390,6 +403,203 @@ class CardanoConstructionServiceImplTest {
   }
 
   @Test
+  void getCardanoCip113AddressTest() {
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+
+    String cardanoAddress = cardanoService
+        .getCardanoAddress(AddressType.CIP_113, null, givenPublicKey(), PREPROD);
+
+    assertEquals(CIP113_EXPECTED_ADDRESS, cardanoAddress);
+  }
+
+  @Test
+  void getCardanoCip113Address_whenMainnet_thenUsesMainnetNetworkTag() {
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+
+    String cardanoAddress = cardanoService
+        .getCardanoAddress(AddressType.CIP_113, null, givenPublicKey(), MAINNET);
+
+    assertEquals(CIP113_EXPECTED_MAINNET_ADDRESS, cardanoAddress);
+  }
+
+  @Test
+  void getCardanoCip113AddressDeterministicTest() {
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+
+    String firstAddress = cardanoService
+        .getCardanoAddress(AddressType.CIP_113, null, givenPublicKey(), PREPROD);
+    String secondAddress = cardanoService
+        .getCardanoAddress(AddressType.CIP_113, null, givenPublicKey(), PREPROD);
+
+    assertEquals(firstAddress, secondAddress);
+  }
+
+  @Test
+  void getCardanoCip113Address_whenPublicKeyChanges_thenAddressChanges() {
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+    PublicKey alternatePublicKey = new PublicKey(
+            "159abeeecdf167ccc0ea60b30f9522154a0d74161aeb159fb43b6b0695f057b3",
+            EDWARDS25519);
+
+    String firstAddress = cardanoService
+        .getCardanoAddress(AddressType.CIP_113, null, givenPublicKey(), PREPROD);
+    String secondAddress = cardanoService
+        .getCardanoAddress(AddressType.CIP_113, null, alternatePublicKey, PREPROD);
+
+    assertNotEquals(firstAddress, secondAddress);
+  }
+
+  @Test
+  void getCardanoCip113Address_whenPlbChanges_thenAddressChanges() {
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+    String firstAddress = cardanoService
+        .getCardanoAddress(AddressType.CIP_113, null, givenPublicKey(), PREPROD);
+    setCip113BaseScriptHash(ALTERNATE_PLB_SCRIPT_HASH);
+
+    String secondAddress = cardanoService
+        .getCardanoAddress(AddressType.CIP_113, null, givenPublicKey(), PREPROD);
+
+    assertNotEquals(firstAddress, secondAddress);
+    assertArrayEquals(HexUtil.decodeHexString(ALTERNATE_PLB_SCRIPT_HASH),
+        new Address(secondAddress).getPaymentCredentialHash().orElseThrow());
+  }
+
+  @Test
+  void getCardanoCip113Address_decodedStructureMatchesInputs() {
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+    PublicKey publicKey = givenPublicKey();
+
+    Address address = new Address(
+        cardanoService.getCardanoAddress(AddressType.CIP_113, null, publicKey, PREPROD));
+
+    assertEquals(com.bloxbean.cardano.client.address.AddressType.Base, address.getAddressType());
+    assertEquals(0, address.getNetwork().getNetworkId());
+    assertTrue(address.isScriptHashInPaymentPart());
+    assertTrue(address.isStakeKeyHashInDelegationPart());
+    assertArrayEquals(HexUtil.decodeHexString(CIP113_PLB_SCRIPT_HASH),
+        address.getPaymentCredentialHash().orElseThrow());
+    assertArrayEquals(blake2bHash224(HexUtil.decodeHexString(publicKey.getHexBytes())),
+        address.getDelegationCredentialHash().orElseThrow());
+  }
+
+  @Test
+  void getCardanoCip113Address_whenPublicKeyMissing_thenThrowsPublicKeyMissing() {
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+
+    ApiException exception = assertThrows(ApiException.class,
+        () -> cardanoService.getCardanoAddress(AddressType.CIP_113, null, null, PREPROD));
+
+    assertEquals(RosettaErrorType.PUBLIC_KEY_MISSING.getCode(), exception.getError().getCode());
+  }
+
+  @Test
+  void getCardanoCip113Address_whenExtendedKey_thenMatchesRawKeyAddress() {
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+    String raw = givenPublicKey().getHexBytes();
+    PublicKey extended = new PublicKey(raw + raw, EDWARDS25519);
+
+    assertEquals(
+        cardanoService.getCardanoAddress(AddressType.CIP_113, null, givenPublicKey(), PREPROD),
+        cardanoService.getCardanoAddress(AddressType.CIP_113, null, extended, PREPROD));
+  }
+
+  @Test
+  void getCardanoCip113Address_whenPlbMissing_thenThrowsNotConfigured() {
+    setCip113BaseScriptHash("");
+
+    PublicKey publicKey = givenPublicKey();
+
+    ApiException exception = assertThrows(ApiException.class,
+        () -> cardanoService.getCardanoAddress(AddressType.CIP_113, null, publicKey, PREPROD));
+
+    assertEquals(RosettaErrorType.CIP113_PLB_SCRIPT_HASH_NOT_CONFIGURED.getCode(),
+        exception.getError().getCode());
+    assertEquals(RosettaErrorType.CIP113_PLB_SCRIPT_HASH_NOT_CONFIGURED.getMessage(),
+        exception.getError().getMessage());
+  }
+
+  @Test
+  void getCardanoCip113Address_whenPlbMissingAndPublicKeyInvalid_thenThrowsNotConfigured() {
+    setCip113BaseScriptHash("");
+    PublicKey invalidPublicKey = new PublicKey("INVALID_HEX", EDWARDS25519);
+
+    ApiException exception = assertThrows(ApiException.class,
+        () -> cardanoService.getCardanoAddress(AddressType.CIP_113, null, invalidPublicKey,
+            PREPROD));
+
+    assertEquals(RosettaErrorType.CIP113_PLB_SCRIPT_HASH_NOT_CONFIGURED.getCode(),
+        exception.getError().getCode());
+  }
+
+  @Test
+  void getCardanoCip113Address_whenPlbMalformed_thenThrowsInvalid() {
+    assertCip113PlbInvalid("not-hex");
+  }
+
+  @Test
+  void getCardanoCip113Address_whenPlbShort_thenThrowsInvalid() {
+    assertCip113PlbInvalid(CIP113_PLB_SCRIPT_HASH.substring(0, 54));
+  }
+
+  @Test
+  void getCardanoCip113Address_whenPlbLong_thenThrowsInvalid() {
+    assertCip113PlbInvalid(CIP113_PLB_SCRIPT_HASH + "00");
+  }
+
+  @Test
+  void getCardanoCip113Address_whenPublicKeyLengthIsInvalid_thenThrowsInvalidPublicKeyFormat() {
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+    PublicKey publicKey = new PublicKey("48656C6C6F2C20776F726C6421", EDWARDS25519);
+
+    ApiException exception = assertThrows(ApiException.class,
+        () -> cardanoService.getCardanoAddress(AddressType.CIP_113, null, publicKey, PREPROD));
+
+    assertEquals(RosettaErrorType.INVALID_PUBLIC_KEY_FORMAT.getCode(),
+        exception.getError().getCode());
+    assertFalse(exception.getError().isRetriable());
+  }
+
+  @Test
+  void getCardanoCip113Address_whenPublicKeyHexIsInvalid_thenThrowsInvalidPublicKeyFormat() {
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+    PublicKey publicKey = new PublicKey("INVALID_HEX", EDWARDS25519);
+
+    ApiException exception = assertThrows(ApiException.class,
+        () -> cardanoService.getCardanoAddress(AddressType.CIP_113, null, publicKey, PREPROD));
+
+    assertEquals(RosettaErrorType.INVALID_PUBLIC_KEY_FORMAT.getCode(),
+        exception.getError().getCode());
+    assertFalse(exception.getError().isRetriable());
+  }
+
+  @Test
+  void getCardanoCip113Address_whenCurveIsMissing_thenMatchesExplicitEdwardsAddress() {
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+    PublicKey publicKeyWithoutCurve = givenPublicKey();
+    publicKeyWithoutCurve.setCurveType(null);
+
+    String expectedAddress = cardanoService.getCardanoAddress(AddressType.CIP_113, null,
+        givenPublicKey(), PREPROD);
+    String actualAddress = cardanoService.getCardanoAddress(AddressType.CIP_113, null,
+        publicKeyWithoutCurve, PREPROD);
+
+    assertEquals(expectedAddress, actualAddress);
+  }
+
+  @Test
+  void getCardanoCip113Address_whenCurveIsUnsupported_thenThrowsInvalidPublicKeyFormat() {
+    setCip113BaseScriptHash(CIP113_PLB_SCRIPT_HASH);
+    PublicKey publicKey = new PublicKey(givenPublicKey().getHexBytes(), SECP256K1);
+
+    ApiException exception = assertThrows(ApiException.class,
+        () -> cardanoService.getCardanoAddress(AddressType.CIP_113, null, publicKey, PREPROD));
+
+    assertEquals(RosettaErrorType.INVALID_PUBLIC_KEY_FORMAT.getCode(),
+        exception.getError().getCode());
+    assertFalse(exception.getError().isRetriable());
+  }
+
+  @Test
   void getHdPublicKeyFromRosettaKeyTest() {
     PublicKey publicKey = new PublicKey("48656C6C6F2C20776F726C6421", EDWARDS25519);
 
@@ -490,6 +700,22 @@ class CardanoConstructionServiceImplTest {
     headers.add(Constants.CONTENT_TYPE_HEADER_KEY, Constants.CBOR_CONTENT_TYPE);
 
     return headers;
+  }
+
+  private void setCip113BaseScriptHash(String value) {
+    ReflectionTestUtils.setField(cip113AddressService, "cip113BaseScriptHash", value);
+  }
+
+  private void assertCip113PlbInvalid(String value) {
+    setCip113BaseScriptHash(value);
+
+    PublicKey publicKey = givenPublicKey();
+
+    ApiException exception = assertThrows(ApiException.class,
+        () -> cardanoService.getCardanoAddress(AddressType.CIP_113, null, publicKey, PREPROD));
+
+    assertEquals(RosettaErrorType.CIP113_PLB_SCRIPT_HASH_INVALID.getCode(),
+        exception.getError().getCode());
   }
 
   @Nested

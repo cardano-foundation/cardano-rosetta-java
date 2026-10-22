@@ -104,6 +104,12 @@ Each test file should contain:
 
 Existing fixtures are unchanged. For errors, compare the declared `code`, `message` and `retriable` fields. When a fixture declares `retriable`, the expected HTTP status follows `GlobalExceptionHandler`: `false` means 400 and `true` means 500. This uses the fixture's expectation, not the received retry flag. Fixtures that omit `retriable` keep their partial expectations; no new field or HTTP value is invented. Schema validation remains mandatory.
 
+### Network-specific tests
+
+Most goldens are network-independent: they use `{{networkId}}` in `request_body` (and in `expected_error`) and run unchanged on every network, for example on the devkit chain in CI and on preprod. The CIP-113 goldens work this way too, because `.env.IntegrationTest` configures the same CIP-113 base script hash as preprod (`CIP113_BASE_SCRIPT_HASH`), so the expected smart-wallet addresses are identical on both.
+
+A test file that depends on real chain data may carry a top-level `"network"` field (for example `"preprod"`). When `--network-id` differs from that value (the default is `preprod`), the file is skipped and reported as `Requires network 'X', running on 'Y'`. Use it only for such tests, for example the `cip113_search_*`, `cip113_block_transaction_*` and `cip113_resolve_onchain_*` goldens, which are pinned to fixed preprod transactions and so do not drift as the chain advances.
+
 ## Exit Codes
 
 - `0`: All tests passed
