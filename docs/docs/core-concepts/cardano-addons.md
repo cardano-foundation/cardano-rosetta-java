@@ -204,10 +204,10 @@ Following the Rosetta specification, this endpoint returns an Enterprise address
 In addition to that, Cardano Rosetta Java allows the creation of Reward and Base addresses, which aren't supported in the Rosetta specification.
 Therefore, following optional parameters were added as metadata:
 
-- `address_type`: Either `Reward`, `Base`, `Enterprise` or `CIP-113` (added in 2.4.0). It will default to `Enterprise` and will throw an error if any other value is provided. The value is case-sensitive.
+- `address_type`: Either `Reward`, `Base`, `Enterprise` or `CIP-113`. It will default to `Enterprise` and will throw an error if any other value is provided. The value is case-sensitive.
 - `staking_credential`: The public key that will be used for creating a Base address. This field is only mandatory if the provided `address_type` is `Base`. It's ignored in the `Reward` and `Enterprise` cases since those addresses are created with the public key already included in the request. It is **not allowed** with `CIP-113` and is rejected with error `5062`.
 
-The `CIP-113` address type returns the [programmable address](/docs/user-guides/cip-113/) of the public key: a base address whose payment credential is the configured programmable logic base script hash (`CIP113_BASE_SCRIPT_HASH`) and whose stake credential slot holds the hash of the public key.
+The `CIP-113` address type returns the [smart wallet address](/docs/user-guides/cip-113/) of the public key: a base address whose payment credential is the configured programmable logic base script hash (`CIP113_BASE_SCRIPT_HASH`) and whose stake credential slot holds the hash of the public key.
 
 #### Examples
 
@@ -278,7 +278,7 @@ In this case the metadata is optional. If it's provided, then the `address_type`
 ```
 
   </TabItem>
-  <TabItem value="cip113" label="CIP-113 programmable address">
+  <TabItem value="cip113" label="CIP-113 smart wallet address">
 
 The public key is the only input. Sending `staking_credential` with this address type is an error.
 
@@ -407,7 +407,7 @@ The `/call` endpoint of the Mesh specification is network-specific: each impleme
 | ----------------------------------- | ------------------------------------------------------------------------------------------------ | :--------: | ------------------------------------------------------------------------------------------------ |
 | `get_parse_error_blocks`            | List blocks that could not be fully parsed, filtered by review status                            |     No     | [Handling Unparsed Blocks](/docs/advanced-configuration/unparsed_blocks)                         |
 | `mark_parse_error_block_checked`    | Mark the parse errors of a block as reviewed                                                     |     No     | [Handling Unparsed Blocks](/docs/advanced-configuration/unparsed_blocks)                         |
-| `resolve_smart_wallet_addr`         | Convert an address into the [CIP-113](/docs/user-guides/cip-113/) programmable address of the same owner (added in 2.4.0) |    Yes     | [Resolving an address](/docs/user-guides/cip-113/addresses#resolving-an-address-call)            |
+| `resolve_smart_wallet_addr`         | Convert an address into the [CIP-113](/docs/user-guides/cip-113/) smart wallet address of the same owner (added in 2.4.0) |    Yes     | [Resolving an address](/docs/user-guides/cip-113/addresses#resolving-an-address-call)            |
 
 Every call carries the usual `network_identifier`, the `method` name and its `parameters`. Unsupported methods are rejected. See the [API reference](/cardano-rosetta-java/api) for the request and response schemas.
 

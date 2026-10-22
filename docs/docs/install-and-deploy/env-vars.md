@@ -126,7 +126,7 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | mainnet | `d91d08e381f8ef95ffbb3f8048f020d7361ded8f3abfdf66c25fa838` |
 | preprod | `be59f7750a5d947bb649e70d574d066791ec34a1dfee2a087c8511e3` |
 
-See the [CIP-113 guide](../user-guides/cip-113/index.md) for what the hash is used for and how programmable addresses are derived and resolved.
+See the [CIP-113 guide](../user-guides/cip-113/index.md) for what the hash is used for and how smart wallet addresses are derived and resolved.
 :::
 
 ## Hardware Profile Variables

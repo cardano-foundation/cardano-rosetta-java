@@ -1,28 +1,28 @@
 ---
 sidebar_position: 3
-title: Querying a Programmable Address
-sidebar_label: Querying a Programmable Address
+title: Querying a Smart Wallet Address
+sidebar_label: Querying a Smart Wallet Address
 description: Read CIP-113 programmable tokens with the standard Rosetta Data API endpoints
 ---
 
-# Querying a Programmable Address
+# Querying a Smart Wallet Address
 
-Once you have the customer’s programmable address, query it like any other Cardano address. CIP-113 does not add Data API endpoints.
+Once you have the customer’s smart wallet address, query it like any other Cardano address.
 
 | Need | Endpoint | Send |
 | --- | --- | --- |
-| Aggregate ADA and token balances | `/account/balance` | Programmable address |
-| List the UTxOs at the address | `/account/coins` | Programmable address |
-| Find transactions involving the address | `/search/transactions` | Programmable address |
+| Aggregate ADA and token balances | `/account/balance` | Smart wallet address |
+| List the UTxOs at the address | `/account/coins` | Smart wallet address |
+| Find transactions involving the address | `/search/transactions` | Smart wallet address |
 | Inspect one transaction | `/block/transaction` | Transaction hash |
 
 :::important Query both addresses
-The regular address holds ADA and ordinary native assets. The programmable address holds programmable tokens and the ADA attached to their UTxOs. They are separate accounts.
+A smart wallet balance includes the assets locked at that script address. It does not include assets held at the customer’s regular address.
 :::
 
 ## Balance
 
-Send the programmable address as `account_identifier.address`. The example uses a real preprod programmable address, queried at block `5317690`. Balances change as tokens move, so the same request returns different values later.
+Send the smart wallet address as `account_identifier.address`.
 
 ```json
 {
@@ -83,13 +83,11 @@ The response contains the block the balance was read at and one balance entry pe
 }
 ```
 
-The response includes ADA and three assets with the same asset name, `524550` (hex for `REP`). Their policy IDs distinguish them. Rosetta defaults to `decimals: 0` when registry decimals are unavailable.
-
-Use `block_identifier` for a historical query. The `currencies` filter matches the currency symbol; check `currency.metadata.policyId` when policies reuse an asset name.
+The response includes ADA and three assets with the same asset name, `524550` (hex for `REP`). Their policy IDs distinguish them.
 
 ## Coins and transactions
 
-`/account/coins` returns the UTxOs at the programmable address. Token quantities for each UTxO are included in its metadata, using the same native-token representation described in the [Native Tokens guide](../multi-assets.md).
+`/account/coins` returns the UTxOs at the smart wallet address. Token quantities for each UTxO are included in its metadata, using the same native-token representation described in the [Native Tokens guide](../multi-assets.md).
 
 `/search/transactions` finds transactions involving the address. Use `/block/transaction` to inspect a specific transaction. The usual Rosetta operation rules apply:
 
@@ -108,7 +106,7 @@ Rosetta reports programmable tokens like other native assets and does not mark t
 
 ## Common mistakes
 
-- Querying the regular address instead of the programmable address returns no programmable-token balance.
+- Querying the regular address instead of the smart wallet address returns no programmable-token balance.
 - Deriving with a payment key when the sender used a stake key—or the reverse—produces a different address and no error.
 - Identifying an asset by symbol alone is unsafe; use policy ID and asset name together.
 - Waiting for `withdrawal` operations of 0 ADA: Rosetta does not return them.
