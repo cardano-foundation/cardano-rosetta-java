@@ -351,9 +351,10 @@ public final class ParseConstructionUtil {
     public static void addRelayToPoolReLayOfTypeSingleHostAddr(List<Relay> poolRelays,
                                                                SingleHostAddr singleHostAddr) {
         if (!ObjectUtils.isEmpty(singleHostAddr)) {
+            Integer port = singleHostAddr.getPort();
             Relay relay1 = new Relay(RelayType.SINGLE_HOST_ADDR.getValue(),
                     singleHostAddr.getIpv4().getHostAddress(), singleHostAddr.getIpv6().getHostAddress(),
-                    null, String.valueOf(singleHostAddr.getPort()));
+                    null, port == null ? null : Integer.toString(port));
             poolRelays.add(relay1);
         }
     }
