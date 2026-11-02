@@ -11,6 +11,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.openapitools.jackson.nullable.JsonNullableModule;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -24,9 +25,9 @@ import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 
 import static org.mockito.ArgumentMatchers.anySet;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith({SpringExtension.class, MockitoExtension.class})
 @ContextConfiguration(classes = { BaseMappersConfig.class})
 public class BaseMapperSetup {
 
@@ -41,11 +42,11 @@ public class BaseMapperSetup {
 
   @BeforeEach
   public void before() {
-    when(protocolParamService.findProtocolParameters()).thenReturn(protocolParams);
-    when(protocolParams.getPoolDeposit()).thenReturn(new BigInteger("500"));
+    lenient().when(protocolParamService.findProtocolParameters()).thenReturn(protocolParams);
+    lenient().when(protocolParams.getPoolDeposit()).thenReturn(new BigInteger("500"));
 
     // Configure TokenRegistryService to return fallback metadata for any asset
-    when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenAnswer(invocation -> {
+    lenient().when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenAnswer(invocation -> {
       Map<AssetFingerprint, TokenRegistryCurrencyData> result = new HashMap<>();
       @SuppressWarnings("unchecked")
       java.util.Set<AssetFingerprint> assetFingerprints = (java.util.Set<AssetFingerprint>) invocation.getArgument(0);

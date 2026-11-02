@@ -2,7 +2,7 @@ package org.cardanofoundation.rosetta.api.network.service;
 
 import java.io.IOException;
 import java.util.Map;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

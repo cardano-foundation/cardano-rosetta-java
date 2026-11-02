@@ -3,8 +3,8 @@ package org.cardanofoundation.rosetta.yaciindexer.health;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.Status;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.Status;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.junit.jupiter.api.Nested;

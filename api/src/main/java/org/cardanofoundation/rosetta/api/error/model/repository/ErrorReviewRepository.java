@@ -24,7 +24,7 @@ public interface ErrorReviewRepository extends JpaRepository<ErrorReviewEntity, 
             e.details,
             CASE
                 WHEN r.status IS NULL THEN 'UNREVIEWED'
-                ELSE r.status
+                ELSE cast(r.status as string)
             END,
             r.comment,
             r.checkedBy,
@@ -46,7 +46,7 @@ public interface ErrorReviewRepository extends JpaRepository<ErrorReviewEntity, 
             e.details,
             CASE
                 WHEN r.status IS NULL THEN 'UNREVIEWED'
-                ELSE r.status
+                ELSE cast(r.status as string)
             END,
             r.comment,
             r.checkedBy,
@@ -73,7 +73,7 @@ public interface ErrorReviewRepository extends JpaRepository<ErrorReviewEntity, 
             e.details,
             CASE
                 WHEN r.status IS NULL THEN 'UNREVIEWED'
-                ELSE r.status
+                ELSE cast(r.status as string)
             END,
             r.comment,
             r.checkedBy,
