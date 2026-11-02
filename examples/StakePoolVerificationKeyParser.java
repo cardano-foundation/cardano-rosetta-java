@@ -1,4 +1,4 @@
-//DEPS com.bloxbean.cardano:cardano-client-lib:0.6.3
+//DEPS com.bloxbean.cardano:cardano-client-lib:0.7.3
 //JAVA 21
 
 import static com.bloxbean.cardano.client.util.HexUtil.decodeHexString;
