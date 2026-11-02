@@ -82,7 +82,7 @@ This component provides a standard interface for transaction submission, allowin
 The YACI (Yet Another Cardano Indexer) Indexer processes blockchain data from the Cardano Node and stores it in a structured format in the PostgreSQL database.
 
 :::info
-**Base library**: yaci version 0.3.5  
+**Base library**: yaci 0.4.7, yaci-store 2.0.7  
 **API port**: 9095  
 :::
 
