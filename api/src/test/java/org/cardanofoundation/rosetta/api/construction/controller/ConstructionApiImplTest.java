@@ -6,10 +6,14 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.openapitools.client.model.*;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
 import org.cardanofoundation.rosetta.api.construction.service.ConstructionApiService;
@@ -22,6 +26,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class ConstructionApiImplTest extends BaseSpringMvcSetup {
 
     @MockitoBean

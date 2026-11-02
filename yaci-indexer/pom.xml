@@ -46,6 +46,26 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-restclient</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-jackson2</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
@@ -67,69 +87,179 @@
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.hypersistence</groupId>
+                    <artifactId>hypersistence-utils-hibernate-63</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-properties-migrator</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- Used for block data -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-blocks-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.hypersistence</groupId>
+                    <artifactId>hypersistence-utils-hibernate-63</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-properties-migrator</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- Used for transaction data -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-transaction-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.hypersistence</groupId>
+                    <artifactId>hypersistence-utils-hibernate-63</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-properties-migrator</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- Used for address_utxo table -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-utxo-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.hypersistence</groupId>
+                    <artifactId>hypersistence-utils-hibernate-63</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-properties-migrator</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- Used for staking info including pool infos -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-staking-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.hypersistence</groupId>
+                    <artifactId>hypersistence-utils-hibernate-63</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-properties-migrator</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- auto recovery support -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-admin-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.hypersistence</groupId>
+                    <artifactId>hypersistence-utils-hibernate-63</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-properties-migrator</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- Admin UI -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-admin-ui</artifactId>
             <version>${yaci-store.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.hypersistence</groupId>
+                    <artifactId>hypersistence-utils-hibernate-63</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-properties-migrator</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- Used for governance data (Voltaire) -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-governance-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.hypersistence</groupId>
+                    <artifactId>hypersistence-utils-hibernate-63</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-properties-migrator</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- Used for epoch_params  -> protocolparams-->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-epoch-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.hypersistence</groupId>
+                    <artifactId>hypersistence-utils-hibernate-63</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-properties-migrator</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- Assets extension (CIP-26, CIP-68) -->
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-assets-ext-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.hypersistence</groupId>
+                    <artifactId>hypersistence-utils-hibernate-63</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-properties-migrator</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
             <artifactId>yaci-store-assets-ext</artifactId>
             <version>${yaci-store.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>io.hypersistence</groupId>
+                    <artifactId>hypersistence-utils-hibernate-63</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-properties-migrator</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>io.hypersistence</groupId>
-            <artifactId>hypersistence-utils-hibernate-63</artifactId>
+            <artifactId>hypersistence-utils-hibernate-73</artifactId>
         </dependency>
         <!-- Add mysql or H2 or Postgres dependency based on your database -->
         <dependency>

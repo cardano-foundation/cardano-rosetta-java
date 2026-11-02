@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 @Builder(toBuilder = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@tools.jackson.databind.annotation.JsonNaming(tools.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class Amt implements Serializable {
 
   private String unit; // subject = policyId + hex(assetName)

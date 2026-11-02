@@ -7,8 +7,8 @@ import java.util.Optional;
 import java.util.concurrent.StructuredTaskScope;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.NotNull;
-import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;

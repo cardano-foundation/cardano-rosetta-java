@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 @AllArgsConstructor
 @EqualsAndHashCode
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@tools.jackson.databind.annotation.JsonNaming(tools.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class UtxoKey implements Serializable {
 
   private String txHash;
