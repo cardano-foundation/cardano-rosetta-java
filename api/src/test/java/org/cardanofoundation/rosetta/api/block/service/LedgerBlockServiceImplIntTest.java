@@ -121,6 +121,26 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
   }
 
   @Test
+  void findTransactionByBlock_Test_matches_full_block_lookup() {
+    //given
+    TransactionBlockDetails tx = generatedDataMap.get(POOL_DELEGATION_TRANSACTION.getName());
+    BlockTx expected = ledgerBlockService.findTransactionsByBlock(tx.blockNumber(), tx.blockHash()).getFirst();
+    //when
+    Optional<BlockTx> found = ledgerBlockService.findTransactionByBlock(tx.blockNumber(), tx.blockHash(), tx.txHash());
+    //then
+    assertThat(found).contains(expected);
+  }
+
+  @Test
+  void findTransactionByBlock_Test_empty_when_block_or_tx_mismatch() {
+    //given
+    TransactionBlockDetails tx = generatedDataMap.get(POOL_DELEGATION_TRANSACTION.getName());
+    //when / then
+    assertThat(ledgerBlockService.findTransactionByBlock(tx.blockNumber() + 1, tx.blockHash(), tx.txHash())).isEmpty();
+    assertThat(ledgerBlockService.findTransactionByBlock(tx.blockNumber(), tx.blockHash(), "#####")).isEmpty();
+  }
+
+  @Test
   void findTransactionsByBlock_Test_pool_delegation_tx() {
     //given
     TransactionBlockDetails tx = generatedDataMap.get(POOL_DELEGATION_TRANSACTION.getName());

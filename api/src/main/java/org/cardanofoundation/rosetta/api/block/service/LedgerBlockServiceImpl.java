@@ -138,6 +138,14 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   }
 
   @Override
+  public Optional<BlockTx> findTransactionByBlock(Long blk, String blkHash, String txHash) {
+    log.debug("query blockNumber: {} blockHash: {} txHash: {}", blk, blkHash, txHash);
+
+    return txRepository.findTransactionByBlockAndTxHash(blk, blkHash, txHash)
+            .map(tx -> mapTxnEntitiesToBlockTxList(List.of(tx)).getFirst());
+  }
+
+  @Override
   public List<BlockTx> mapTxnEntitiesToBlockTxList(List<TxnEntity> txList) {
     List<BlockTx> transactions = txList.stream().map(blockMapper::mapToBlockTx).toList();
 
