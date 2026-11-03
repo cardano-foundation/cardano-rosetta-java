@@ -1,0 +1,45 @@
+name: Mainnet Docker Compose
+
+run-name: Mainnet Docker Compose - ${{ inputs.release_tag }}
+
+# Standalone entry point for the Mainnet Docker Compose step of release
+# testing. The step clean-syncs the previous stable release, tests the upgrade,
+# clean-syncs the candidate and generates performance evidence, so it resets
+# the deployment data before the upgrade and before the candidate sync. The
+# called workflow owns the host identity, path and artifact safety checks.
+#
+# No workflow-level concurrency: the called workflow holds the
+# mainnet-deployment-docker-compose lock, so a standalone run queues behind a
+# running deployment instead of colliding with it.
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: GitHub release tag, for example 2.4.0
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  resolve:
+    uses: ./.github/workflows/release-test-resolve.yaml
+    with:
+      release_tag: ${{ inputs.release_tag }}
+
+  mainnet-compose:
+    needs: resolve
+    uses: ./.github/workflows/release-test-mainnet-compose.yaml
+    with:
+      candidate_api_image: ${{ needs.resolve.outputs.api_image }}
+      candidate_cardano_node_image: ${{ needs.resolve.outputs.cardano_node_image }}
+      candidate_indexer_image: ${{ needs.resolve.outputs.indexer_image }}
+      candidate_mithril_image: ${{ needs.resolve.outputs.mithril_image }}
+      candidate_postgres_image: ${{ needs.resolve.outputs.postgres_image }}
+      prerelease_tag: ${{ needs.resolve.outputs.prerelease_tag }}
+      source_sha: ${{ needs.resolve.outputs.source_sha }}
+      upgrade_api_image: ${{ needs.resolve.outputs.upgrade_api_image }}
+      upgrade_from_tag: ${{ needs.resolve.outputs.upgrade_from_tag }}
+      upgrade_indexer_image: ${{ needs.resolve.outputs.upgrade_indexer_image }}
