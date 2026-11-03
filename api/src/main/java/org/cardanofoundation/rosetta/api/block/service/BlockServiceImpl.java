@@ -45,10 +45,7 @@ public class BlockServiceImpl implements BlockService {
   @Override
   public BlockTx getBlockTransaction(Long blockId, String blockHash, String txHash) {
     return ledgerBlockService
-        .findTransactionsByBlock(blockId, blockHash)
-        .stream()
-        .filter(tr -> tr.getHash().equals(txHash))
-        .findFirst()
+        .findTransactionByBlock(blockId, blockHash, txHash)
         .orElseThrow(ExceptionFactory::transactionNotFound);
   }
 
