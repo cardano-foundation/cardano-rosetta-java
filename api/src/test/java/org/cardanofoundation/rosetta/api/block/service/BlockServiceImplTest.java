@@ -110,7 +110,7 @@ class BlockServiceImplTest {
         "createdAt1",
         4,
         6L, null,
-        "poolDeposit1"
+        "poolDeposit1", null
         ));
   }
 

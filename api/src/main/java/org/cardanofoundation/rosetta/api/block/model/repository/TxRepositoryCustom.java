@@ -15,6 +15,8 @@ public interface TxRepositoryCustom {
 
   List<TxnEntity> findTransactionsByBlockHash(String blockHash);
 
+  List<String> findTransactionHashesByBlockHash(String blockHash);
+
   Optional<TxnEntity> findTransactionByBlockAndTxHash(Long blockNumber, String blockHash, String txHash);
 
   Page<TxnEntity> searchTxnEntitiesAND(Set<String> txHashes,
