@@ -1,7 +1,6 @@
 package org.cardanofoundation.rosetta.api.block.service;
 
 import java.math.BigInteger;
-import java.util.List;
 import java.util.Optional;
 
 import org.mockito.InjectMocks;
@@ -111,7 +110,7 @@ class BlockServiceImplTest {
         "createdAt1",
         4,
         6L, null,
-        "poolDeposit1"
+        "poolDeposit1", null
         ));
   }
 
@@ -122,8 +121,8 @@ class BlockServiceImplTest {
     BlockTx tx = newTran(txHash);
     long blockId = 1L;
     String blockHash = "hash1";
-    when(ledgerBlockService.findTransactionsByBlock(blockId, blockHash))
-        .thenReturn(List.of(tx));
+    when(ledgerBlockService.findTransactionByBlock(blockId, blockHash, txHash))
+        .thenReturn(Optional.of(tx));
     //when
     BlockTx blockTransaction = blockService.getBlockTransaction(blockId, blockHash, txHash);
     //then
@@ -136,8 +135,8 @@ class BlockServiceImplTest {
     //given
     long blockId = 1L;
     String blockHash = "hash1";
-    when(ledgerBlockService.findTransactionsByBlock(blockId, blockHash))
-        .thenReturn(List.of(newTran("any")));
+    when(ledgerBlockService.findTransactionByBlock(blockId, blockHash, "differentFromAny"))
+        .thenReturn(Optional.empty());
     try {
       //when
       blockService.getBlockTransaction(blockId, blockHash, "differentFromAny");

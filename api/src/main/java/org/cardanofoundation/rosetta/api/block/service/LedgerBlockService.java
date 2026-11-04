@@ -30,6 +30,8 @@ public interface LedgerBlockService {
    */
   List<BlockTx> findTransactionsByBlock(Long number, String hash);
 
+  Optional<BlockTx> findTransactionByBlock(Long number, String hash, String txHash);
+
   List<BlockTx> mapTxnEntitiesToBlockTxList(List<TxnEntity> txList);
 
   Page<BlockTx> mapTxnEntitiesToBlockTxList(Page<TxnEntity> txList);

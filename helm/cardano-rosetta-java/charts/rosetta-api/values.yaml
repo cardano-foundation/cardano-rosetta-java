@@ -26,6 +26,7 @@ env:
   removeSpentUtxos: true
   removeSpentUtxosLastBlocksGraceCount: 129600  # 30 days @ ~20s/block; matches Docker Compose default
   blockTransactionApiTimeoutSecs: 120      # intentionally higher than Docker (5s) for K8s network latency
+  blockTransactionsThreshold: 450
   devkitEnabled: false
   devkitUrl: ""
   devkitPort: 0

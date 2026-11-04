@@ -131,6 +131,8 @@ spec:
               value: {{ .Values.env.removeSpentUtxosLastBlocksGraceCount | toString | quote }}
             - name: BLOCK_TRANSACTION_API_TIMEOUT_SECS
               value: {{ .Values.env.blockTransactionApiTimeoutSecs | toString | quote }}
+            - name: BLOCK_TRANSACTIONS_THRESHOLD
+              value: {{ .Values.env.blockTransactionsThreshold | toString | quote }}
             - name: DEVKIT_ENABLED
               value: {{ .Values.env.devkitEnabled | toString | quote }}
             - name: DEVKIT_URL
