@@ -9,6 +9,7 @@ import java.util.concurrent.CountDownLatch;
 
 import lombok.val;
 
+import org.springframework.test.util.ReflectionTestUtils;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -32,8 +33,11 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType.OLDEST_BLOCK_NOT_FOUND;
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType.TIMEOUT;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -81,8 +85,42 @@ class LedgerBlockServiceImplTest {
   @Mock
   private InvalidTransactionRepository invalidTransactionRepository;
 
+  @Mock
+  private TxRepository txRepository;
+
   @Spy
   private Clock clock = Clock.systemUTC();
+
+  @Test
+  void findBlock_returnsOnlyTxHashes_whenAboveThreshold() {
+    ReflectionTestUtils.setField(ledgerBlockService, "blockTransactionsThreshold", 2L);
+    BlockEntity entity = BlockEntity.builder().hash("blockHash").number(1L).noOfTxs(3L).build();
+    when(blockRepository.findByNumber(1L)).thenReturn(Optional.of(entity));
+    when(blockMapper.mapToBlockWithoutTransactions(entity)).thenReturn(Block.builder().hash("blockHash").transactionsCount(3L).build());
+    when(txRepository.findTransactionHashesByBlockHash("blockHash")).thenReturn(List.of("tx1", "tx2", "tx3"));
+
+    Block block = ledgerBlockService.findBlock(1L, null).orElseThrow();
+
+    assertThat(block.getTransactions()).isEqualTo(List.of());
+    assertThat(block.getOtherTransactions()).isEqualTo(List.of("tx1", "tx2", "tx3"));
+    assertThat(block.getTransactionsCount()).isEqualTo(3L);
+    verifyNoInteractions(addressUtxoRepository, invalidTransactionRepository);
+    verify(blockMapper, never()).mapToBlock(any());
+  }
+
+  @Test
+  void findBlock_inlinesTransactions_whenAtThreshold() {
+    ReflectionTestUtils.setField(ledgerBlockService, "blockTransactionApiTimeoutSecs", 5);
+    ReflectionTestUtils.setField(ledgerBlockService, "blockTransactionsThreshold", 2L);
+    BlockEntity entity = BlockEntity.builder().hash("blockHash").number(1L).noOfTxs(2L).build();
+    when(blockRepository.findByNumber(1L)).thenReturn(Optional.of(entity));
+    when(blockMapper.mapToBlock(entity)).thenReturn(Block.builder().hash("blockHash").transactions(List.of()).build());
+
+    Block block = ledgerBlockService.findBlock(1L, null).orElseThrow();
+
+    assertThat(block.getOtherTransactions()).isNull();
+    verifyNoInteractions(txRepository);
+  }
 
   @Test
   void populateTransaction_marksTransactionAsInvalid_ifFoundInInvalidTransactionRepository() {
