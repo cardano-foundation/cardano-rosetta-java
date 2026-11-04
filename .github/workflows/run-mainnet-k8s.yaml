@@ -8,9 +8,9 @@ run-name: Mainnet Kubernetes - ${{ inputs.release_tag }}
 # the deployment data before the upgrade and before the candidate sync. The
 # called workflow owns the host identity, path and artifact safety checks.
 #
-# No workflow-level concurrency: the called workflow holds the
-# mainnet-deployment-kubernetes lock, so a standalone run queues behind a
-# running deployment instead of colliding with it.
+# The target job holds the mainnet-deployment-kubernetes lock, the same one
+# the combined flow takes in release-test.yaml, so a standalone run queues
+# behind a running deployment instead of colliding with it.
 
 on:
   workflow_dispatch:
@@ -31,6 +31,9 @@ jobs:
 
   mainnet-k8s:
     needs: resolve
+    concurrency:
+      group: mainnet-deployment-kubernetes
+      cancel-in-progress: false
     uses: ./.github/workflows/release-test-mainnet-k8s.yaml
     with:
       candidate_api_image: ${{ needs.resolve.outputs.api_image }}

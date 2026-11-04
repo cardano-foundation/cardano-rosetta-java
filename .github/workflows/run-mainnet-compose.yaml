@@ -8,9 +8,9 @@ run-name: Mainnet Docker Compose - ${{ inputs.release_tag }}
 # the deployment data before the upgrade and before the candidate sync. The
 # called workflow owns the host identity, path and artifact safety checks.
 #
-# No workflow-level concurrency: the called workflow holds the
-# mainnet-deployment-docker-compose lock, so a standalone run queues behind a
-# running deployment instead of colliding with it.
+# The target job holds the mainnet-deployment-docker-compose lock, the same one
+# the combined flow takes in release-test.yaml, so a standalone run queues
+# behind a running deployment instead of colliding with it.
 
 on:
   workflow_dispatch:
@@ -31,6 +31,9 @@ jobs:
 
   mainnet-compose:
     needs: resolve
+    concurrency:
+      group: mainnet-deployment-docker-compose
+      cancel-in-progress: false
     uses: ./.github/workflows/release-test-mainnet-compose.yaml
     with:
       candidate_api_image: ${{ needs.resolve.outputs.api_image }}
