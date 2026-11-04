@@ -16,6 +16,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.entity.*;
+import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
 import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,6 +28,9 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
 
   @Autowired
   LedgerBlockService ledgerBlockService;
+
+  @Autowired
+  TxRepository txRepository;
 
   @PersistenceContext
   EntityManager entityManager;
@@ -118,6 +122,18 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     List<BlockTx> txs = ledgerBlockService.findTransactionsByBlock(-123L, "#####");
     //then
     assertThat(txs).isEmpty();
+  }
+
+  @Test
+  void findTransactionHashesByBlockHash_Test_matches_full_block_lookup() {
+    //given
+    TransactionBlockDetails tx = generatedDataMap.get(POOL_DELEGATION_TRANSACTION.getName());
+    List<String> expected = ledgerBlockService.findTransactionsByBlock(tx.blockNumber(), tx.blockHash())
+        .stream().map(BlockTx::getHash).toList();
+    //when
+    List<String> hashes = txRepository.findTransactionHashesByBlockHash(tx.blockHash());
+    //then
+    assertThat(hashes).isNotEmpty().isEqualTo(expected);
   }
 
   @Test

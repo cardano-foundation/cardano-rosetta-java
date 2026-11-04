@@ -126,6 +126,15 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
     }
 
     @Override
+    public List<String> findTransactionHashesByBlockHash(String blockHash) {
+        return dsl.select(TRANSACTION.TX_HASH)
+                .from(TRANSACTION)
+                .where(TRANSACTION.BLOCK_HASH.eq(blockHash))
+                .orderBy(TRANSACTION.TX_INDEX.asc())
+                .fetch(TRANSACTION.TX_HASH);
+    }
+
+    @Override
     public Optional<TxnEntity> findTransactionByBlockAndTxHash(Long blockNumber, String blockHash, String txHash) {
         return selectTransactionsWithBlock()
                 .where(TRANSACTION.BLOCK_HASH.eq(blockHash))

@@ -61,6 +61,28 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
   }
 
   @Test
+  void mapToBlockResponse_omits_otherTransactions_when_null() {
+    BlockResponse into = my.mapToBlockResponseWithMetadata(newBlock(), Map.of());
+
+    assertThat(into.getOtherTransactions()).isNull();
+  }
+
+  @Test
+  void mapToBlockResponse_maps_otherTransactions_in_order() {
+    Block from = newBlock();
+    from.setTransactions(List.of());
+    from.setOtherTransactions(List.of("txHash2", "txHash1"));
+
+    BlockResponse into = my.mapToBlockResponseWithMetadata(from, Map.of());
+
+    assertThat(into.getBlock().getTransactions()).isEmpty();
+    assertThat(into.getBlock().getMetadata().getTransactionsCount()).isEqualTo(from.getTransactionsCount());
+    assertThat(into.getOtherTransactions())
+        .extracting(TransactionIdentifier::getHash)
+        .containsExactly("txHash2", "txHash1");
+  }
+
+  @Test
   void mapToBlockResponse_test_Ok() {
 
     //given
@@ -305,7 +327,7 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
         "createdAt",
         4,
         6L, newTransactions(),
-        "500");
+        "500", null);
   }
 
   private List<BlockTx> newTransactions() {
