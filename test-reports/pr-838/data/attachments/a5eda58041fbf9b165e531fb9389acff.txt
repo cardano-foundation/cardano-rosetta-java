@@ -1,0 +1,12 @@
+    assert response.status_code == 200
+    assert tx is not None, f"Transaction {data['tx_hash']} not found in block {data['block']}"
+    assert len(ops) >= 1, "No poolGovernanceVote operations found"
+        assert op["status"] == "success"
+        assert is_hex(params["governance_action_hash"]), "governance_action_hash not hex"
+        assert params["pool_credential"]["curve_type"] == "edwards25519"
+        assert is_hex(params["pool_credential"]["hex_bytes"], 56)
+        assert params["vote"] in ("yes", "no", "abstain")
+        assert params["vote"] == variant
+            assert "url" in rationale
+            assert "data_hash" in rationale
+            assert is_hex(rationale["data_hash"], 64)
