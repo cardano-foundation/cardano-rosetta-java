@@ -1,0 +1,6 @@
+    assert sample_response.status_code == 200
+    assert len(tx_hash) == 64, "Cardano tx hash must be 64 hex chars"
+    assert all(c in "0123456789abcdef" for c in tx_hash.lower()), (
+    assert response.status_code == 200
+    assert len(data["transactions"]) == 1, "Hash search must return exactly one tx"
+    assert (
