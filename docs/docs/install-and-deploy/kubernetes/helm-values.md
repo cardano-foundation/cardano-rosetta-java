@@ -110,6 +110,7 @@ Set `global.profile` to one of: `entry`, `mid`, `advanced`.
 | `rosetta-api.env.removeSpentUtxos` | `true` | `REMOVE_SPENT_UTXOS` | Must match yaci-indexer setting |
 | `rosetta-api.env.removeSpentUtxosLastBlocksGraceCount` | `129600` | `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT` | Must match yaci-indexer setting |
 | `rosetta-api.env.blockTransactionApiTimeoutSecs` | `120` | `BLOCK_TRANSACTION_API_TIMEOUT_SECS` | Timeout for block queries |
+| `rosetta-api.env.blockTransactionsThreshold` | `450` | `BLOCK_TRANSACTIONS_THRESHOLD` | Max txs inlined in `/block`, else hashes in `other_transactions` |
 | `rosetta-api.env.devkitEnabled` | `false` | `DEVKIT_ENABLED` | Enable DevKit integration |
 | `rosetta-api.env.tokenRegistryEnabled` | `false` | `TOKEN_REGISTRY_ENABLED` | Enable Cardano token registry |
 | `rosetta-api.env.tokenRegistryBaseUrl` | `""` | `TOKEN_REGISTRY_BASE_URL` | Token registry URL (leave empty = disabled) |
