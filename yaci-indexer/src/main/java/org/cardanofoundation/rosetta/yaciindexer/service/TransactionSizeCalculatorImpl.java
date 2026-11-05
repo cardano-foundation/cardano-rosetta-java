@@ -11,9 +11,11 @@ import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
 public class TransactionSizeCalculatorImpl implements TransactionSizeCalculator {
 
     public int calculateSize(Map signedTransaction) {
-        byte[] serialize = CborSerializationUtil.serialize(signedTransaction);
-
-        return serialize.length;
+        try {
+            return CborSerializationUtil.serialize(signedTransaction).length;
+        } catch (StackOverflowError e) {
+            return CborSerializationUtil.serialize(signedTransaction, false).length;
+        }
     }
 
 }
