@@ -38,6 +38,12 @@ description: This runbook covers deploying and operating **Cardano Rosetta Java*
 - `jq` (for status checks)
 - K3s or a managed K8s cluster (EKS, GKE, AKS)
 
+:::note
+
+To build and import Docker images locally into K3s instead of pulling from the registry, see [Building from Source](../build-from-source#import-images-into-k3s).
+
+:::
+
 ### Network
 - Outbound TCP 3001 — cardano-node peer-to-peer (N2N)
 - Outbound HTTPS — Mithril snapshot download + genesis key fetch from GitHub
