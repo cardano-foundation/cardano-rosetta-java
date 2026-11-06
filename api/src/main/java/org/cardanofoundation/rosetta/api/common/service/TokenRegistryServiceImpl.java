@@ -71,12 +71,12 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
 
         TokenMetadata tokenMeta = tokenSubject.getMetadata();
 
-        // Mandatory fields from registry API related to token data
         builder.subject(tokenSubject.getSubject());
-        builder.name(tokenMeta.getName().getValue());
-        builder.description(tokenMeta.getDescription().getValue());
 
-        // Optional fields
+        // Optional fields; since cf-token-metadata-registry 2.0.0 this includes name and description:
+        // the V2 API also serves tokens that break their CIP (with validation_errors), which may lack them
+        Optional.ofNullable(tokenMeta.getName()).ifPresent(name -> builder.name(name.getValue()));
+        Optional.ofNullable(tokenMeta.getDescription()).ifPresent(description -> builder.description(description.getValue()));
         Optional.ofNullable(tokenMeta.getTicker()).ifPresent(ticker -> builder.ticker(ticker.getValue()));
         Optional.ofNullable(tokenMeta.getUrl()).ifPresent(url -> builder.url(url.getValue()));
         Optional.ofNullable(tokenMeta.getLogo()).ifPresent(logo -> builder.logo(convertToLogoData(logo)));
@@ -283,11 +283,35 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
         }
         String source = logoProperty.getSource();
         String value = logoProperty.getValue();
+        TokenRegistryCurrencyData.LogoFormat format = getLogoFormat(source);
 
         return TokenRegistryCurrencyData.LogoData.builder()
-                .format(getLogoFormat(source))
-                .value(value)
+                .format(format)
+                .value(format == TokenRegistryCurrencyData.LogoFormat.BASE64 ? toHexLogo(value) : value)
                 .build();
+    }
+
+    /**
+     * Keeps the 1.x contract for CIP-26 logos: the value is the hex string the token registry served
+     * before 2.0.0. cf-token-metadata-registry 2.0.0 serves it base64-encoded instead
+     * (cf-token-metadata-registry#88), so a base64 value is converted back to hex and 1.x clients get the
+     * same value with either registry version. Anything else is passed through unchanged, as before.
+     *
+     * <p>Hex is checked first because a hex string can also be well-formed base64 (e.g. {@code "deadbeef"}),
+     * whereas a base64-encoded PNG (which starts with {@code "iVBORw0KGgo"}) is never pure hex. CIP-26
+     * base64 is padded, so a base64 value's length must be a multiple of 4.</p>
+     */
+    @Nullable
+    private static String toHexLogo(@Nullable String value) {
+        if (value == null || value.isEmpty() || value.length() % 4 != 0
+                || (value.length() % 2 == 0 && value.chars().allMatch(HexFormat::isHexDigit))) {
+            return value;
+        }
+        try {
+            return HexFormat.of().formatHex(Base64.getDecoder().decode(value));
+        } catch (IllegalArgumentException e) {
+            return value;
+        }
     }
 
     @Nullable

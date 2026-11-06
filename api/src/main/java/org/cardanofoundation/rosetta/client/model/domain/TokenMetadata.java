@@ -6,19 +6,27 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.lang.Nullable;
+import javax.annotation.Nullable;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
+/**
+ * The V2 {@code metadata} block of a token registry subject.
+ *
+ * <p>All properties are optional: since cf-token-metadata-registry 2.0.0 tokens without a
+ * {@code name} or {@code description} are served too, with {@code validation_errors}.</p>
+ */
 public class TokenMetadata {
 
     @JsonProperty("name")
+    @Nullable
     private TokenProperty name;
 
     @JsonProperty("description")
+    @Nullable
     private TokenProperty description;
 
     @JsonProperty("ticker")
