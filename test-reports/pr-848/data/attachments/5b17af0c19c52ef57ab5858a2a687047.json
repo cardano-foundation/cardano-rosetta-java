@@ -1,0 +1,436 @@
+{
+  "status_code": 200,
+  "body": {
+    "block": {
+      "block_identifier": {
+        "index": 486800,
+        "hash": "565fc7f62d1dc28feb00a9ec266e3e8709ffeda11ae1b36cf8012030afbce01d"
+      },
+      "parent_block_identifier": {
+        "index": 486799,
+        "hash": "d29b234eb69a31024159fc5bd24622904b8cbdd44a2a8910428b16f67cc525f3"
+      },
+      "timestamp": 1672955856000,
+      "transactions": [
+        {
+          "transaction_identifier": {
+            "hash": "2e6da69213f2e42564ac6367be196163a7320a78c43fc9858551986f2bc33c23"
+          },
+          "operations": [
+            {
+              "operation_identifier": {
+                "index": 0
+              },
+              "type": "input",
+              "status": "success",
+              "account": {
+                "address": "addr_test1qryc5tck5kqqs3arcqnl4lplvw5yg2ujsdnhx5eawn9lyzzvpmpraw365fayhrtpzpl4nulq6f9hhdkh4cdyh0tgnjxsg03qnh"
+              },
+              "amount": {
+                "value": "-11043417206",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "1da940f74e3fb35d01121c1f37dd00b4a1e1aabba0647c89ca49f25b49442e76:1"
+                },
+                "coin_action": "coin_spent"
+              }
+            },
+            {
+              "operation_identifier": {
+                "index": 1
+              },
+              "type": "input",
+              "status": "success",
+              "account": {
+                "address": "addr_test1wz2hfgfvzjs03tedn89eet5h9q9qm99esvs87rlrsyyehaqx9057z"
+              },
+              "amount": {
+                "value": "-1017160",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "5cb01508b0aee149cdf98bca848126ed63752609e97b407873ed3f2b73bb04f7:2"
+                },
+                "coin_action": "coin_spent"
+              }
+            },
+            {
+              "operation_identifier": {
+                "index": 2,
+                "network_index": 0
+              },
+              "related_operations": [
+                {
+                  "index": 0
+                },
+                {
+                  "index": 1
+                }
+              ],
+              "type": "output",
+              "status": "success",
+              "account": {
+                "address": "addr_test1qryc5tck5kqqs3arcqnl4lplvw5yg2ujsdnhx5eawn9lyzzvpmpraw365fayhrtpzpl4nulq6f9hhdkh4cdyh0tgnjxsg03qnh"
+              },
+              "amount": {
+                "value": "11044161666",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "2e6da69213f2e42564ac6367be196163a7320a78c43fc9858551986f2bc33c23:0"
+                },
+                "coin_action": "coin_created"
+              }
+            }
+          ],
+          "metadata": {
+            "size": 269,
+            "scriptSize": 1773
+          }
+        },
+        {
+          "transaction_identifier": {
+            "hash": "a4547a8f7eacdba621aa41b302a99401f3940d0ec68d15a76eefdb2894b73eac"
+          },
+          "operations": [
+            {
+              "operation_identifier": {
+                "index": 0
+              },
+              "type": "input",
+              "status": "success",
+              "account": {
+                "address": "addr_test1qptjvk6cct2ftdnxwk2cjtpu2cj93fqvdamezx67evy4g6aaavghhj8e4rryf0xyth5yj0yu7lcxulk6rqhwfvel7p0q4qf4ml"
+              },
+              "amount": {
+                "value": "-98678271",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "47658d83e2db185fdc8023c9a584deca38f97fedfb5a4b21f6bbeffc3f90ebf4:1"
+                },
+                "coin_action": "coin_spent"
+              },
+              "metadata": {
+                "tokenBundle": [
+                  {
+                    "policyId": "58d3d3aa91661fe8082ce9e9e2eb283a8b5d45abca42a47d58071d1e",
+                    "tokens": [
+                      {
+                        "value": "-999000",
+                        "currency": {
+                          "symbol": "476f6c64",
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "58d3d3aa91661fe8082ce9e9e2eb283a8b5d45abca42a47d58071d1e"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "policyId": "6fbd9de84482e30a61bb7295e260e16b664d78494b640c7b836dec04",
+                    "tokens": [
+                      {
+                        "value": "-1",
+                        "currency": {
+                          "symbol": "000643b0436f70706572",
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "6fbd9de84482e30a61bb7295e260e16b664d78494b640c7b836dec04"
+                          }
+                        }
+                      },
+                      {
+                        "value": "-900000",
+                        "currency": {
+                          "symbol": "0014df10436f70706572",
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "6fbd9de84482e30a61bb7295e260e16b664d78494b640c7b836dec04"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "policyId": "c79a2727f6f92fe3b7e66cbf36339761aabd5c0e8f697205fc1d06a1",
+                    "tokens": [
+                      {
+                        "value": "-1",
+                        "currency": {
+                          "symbol": "000643b053696c766572",
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "c79a2727f6f92fe3b7e66cbf36339761aabd5c0e8f697205fc1d06a1"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "operation_identifier": {
+                "index": 1
+              },
+              "type": "input",
+              "status": "success",
+              "account": {
+                "address": "addr_test1qz7d5kjc2f9fnkgc233eeeyc84uds6eysmmfrq5xdkvgsc9aavghhj8e4rryf0xyth5yj0yu7lcxulk6rqhwfvel7p0qyxs345"
+              },
+              "amount": {
+                "value": "-12956314445",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "481e9e38ee6a74769244a39180539fa547b0fd566a8d93ea054cd3dd8df14493:4"
+                },
+                "coin_action": "coin_spent"
+              },
+              "metadata": {
+                "tokenBundle": [
+                  {
+                    "policyId": "c6e65ba7878b2f8ea0ad39287d3e2fd256dc5c4160fc19bdf4c4d87e",
+                    "tokens": [
+                      {
+                        "value": "-65000000",
+                        "currency": {
+                          "symbol": "7447454e53",
+                          "decimals": 6,
+                          "metadata": {
+                            "policyId": "c6e65ba7878b2f8ea0ad39287d3e2fd256dc5c4160fc19bdf4c4d87e",
+                            "subject": "c6e65ba7878b2f8ea0ad39287d3e2fd256dc5c4160fc19bdf4c4d87e7447454e53",
+                            "name": "Genius Yield Test Token",
+                            "description": "Test token for Genius Yield",
+                            "ticker": "tGENS",
+                            "url": "https://preprod.genius-x.co"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "operation_identifier": {
+                "index": 2,
+                "network_index": 0
+              },
+              "related_operations": [
+                {
+                  "index": 0
+                },
+                {
+                  "index": 1
+                }
+              ],
+              "type": "output",
+              "status": "success",
+              "account": {
+                "address": "addr_test1vz6telm32ym4j5jnqfww2rmvtwvpgq4cvttv5njpjfjct2gwqxv65"
+              },
+              "amount": {
+                "value": "1327480",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "a4547a8f7eacdba621aa41b302a99401f3940d0ec68d15a76eefdb2894b73eac:0"
+                },
+                "coin_action": "coin_created"
+              },
+              "metadata": {
+                "tokenBundle": [
+                  {
+                    "policyId": "58d3d3aa91661fe8082ce9e9e2eb283a8b5d45abca42a47d58071d1e",
+                    "tokens": [
+                      {
+                        "value": "1000",
+                        "currency": {
+                          "symbol": "476f6c64",
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "58d3d3aa91661fe8082ce9e9e2eb283a8b5d45abca42a47d58071d1e"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "policyId": "c6e65ba7878b2f8ea0ad39287d3e2fd256dc5c4160fc19bdf4c4d87e",
+                    "tokens": [
+                      {
+                        "value": "10000000",
+                        "currency": {
+                          "symbol": "7447454e53",
+                          "decimals": 6,
+                          "metadata": {
+                            "policyId": "c6e65ba7878b2f8ea0ad39287d3e2fd256dc5c4160fc19bdf4c4d87e",
+                            "subject": "c6e65ba7878b2f8ea0ad39287d3e2fd256dc5c4160fc19bdf4c4d87e7447454e53",
+                            "name": "Genius Yield Test Token",
+                            "description": "Test token for Genius Yield",
+                            "ticker": "tGENS",
+                            "url": "https://preprod.genius-x.co"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "operation_identifier": {
+                "index": 3,
+                "network_index": 1
+              },
+              "related_operations": [
+                {
+                  "index": 0
+                },
+                {
+                  "index": 1
+                }
+              ],
+              "type": "output",
+              "status": "success",
+              "account": {
+                "address": "addr_test1qqzdcr8caujvm4kjdv3mh90xvc3gh8k3d0et4cnja47cy74aavghhj8e4rryf0xyth5yj0yu7lcxulk6rqhwfvel7p0qa8czcz"
+              },
+              "amount": {
+                "value": "13053480067",
+                "currency": {
+                  "symbol": "ADA",
+                  "decimals": 6
+                }
+              },
+              "coin_change": {
+                "coin_identifier": {
+                  "identifier": "a4547a8f7eacdba621aa41b302a99401f3940d0ec68d15a76eefdb2894b73eac:1"
+                },
+                "coin_action": "coin_created"
+              },
+              "metadata": {
+                "tokenBundle": [
+                  {
+                    "policyId": "58d3d3aa91661fe8082ce9e9e2eb283a8b5d45abca42a47d58071d1e",
+                    "tokens": [
+                      {
+                        "value": "998000",
+                        "currency": {
+                          "symbol": "476f6c64",
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "58d3d3aa91661fe8082ce9e9e2eb283a8b5d45abca42a47d58071d1e"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "policyId": "6fbd9de84482e30a61bb7295e260e16b664d78494b640c7b836dec04",
+                    "tokens": [
+                      {
+                        "value": "1",
+                        "currency": {
+                          "symbol": "000643b0436f70706572",
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "6fbd9de84482e30a61bb7295e260e16b664d78494b640c7b836dec04"
+                          }
+                        }
+                      },
+                      {
+                        "value": "900000",
+                        "currency": {
+                          "symbol": "0014df10436f70706572",
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "6fbd9de84482e30a61bb7295e260e16b664d78494b640c7b836dec04"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "policyId": "c6e65ba7878b2f8ea0ad39287d3e2fd256dc5c4160fc19bdf4c4d87e",
+                    "tokens": [
+                      {
+                        "value": "55000000",
+                        "currency": {
+                          "symbol": "7447454e53",
+                          "decimals": 6,
+                          "metadata": {
+                            "policyId": "c6e65ba7878b2f8ea0ad39287d3e2fd256dc5c4160fc19bdf4c4d87e",
+                            "subject": "c6e65ba7878b2f8ea0ad39287d3e2fd256dc5c4160fc19bdf4c4d87e7447454e53",
+                            "name": "Genius Yield Test Token",
+                            "description": "Test token for Genius Yield",
+                            "ticker": "tGENS",
+                            "url": "https://preprod.genius-x.co"
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "policyId": "c79a2727f6f92fe3b7e66cbf36339761aabd5c0e8f697205fc1d06a1",
+                    "tokens": [
+                      {
+                        "value": "1",
+                        "currency": {
+                          "symbol": "000643b053696c766572",
+                          "decimals": 0,
+                          "metadata": {
+                            "policyId": "c79a2727f6f92fe3b7e66cbf36339761aabd5c0e8f697205fc1d06a1"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ],
+          "metadata": {
+            "size": 469,
+            "scriptSize": 0
+          }
+        }
+      ],
+      "metadata": {
+        "transactionsCount": 2,
+        "createdBy": "12946a3fe080dd99af599bfff10a05cd3de19bd38ed85b25dee35dd5",
+        "size": 2908,
+        "epochNo": 43,
+        "slotNo": 17272656
+      }
+    }
+  }
+}
