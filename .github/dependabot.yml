@@ -1,11 +1,18 @@
-# Dependabot is used here for SECURITY updates only.
-# Version updates are turned off (open-pull-requests-limit: 0) because routine
-# upgrades are handled by a separate weekly maintenance process; security-update
-# PRs ignore this limit and still open whenever a vulnerable dependency has a fix.
-# Note: security-update PRs also need "Dependabot security updates" enabled in
-# Settings > Code security.
+# Dependabot is used here for SECURITY updates of the Maven (Java) dependencies only.
+#
+# - Version updates are off for every ecosystem (open-pull-requests-limit: 0):
+#   routine upgrades are handled by a separate weekly maintenance process.
+#   This limit does NOT apply to security updates, which have their own limit.
+# - Security updates stay on for Maven only. The other ecosystems are listed with
+#   `ignore: dependency-name: "*"`, because ignore rules (unlike the PR limit) also
+#   apply to security updates; listing or omitting an ecosystem alone does not
+#   turn security updates off. Their vulnerabilities still show up as Dependabot
+#   alerts in the Security tab, just without automatic fix PRs.
+# - Security-update PRs also need "Dependabot security updates" enabled in
+#   Settings > Code security.
 version: 2
 updates:
+  # Maven (Java): security updates only
   - package-ecosystem: "maven"
     directories:
       - "/"
@@ -15,12 +22,16 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 0
+
+  # Everything else: no Dependabot PRs at all (alerts only)
   - package-ecosystem: "github-actions"
     directories:
       - "/"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 0
+    ignore:
+      - dependency-name: "*"
   - package-ecosystem: "docker"
     directories:
       - "/api"
@@ -29,15 +40,21 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 0
+    ignore:
+      - dependency-name: "*"
   - package-ecosystem: "npm"
     directories:
       - "/docs"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 0
+    ignore:
+      - dependency-name: "*"
   - package-ecosystem: "uv"
     directories:
       - "/tests/*"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 0
+    ignore:
+      - dependency-name: "*"
