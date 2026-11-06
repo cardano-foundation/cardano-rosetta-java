@@ -6,14 +6,21 @@ RUN apt update --fix-missing \
     && apt install -y --no-install-recommends maven curl ca-certificates \
     && apt clean
 
-# Download and setup JDK 24.0.1
+# Download and setup JDK 25 LTS (Eclipse Temurin, GPLv2 + Classpath Exception).
+# 25.0.5+8 ships the Mozilla NSS 3.131.1 trust store, which removes the roots that signed
+# the compromised eMudhra intermediates: https://adoptium.net/news/2026/10/temurin-october-2026-emudhra/
+# Checksum from https://api.adoptium.net/v3/assets/release_name/eclipse/jdk-25.0.5%2B8
+ARG TEMURIN_VERSION=25.0.5
+ARG TEMURIN_BUILD=8
+ARG TEMURIN_SHA256=68982529869257d0ee6b824ec5aa270ff8b118bb438670da0b97ebdab178d7fb
 RUN mkdir -p /opt/java \
-    && curl -L https://download.java.net/java/GA/jdk24.0.1/24a58e0e276943138bf3e963e6291ac2/9/GPL/openjdk-24.0.1_linux-x64_bin.tar.gz -o /opt/jdk.tar.gz \
+    && curl -fsSL https://github.com/adoptium/temurin25-binaries/releases/download/jdk-${TEMURIN_VERSION}%2B${TEMURIN_BUILD}/OpenJDK25U-jdk_x64_linux_hotspot_${TEMURIN_VERSION}_${TEMURIN_BUILD}.tar.gz -o /opt/jdk.tar.gz \
+    && echo "${TEMURIN_SHA256}  /opt/jdk.tar.gz" | sha256sum -c - \
     && tar -xzf /opt/jdk.tar.gz -C /opt/java \
     && rm /opt/jdk.tar.gz
 
 # Set JAVA_HOME and update PATH
-ENV JAVA_HOME=/opt/java/jdk-24.0.1
+ENV JAVA_HOME=/opt/java/jdk-${TEMURIN_VERSION}+${TEMURIN_BUILD}
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 COPY ./pom.xml /build/pom.xml

@@ -7,7 +7,7 @@ This project is a Java implementation of the Rosetta specification, adapted from
 ⸻
 
 🛠️ Technologies & Standards
-•	Java 24 – Latest LTS features leveraged.
+•	Java 25 – Latest LTS features leveraged.
 •	Lombok – For reducing boilerplate (e.g., getters, constructors).
 •	Hibernate + JOOQ – A hybrid approach planned:
 •	Hibernate for standard ORM tasks.
