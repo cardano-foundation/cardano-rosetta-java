@@ -1,0 +1,4 @@
+    assert response.status_code == 400, (
+    assert error_data["code"] == 5059, "Expected error code 5059 for non-hex symbol"
+    assert "hex-encoded" in error_data["message"].lower(), (
+    assert asset["symbol"] in error_data.get("details", {}).get("message", ""), (

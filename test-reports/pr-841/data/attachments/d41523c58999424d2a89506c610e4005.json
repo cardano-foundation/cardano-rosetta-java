@@ -1,0 +1,13 @@
+{
+  "method": "POST",
+  "url": "http://localhost:8082/account/balance",
+  "body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "preprod"
+    },
+    "account_identifier": {
+      "address": "invalid_address"
+    }
+  }
+}
