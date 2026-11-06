@@ -66,23 +66,34 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
         return result;
     }
 
-    private TokenRegistryCurrencyData extractTokenMetadata(String policyId,
-                                                           TokenSubject tokenSubject) {
+    /**
+     * Maps a token registry V2 subject to Rosetta currency metadata.
+     *
+     * <p>Every registry field is treated as optional. Since cf-token-metadata-registry 2.0.0 the V2 API
+     * (default {@code ?validation=ALL}) also serves tokens that break their CIP, together with their
+     * {@code validation_errors}: such a token can have no {@code name} or {@code description}, and a
+     * CIP-113 programmable token without CIP-26/CIP-68 metadata can have no {@code metadata} block at all.
+     * Before 2.0.0 the registry never served a token without a name and description.</p>
+     */
+    private TokenRegistryCurrencyData extractTokenMetadata(@NotNull String policyId,
+                                                           @NotNull TokenSubject tokenSubject) {
         TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder = TokenRegistryCurrencyData.builder()
-                .policyId(policyId);
+                .policyId(policyId)
+                .subject(tokenSubject.getSubject());
 
         TokenMetadata tokenMeta = tokenSubject.getMetadata();
+        if (tokenMeta == null) {
+            return builder.decimals(0).build();
+        }
 
-        // Mandatory fields from registry API related to token data
-        builder.subject(tokenSubject.getSubject());
-        builder.name(tokenMeta.getName().getValue());
-        builder.description(tokenMeta.getDescription().getValue());
-
-        // Optional fields
-        Optional.ofNullable(tokenMeta.getTicker()).ifPresent(ticker -> builder.ticker(ticker.getValue()));
-        Optional.ofNullable(tokenMeta.getUrl()).ifPresent(url -> builder.url(url.getValue()));
+        builder.name(propertyValue(tokenMeta.getName()));
+        builder.description(propertyValue(tokenMeta.getDescription()));
+        builder.ticker(propertyValue(tokenMeta.getTicker()));
+        builder.url(propertyValue(tokenMeta.getUrl()));
         Optional.ofNullable(tokenMeta.getLogo()).ifPresent(logo -> builder.logo(convertToLogoData(logo)));
-        Optional.ofNullable(tokenMeta.getVersion()).ifPresent(version -> builder.version(BigDecimal.valueOf(version.getValue())));
+        Optional.ofNullable(tokenMeta.getVersion())
+                .map(TokenPropertyNumber::getValue)
+                .ifPresent(version -> builder.version(BigDecimal.valueOf(version)));
 
         // Set decimals, defaulting to 0 if not found
         int decimals = Optional.ofNullable(tokenMeta.getDecimals())
@@ -92,6 +103,17 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
         builder.decimals(decimals);
 
         return builder.build();
+    }
+
+    /**
+     * @return the property's value, or null if the property is missing, has no value, or the value is blank
+     */
+    @Nullable
+    private static String propertyValue(@Nullable TokenProperty property) {
+        return Optional.ofNullable(property)
+                .map(TokenProperty::getValue)
+                .filter(value -> !value.isBlank())
+                .orElse(null);
     }
 
     @Override

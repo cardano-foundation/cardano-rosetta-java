@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.lang.Nullable;
+import javax.annotation.Nullable;
 
 @Data
 @NoArgsConstructor
@@ -18,7 +18,9 @@ public class TokenSubject {
     @JsonProperty("subject")
     private String subject;
 
+    /** Null for e.g. a CIP-113 programmable token without CIP-26/CIP-68 metadata (registry 2.0.0+). */
     @JsonProperty("metadata")
+    @Nullable
     private TokenMetadata metadata;
 
 }

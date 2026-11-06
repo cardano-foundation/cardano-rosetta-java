@@ -746,6 +746,124 @@ class TokenRegistryServiceImplTest {
     }
 
     @Nested
+    @DisplayName("Optional Registry Fields Tests (cf-token-metadata-registry >= 2.0.0)")
+    class OptionalRegistryFieldsTests {
+
+        private final AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+
+        private TokenRegistryCurrencyData fetch(TokenSubject tokenSubject) {
+            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
+                .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
+
+            return tokenRegistryService.getTokenMetadataBatch(Set.of(assetFingerprint)).get(assetFingerprint);
+        }
+
+        private static TokenSubject subject(TokenMetadata metadata) {
+            return TokenSubject.builder().subject(SUBJECT).metadata(metadata).build();
+        }
+
+        private static TokenProperty property(String value) {
+            return TokenProperty.builder().value(value).source("CIP_26").build();
+        }
+
+        @Test
+        @DisplayName("Should map token without name")
+        void shouldMapTokenWithoutName() {
+            TokenRegistryCurrencyData metadata = fetch(subject(TokenMetadata.builder()
+                .description(property("Test Description"))
+                .ticker(property("TST"))
+                .build()));
+
+            assertThat(metadata.getPolicyId()).isEqualTo(POLICY_ID);
+            assertThat(metadata.getSubject()).isEqualTo(SUBJECT);
+            assertThat(metadata.getName()).isNull();
+            assertThat(metadata.getDescription()).isEqualTo("Test Description");
+            assertThat(metadata.getTicker()).isEqualTo("TST");
+        }
+
+        @Test
+        @DisplayName("Should map token without description")
+        void shouldMapTokenWithoutDescription() {
+            TokenRegistryCurrencyData metadata = fetch(subject(TokenMetadata.builder()
+                .name(property("Test Token"))
+                .build()));
+
+            assertThat(metadata.getName()).isEqualTo("Test Token");
+            assertThat(metadata.getDescription()).isNull();
+        }
+
+        @Test
+        @DisplayName("Should map token without name and description, keeping the other fields")
+        void shouldMapTokenWithoutNameAndDescription() {
+            TokenRegistryCurrencyData metadata = fetch(subject(TokenMetadata.builder()
+                .ticker(property("TST"))
+                .url(property("https://test.com"))
+                .decimals(TokenPropertyNumber.builder().value(6L).source("CIP_26").build())
+                .build()));
+
+            assertThat(metadata.getPolicyId()).isEqualTo(POLICY_ID);
+            assertThat(metadata.getSubject()).isEqualTo(SUBJECT);
+            assertThat(metadata.getName()).isNull();
+            assertThat(metadata.getDescription()).isNull();
+            assertThat(metadata.getTicker()).isEqualTo("TST");
+            assertThat(metadata.getUrl()).isEqualTo("https://test.com");
+            assertThat(metadata.getDecimals()).isEqualTo(6);
+        }
+
+        @Test
+        @DisplayName("Should map name and description properties with null value to null")
+        void shouldMapPropertiesWithNullValueToNull() {
+            TokenRegistryCurrencyData metadata = fetch(subject(TokenMetadata.builder()
+                .name(property(null))
+                .description(property(null))
+                .build()));
+
+            assertThat(metadata.getName()).isNull();
+            assertThat(metadata.getDescription()).isNull();
+        }
+
+        @Test
+        @DisplayName("Should map blank name and description to null")
+        void shouldMapBlankValuesToNull() {
+            TokenRegistryCurrencyData metadata = fetch(subject(TokenMetadata.builder()
+                .name(property(""))
+                .description(property("   "))
+                .build()));
+
+            assertThat(metadata.getName()).isNull();
+            assertThat(metadata.getDescription()).isNull();
+        }
+
+        @Test
+        @DisplayName("Should map token without metadata block (e.g. CIP-113 programmable token)")
+        void shouldMapTokenWithoutMetadataBlock() {
+            TokenRegistryCurrencyData metadata = fetch(subject(null));
+
+            assertThat(metadata.getPolicyId()).isEqualTo(POLICY_ID);
+            assertThat(metadata.getSubject()).isEqualTo(SUBJECT);
+            assertThat(metadata.getName()).isNull();
+            assertThat(metadata.getDescription()).isNull();
+            assertThat(metadata.getTicker()).isNull();
+            assertThat(metadata.getUrl()).isNull();
+            assertThat(metadata.getLogo()).isNull();
+            assertThat(metadata.getVersion()).isNull();
+            assertThat(metadata.getDecimals()).isEqualTo(0);
+        }
+
+        @Test
+        @DisplayName("Should map version property with null value to null")
+        void shouldMapVersionWithNullValueToNull() {
+            TokenRegistryCurrencyData metadata = fetch(subject(TokenMetadata.builder()
+                .name(property("Test Token"))
+                .version(TokenPropertyNumber.builder().value(null).source("CIP_68").build())
+                .build()));
+
+            assertThat(metadata.getName()).isEqualTo("Test Token");
+            assertThat(metadata.getVersion()).isNull();
+        }
+    }
+
+    @Nested
     @DisplayName("Asset Extraction from Amounts Tests")
     class AssetFingerprintExtractionFromAmountsTests {
 
