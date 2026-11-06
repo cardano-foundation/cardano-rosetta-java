@@ -1,14 +1,10 @@
 package org.cardanofoundation.rosetta.api.block.service;
 
-import java.time.Clock;
-import java.time.Instant;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.StructuredTaskScope;
-import java.util.concurrent.StructuredTaskScope.ShutdownOnFailure;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import jakarta.validation.constraints.NotNull;
@@ -57,7 +53,6 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   private final BlockMapper blockMapper;
   private final TransactionMapper transactionMapper;
   private final AddressUtxoEntityToUtxo addressUtxoEntityToUtxo;
-  private final Clock clock;
 
   private BlockIdentifierExtended cachedGenesisBlock;
 
@@ -230,7 +225,9 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
             .map(Utxo::getTxHash)
             .toList();
 
-    try (ShutdownOnFailure scope = new ShutdownOnFailure()) {
+    try (StructuredTaskScope<Object, Void> scope = StructuredTaskScope.open(
+            StructuredTaskScope.Joiner.awaitAllSuccessfulOrThrow(),
+            cf -> cf.withTimeout(Duration.ofSeconds(blockTransactionApiTimeoutSecs)))) {
       StructuredTaskScope.Subtask<List<AddressUtxoEntity>> utxos = scope.fork(() -> addressUtxoRepository.findByTxHashIn(utxHashes));
       StructuredTaskScope.Subtask<List<StakeRegistrationEntity>> sReg = scope.fork(() -> stakeRegistrationRepository.findByTxHashIn(txHashes));
       StructuredTaskScope.Subtask<List<DelegationEntity>> delegations = scope.fork(() -> delegationRepository.findByTxHashIn(txHashes));
@@ -239,8 +236,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
       StructuredTaskScope.Subtask<List<WithdrawalEntity>> withdrawals = scope.fork(() -> withdrawalRepository.findByTxHashIn(txHashes));
       StructuredTaskScope.Subtask<List<InvalidTransactionEntity>> invalidTxs = scope.fork(() -> invalidTransactionRepository.findByTxHashIn(txHashes));
 
-      scope.joinUntil(Instant.now(clock).plusSeconds(blockTransactionApiTimeoutSecs));
-      scope.throwIfFailed(); // Propagate any failure
+      scope.join();
 
       return new TransactionInfo(
               utxos.get(),
@@ -251,7 +247,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
               withdrawals.get(),
               invalidTxs.get()
       );
-    } catch (ExecutionException e) {
+    } catch (StructuredTaskScope.FailedException e) {
       log.error("Error fetching transaction data", e);
 
       throw ExceptionFactory.unspecifiedError("Error fetching transaction data, msg:%s".formatted(e.getMessage()));
@@ -260,7 +256,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
       log.error("Error fetching transaction data", e);
 
       throw ExceptionFactory.unspecifiedError("Error fetching transaction data, msg:%s".formatted(e.getMessage()));
-    } catch (TimeoutException e) {
+    } catch (StructuredTaskScope.TimeoutException e) {
       log.error("Error fetching transaction data", e);
 
       throw ExceptionFactory.timeOut("timeout while fetching transaction data from db.");

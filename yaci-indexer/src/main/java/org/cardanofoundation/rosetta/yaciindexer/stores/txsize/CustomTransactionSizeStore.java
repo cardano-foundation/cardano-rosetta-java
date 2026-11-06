@@ -1,7 +1,10 @@
 package org.cardanofoundation.rosetta.yaciindexer.stores.txsize;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+
+import javax.annotation.Nullable;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +45,8 @@ public class CustomTransactionSizeStore {
     try {
       List<TransactionSizeEntity> transactionSizeEntities = transactionEvent.getTransactions()
               .stream()
-              .map(this::convertToEntity)
+              .map(this::convertToEntitySafely)
+              .filter(Objects::nonNull)
               .toList();
 
       transactionSizeRepository.saveAll(transactionSizeEntities);
@@ -51,6 +55,16 @@ public class CustomTransactionSizeStore {
       log.error("Error while saving transaction size entities", e);
 
       // TODO add storing error to db?
+    }
+  }
+
+  @Nullable
+  private TransactionSizeEntity convertToEntitySafely(Transaction tx) {
+    try {
+      return convertToEntity(tx);
+    } catch (StackOverflowError e) {
+      log.error("Could not calculate size for transaction {} (too deeply nested), skipping", tx.getTxHash());
+      return null;
     }
   }
 

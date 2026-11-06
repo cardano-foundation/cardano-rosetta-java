@@ -43,6 +43,8 @@ class TokenRegistryServiceImplTest {
     private static final String ASSET_NAME = "TestToken"; // Human-readable name
     private static final String ASSET_SYMBOL_HEX = "54657374546f6b656e"; // hex encoding of "TestToken"
     private static final String SUBJECT = POLICY_ID + ASSET_SYMBOL_HEX;
+    // PNG file signature: hex "89504e470d0a1a0a", base64 "iVBORw0KGgo="
+    private static final byte[] PNG_HEADER_BYTES = HexFormat.of().parseHex("89504e470d0a1a0a");
 
     @BeforeEach
     void setUp() {
@@ -236,6 +238,12 @@ class TokenRegistryServiceImplTest {
         }
     }
 
+    /**
+     * 1.x line only: CIP-26 logos are returned as HEX although {@code format} is {@code BASE64}, as every
+     * 1.x release did, so 1.x clients keep working unchanged. A base64 logo from cf-token-metadata-registry
+     * 2.0.0 is therefore converted back to hex. The 2.x line returns real base64 instead (since 2.3.0).
+     * See {@code TokenRegistryServiceImpl#convertToLogoData}.
+     */
     @Nested
     @DisplayName("Logo Conversion Tests")
     class LogoConversionTests {
@@ -366,6 +374,128 @@ class TokenRegistryServiceImplTest {
             assertThat(metadata.getLogo().getValue()).isNull();
         }
 
+        @Test
+        @DisplayName("Should keep CIP_26 hex logo unchanged (token registry < 2.0.0)")
+        void shouldKeepCip26HexLogo() {
+            TokenRegistryCurrencyData metadata = fetchWithLogo("CIP_26", HexFormat.of().formatHex(PNG_HEADER_BYTES));
+
+            assertThat(metadata.getLogo()).isNotNull();
+            assertThat(metadata.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.BASE64);
+            assertThat(metadata.getLogo().getValue()).isEqualTo("89504e470d0a1a0a");
+        }
+
+        @Test
+        @DisplayName("Should convert CIP_26 base64 logo back to hex (token registry >= 2.0.0)")
+        void shouldConvertCip26Base64LogoToHex() {
+            TokenRegistryCurrencyData metadata = fetchWithLogo("CIP_26", Base64.getEncoder().encodeToString(PNG_HEADER_BYTES));
+
+            assertThat(metadata.getLogo()).isNotNull();
+            assertThat(metadata.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.BASE64);
+            assertThat(metadata.getLogo().getValue()).isEqualTo("89504e470d0a1a0a");
+        }
+
+        @Test
+        @DisplayName("Should return the same hex logo from a hex (< 2.0.0) and a base64 (>= 2.0.0) token registry")
+        void shouldReturnSameLogoForHexAndBase64Registry() {
+            String fromLegacyRegistry = fetchWithLogo("CIP_26", HexFormat.of().formatHex(PNG_HEADER_BYTES)).getLogo().getValue();
+            String fromNewRegistry = fetchWithLogo("CIP_26", Base64.getEncoder().encodeToString(PNG_HEADER_BYTES)).getLogo().getValue();
+
+            assertThat(fromNewRegistry).isEqualTo(fromLegacyRegistry);
+            assertThat(HexFormat.of().parseHex(fromNewRegistry)).isEqualTo(PNG_HEADER_BYTES);
+        }
+
+        @Test
+        @DisplayName("Should pass through CIP_26 logo that is neither hex nor base64 unchanged")
+        void shouldPassThroughUnknownCip26Logo() {
+            assertThat(fetchWithLogo("CIP_26", "not a logo!").getLogo().getValue()).isEqualTo("not a logo!");
+            assertThat(fetchWithLogo("CIP_26", "iVBORw0KGgo").getLogo().getValue()).isEqualTo("iVBORw0KGgo");
+        }
+
+        @Test
+        @DisplayName("Should not convert CIP_68 URL logo")
+        void shouldNotConvertCip68UrlLogo() {
+            TokenRegistryCurrencyData metadata = fetchWithLogo("CIP_68", "https://example.com/logo.png");
+
+            assertThat(metadata.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.URL);
+            assertThat(metadata.getLogo().getValue()).isEqualTo("https://example.com/logo.png");
+        }
+
+        private TokenRegistryCurrencyData fetchWithLogo(String source, String value) {
+            TokenSubject tokenSubject = TokenSubject.builder()
+                .subject(SUBJECT)
+                .metadata(TokenMetadata.builder()
+                    .name(TokenProperty.builder().value("Test Token").source("CIP_26").build())
+                    .logo(TokenProperty.builder().value(value).source(source).build())
+                    .build())
+                .build();
+            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
+                .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
+
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            return tokenRegistryService.getTokenMetadataBatch(Set.of(assetFingerprint)).get(assetFingerprint);
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Optional Registry Fields Tests (cf-token-metadata-registry >= 2.0.0)")
+    class OptionalRegistryFieldsTests {
+
+        private final AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+
+        private TokenRegistryCurrencyData fetch(TokenMetadata metadata) {
+            TokenSubject tokenSubject = TokenSubject.builder().subject(SUBJECT).metadata(metadata).build();
+            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
+                .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
+
+            return tokenRegistryService.getTokenMetadataBatch(Set.of(assetFingerprint)).get(assetFingerprint);
+        }
+
+        private static TokenProperty property(String value) {
+            return TokenProperty.builder().value(value).source("CIP_26").build();
+        }
+
+        @Test
+        @DisplayName("Should map token without name")
+        void shouldMapTokenWithoutName() {
+            TokenRegistryCurrencyData metadata = fetch(TokenMetadata.builder()
+                .description(property("Test Description"))
+                .ticker(property("TST"))
+                .build());
+
+            assertThat(metadata.getPolicyId()).isEqualTo(POLICY_ID);
+            assertThat(metadata.getSubject()).isEqualTo(SUBJECT);
+            assertThat(metadata.getName()).isNull();
+            assertThat(metadata.getDescription()).isEqualTo("Test Description");
+            assertThat(metadata.getTicker()).isEqualTo("TST");
+        }
+
+        @Test
+        @DisplayName("Should map token without description")
+        void shouldMapTokenWithoutDescription() {
+            TokenRegistryCurrencyData metadata = fetch(TokenMetadata.builder()
+                .name(property("Test Token"))
+                .build());
+
+            assertThat(metadata.getName()).isEqualTo("Test Token");
+            assertThat(metadata.getDescription()).isNull();
+        }
+
+        @Test
+        @DisplayName("Should return policyId, subject and decimals 0 for an empty metadata block (e.g. CIP-113 programmable token)")
+        void shouldMapEmptyMetadataBlock() {
+            TokenRegistryCurrencyData metadata = fetch(TokenMetadata.builder().build());
+
+            assertThat(metadata.getPolicyId()).isEqualTo(POLICY_ID);
+            assertThat(metadata.getSubject()).isEqualTo(SUBJECT);
+            assertThat(metadata.getName()).isNull();
+            assertThat(metadata.getDescription()).isNull();
+            assertThat(metadata.getTicker()).isNull();
+            assertThat(metadata.getUrl()).isNull();
+            assertThat(metadata.getLogo()).isNull();
+            assertThat(metadata.getVersion()).isNull();
+            assertThat(metadata.getDecimals()).isEqualTo(0);
+        }
     }
 
     @Nested
