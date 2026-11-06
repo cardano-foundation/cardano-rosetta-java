@@ -238,6 +238,12 @@ class TokenRegistryServiceImplTest {
         }
     }
 
+    /**
+     * 1.x line only: CIP-26 logos are returned as HEX although {@code format} is {@code BASE64}, as every
+     * 1.x release did, so 1.x clients keep working unchanged. A base64 logo from cf-token-metadata-registry
+     * 2.0.0 is therefore converted back to hex. The 2.x line returns real base64 instead (since 2.3.0).
+     * See {@code TokenRegistryServiceImpl#convertToLogoData}.
+     */
     @Nested
     @DisplayName("Logo Conversion Tests")
     class LogoConversionTests {

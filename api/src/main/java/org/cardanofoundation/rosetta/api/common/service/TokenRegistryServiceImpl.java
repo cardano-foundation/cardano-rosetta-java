@@ -276,6 +276,28 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
         return getTokenMetadataBatch(assetFingerprints);
     }
 
+    /**
+     * Maps the registry's logo property to the Rosetta logo.
+     *
+     * <p><b>1.x line only: CIP-26 logos are returned as HEX, even though {@code format} says {@code BASE64}.
+     * This is deliberate. Do not "fix" it on this line.</b></p>
+     *
+     * <p>Every 1.x release has returned the CIP-26 logo exactly as cf-token-metadata-registry served it, and
+     * before registry 2.0.0 that was a hex string. The {@code BASE64} label has never matched the value on
+     * 1.x, so 1.x clients hex-decode it. The 2.x line corrected this in 2.3.0 as a breaking change
+     * (real base64 values). The 1.x line keeps the old behaviour on purpose: its users are the operators
+     * who have not moved to 2.x, and their clients must keep working unchanged.</p>
+     *
+     * <p>Registry 2.0.0 now serves the CIP-26 logo base64-encoded (cf-token-metadata-registry#88). To keep
+     * 1.x clients working with either registry version, {@link #toHexLogo(String)} converts such a value
+     * back to the hex they have always received:</p>
+     * <ul>
+     *   <li>registry before 2.0.0 sends {@code 89504e470d0a1a0a} (hex): returned unchanged</li>
+     *   <li>registry 2.0.0 sends {@code iVBORw0KGgo=} (base64): returned as {@code 89504e470d0a1a0a}</li>
+     * </ul>
+     *
+     * <p>CIP-68 logos ({@code URL}) are URIs and are returned unchanged on both lines.</p>
+     */
     @Nullable
     private TokenRegistryCurrencyData.LogoData convertToLogoData(TokenProperty logoProperty) {
         if (logoProperty == null) {
@@ -285,17 +307,25 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
         String value = logoProperty.getValue();
         TokenRegistryCurrencyData.LogoFormat format = getLogoFormat(source);
 
+        // 1.x compatibility: a CIP-26 (BASE64-labelled) logo is always returned as hex, whatever the
+        // registry version sends. See the Javadoc above; the 2.x line returns real base64 instead.
+        String logoValue = format == TokenRegistryCurrencyData.LogoFormat.BASE64 ? toHexLogo(value) : value;
+
         return TokenRegistryCurrencyData.LogoData.builder()
                 .format(format)
-                .value(format == TokenRegistryCurrencyData.LogoFormat.BASE64 ? toHexLogo(value) : value)
+                .value(logoValue)
                 .build();
     }
 
     /**
-     * Keeps the 1.x contract for CIP-26 logos: the value is the hex string the token registry served
-     * before 2.0.0. cf-token-metadata-registry 2.0.0 serves it base64-encoded instead
-     * (cf-token-metadata-registry#88), so a base64 value is converted back to hex and 1.x clients get the
-     * same value with either registry version. Anything else is passed through unchanged, as before.
+     * 1.x compatibility for CIP-26 logos: returns the logo as hex, the encoding 1.x clients have always
+     * received (see {@link #convertToLogoData(TokenProperty)}).
+     *
+     * <ul>
+     *   <li>hex (cf-token-metadata-registry before 2.0.0): returned unchanged</li>
+     *   <li>padded base64 (registry 2.0.0, cf-token-metadata-registry#88): decoded and returned as hex</li>
+     *   <li>anything else: returned unchanged, as every 1.x release did</li>
+     * </ul>
      *
      * <p>Hex is checked first because a hex string can also be well-formed base64 (e.g. {@code "deadbeef"}),
      * whereas a base64-encoded PNG (which starts with {@code "iVBORw0KGgo"}) is never pure hex. CIP-26
