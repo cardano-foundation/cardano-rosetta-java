@@ -823,22 +823,34 @@ class TokenRegistryServiceImplTest {
         }
 
         @Test
-        @DisplayName("Should map blank name and description to null")
-        void shouldMapBlankValuesToNull() {
+        @DisplayName("Should pass through blank name and description as served by the registry")
+        void shouldPassThroughBlankValues() {
             TokenRegistryCurrencyData metadata = fetch(subject(TokenMetadata.builder()
                 .name(property(""))
                 .description(property("   "))
                 .build()));
 
-            assertThat(metadata.getName()).isNull();
-            assertThat(metadata.getDescription()).isNull();
+            assertThat(metadata.getName()).isEmpty();
+            assertThat(metadata.getDescription()).isEqualTo("   ");
         }
 
         @Test
-        @DisplayName("Should map token without metadata block (e.g. CIP-113 programmable token)")
-        void shouldMapTokenWithoutMetadataBlock() {
+        @DisplayName("Should return policyId, subject and decimals 0 for an empty metadata block (e.g. CIP-113 programmable token)")
+        void shouldMapEmptyMetadataBlock() {
+            TokenRegistryCurrencyData metadata = fetch(subject(TokenMetadata.builder().build()));
+
+            assertOnlyPolicyIdSubjectAndZeroDecimals(metadata);
+        }
+
+        @Test
+        @DisplayName("Should return policyId, subject and decimals 0 when the metadata block is missing (contract violation)")
+        void shouldMapMissingMetadataBlock() {
             TokenRegistryCurrencyData metadata = fetch(subject(null));
 
+            assertOnlyPolicyIdSubjectAndZeroDecimals(metadata);
+        }
+
+        private void assertOnlyPolicyIdSubjectAndZeroDecimals(TokenRegistryCurrencyData metadata) {
             assertThat(metadata.getPolicyId()).isEqualTo(POLICY_ID);
             assertThat(metadata.getSubject()).isEqualTo(SUBJECT);
             assertThat(metadata.getName()).isNull();
@@ -1217,7 +1229,6 @@ class TokenRegistryServiceImplTest {
 
     private TokenSubject createCompleteTokenSubject() {
         TokenSubject tokenSubject = mock(TokenSubject.class);
-        when(tokenSubject.getSubject()).thenReturn(SUBJECT);
         
         TokenMetadata tokenMetadata = mock(TokenMetadata.class);
         when(tokenSubject.getMetadata()).thenReturn(tokenMetadata);
@@ -1258,7 +1269,6 @@ class TokenRegistryServiceImplTest {
 
     private TokenSubject createMinimalTokenSubject() {
         TokenSubject tokenSubject = mock(TokenSubject.class);
-        when(tokenSubject.getSubject()).thenReturn(SUBJECT);
         
         TokenMetadata tokenMetadata = mock(TokenMetadata.class);
         when(tokenSubject.getMetadata()).thenReturn(tokenMetadata);
@@ -1284,7 +1294,6 @@ class TokenRegistryServiceImplTest {
 
     private TokenSubject createTokenSubjectWithLogo(String source, String value) {
         TokenSubject tokenSubject = mock(TokenSubject.class);
-        when(tokenSubject.getSubject()).thenReturn(SUBJECT);
         
         TokenMetadata tokenMetadata = mock(TokenMetadata.class);
         when(tokenSubject.getMetadata()).thenReturn(tokenMetadata);
@@ -1311,7 +1320,6 @@ class TokenRegistryServiceImplTest {
 
     private TokenSubject createTokenSubjectWithCustomLogo(TokenProperty logoProperty) {
         TokenSubject tokenSubject = mock(TokenSubject.class);
-        when(tokenSubject.getSubject()).thenReturn(SUBJECT);
         
         TokenMetadata tokenMetadata = mock(TokenMetadata.class);
         when(tokenSubject.getMetadata()).thenReturn(tokenMetadata);
@@ -1331,7 +1339,6 @@ class TokenRegistryServiceImplTest {
 
     private TokenSubject createTokenSubjectWithNullDecimals() {
         TokenSubject tokenSubject = mock(TokenSubject.class);
-        when(tokenSubject.getSubject()).thenReturn(SUBJECT);
         
         TokenMetadata tokenMetadata = mock(TokenMetadata.class);
         when(tokenSubject.getMetadata()).thenReturn(tokenMetadata);

@@ -11,8 +11,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Deserialization of {@code POST /api/v2/subjects/query} responses in the shape served by
  * cf-token-metadata-registry 2.0.0: new {@code type}, {@code validation_errors}, {@code metadata.valid}
- * and {@code metadata.empty} fields, missing properties as explicit {@code null}, and tokens without
- * {@code name}/{@code description} or without a {@code metadata} block.
+ * and {@code metadata.empty} fields, missing properties as explicit {@code null}, tokens without
+ * {@code name}/{@code description}, and an empty {@code metadata} block for a token without metadata.
  */
 class TokenRegistryV2ResponseDeserializationTest {
 
@@ -106,17 +106,26 @@ class TokenRegistryV2ResponseDeserializationTest {
     }
 
     @Test
-    @DisplayName("Should deserialize a 2.0.0 CIP-113 programmable subject without a metadata block")
-    void shouldDeserializeProgrammableSubjectWithoutMetadata() throws Exception {
+    @DisplayName("Should deserialize a 2.0.0 CIP-113 programmable subject with an empty metadata block")
+    void shouldDeserializeProgrammableSubjectWithEmptyMetadata() throws Exception {
         String json = """
             {
               "subjects": [
                 {
                   "subject": "a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d354657374546f6b656e",
                   "type": "PROGRAMMABLE",
-                  "metadata": null,
+                  "metadata": {
+                    "name": null,
+                    "description": null,
+                    "ticker": null,
+                    "decimals": null,
+                    "logo": null,
+                    "url": null,
+                    "version": null,
+                    "valid": false,
+                    "empty": true
+                  },
                   "standards": null,
-                  "extensions": { "cip113": { "transfer_logic_script": "abcd" } },
                   "validation_errors": [
                     {
                       "cip": "CIP_113",
@@ -137,7 +146,12 @@ class TokenRegistryV2ResponseDeserializationTest {
 
         assertThat(response.getSubjects()).singleElement()
             .extracting(TokenSubject::getMetadata)
-            .isNull();
+            .isNotNull()
+            .satisfies(metadata -> {
+                assertThat(metadata.getName()).isNull();
+                assertThat(metadata.getDescription()).isNull();
+                assertThat(metadata.getDecimals()).isNull();
+            });
     }
 
 }

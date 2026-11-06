@@ -18,7 +18,7 @@ public class TokenSubject {
     @JsonProperty("subject")
     private String subject;
 
-    /** Null for e.g. a CIP-113 programmable token without CIP-26/CIP-68 metadata (registry 2.0.0+). */
+    /** Required by the registry's V2 contract (empty for a token without metadata); nullable as it is external input. */
     @JsonProperty("metadata")
     @Nullable
     private TokenMetadata metadata;

@@ -56,7 +56,7 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
             Optional<TokenSubject> tokenSubject = tokenSubjectMap.get(subject);
 
             if (tokenSubject != null && tokenSubject.isPresent()) {
-                result.put(assetFingerprint, extractTokenMetadata(assetFingerprint.getPolicyId(), tokenSubject.get()));
+                result.put(assetFingerprint, extractTokenMetadata(assetFingerprint, tokenSubject.get()));
             } else {
                 // Always return fallback metadata with at least policyId
                 result.put(assetFingerprint, createFallbackMetadata(assetFingerprint.getPolicyId()));
@@ -67,53 +67,44 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
     }
 
     /**
-     * Maps a token registry V2 subject to Rosetta currency metadata.
+     * Maps a token registry V2 subject to Rosetta currency metadata, returning what the registry returns.
      *
-     * <p>Every registry field is treated as optional. Since cf-token-metadata-registry 2.0.0 the V2 API
-     * (default {@code ?validation=ALL}) also serves tokens that break their CIP, together with their
-     * {@code validation_errors}: such a token can have no {@code name} or {@code description}, and a
-     * CIP-113 programmable token without CIP-26/CIP-68 metadata can have no {@code metadata} block at all.
-     * Before 2.0.0 the registry never served a token without a name and description.</p>
+     * <p>The policy ID and subject always come from the requested asset. Every metadata property is
+     * optional and passed through as served: since cf-token-metadata-registry 2.0.0 the V2 API (default
+     * {@code ?validation=ALL}) also serves tokens that break their CIP, together with their
+     * {@code validation_errors}, so {@code name} and {@code description} can be missing. A token with no
+     * metadata at all (e.g. a CIP-113 programmable token without CIP-26/CIP-68 metadata) is served with
+     * an empty {@code metadata} block. {@code decimals} defaults to 0, as CIP-26 defines.</p>
      */
-    private TokenRegistryCurrencyData extractTokenMetadata(@NotNull String policyId,
+    private TokenRegistryCurrencyData extractTokenMetadata(@NotNull AssetFingerprint assetFingerprint,
                                                            @NotNull TokenSubject tokenSubject) {
-        TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder = TokenRegistryCurrencyData.builder()
-                .policyId(policyId)
-                .subject(tokenSubject.getSubject());
+        // metadata is required by the registry's V2 contract; an empty block guards the HTTP boundary
+        TokenMetadata tokenMeta = Optional.ofNullable(tokenSubject.getMetadata()).orElseGet(TokenMetadata::new);
 
-        TokenMetadata tokenMeta = tokenSubject.getMetadata();
-        if (tokenMeta == null) {
-            return builder.decimals(0).build();
-        }
-
-        builder.name(propertyValue(tokenMeta.getName()));
-        builder.description(propertyValue(tokenMeta.getDescription()));
-        builder.ticker(propertyValue(tokenMeta.getTicker()));
-        builder.url(propertyValue(tokenMeta.getUrl()));
-        Optional.ofNullable(tokenMeta.getLogo()).ifPresent(logo -> builder.logo(convertToLogoData(logo)));
-        Optional.ofNullable(tokenMeta.getVersion())
-                .map(TokenPropertyNumber::getValue)
-                .ifPresent(version -> builder.version(BigDecimal.valueOf(version)));
-
-        // Set decimals, defaulting to 0 if not found
         int decimals = Optional.ofNullable(tokenMeta.getDecimals())
                 .map(TokenPropertyNumber::getValue)
                 .map(Long::intValue)
                 .orElse(0);
-        builder.decimals(decimals);
 
-        return builder.build();
+        return TokenRegistryCurrencyData.builder()
+                .policyId(assetFingerprint.getPolicyId())
+                .subject(assetFingerprint.toSubject())
+                .name(propertyValue(tokenMeta.getName()))
+                .description(propertyValue(tokenMeta.getDescription()))
+                .ticker(propertyValue(tokenMeta.getTicker()))
+                .url(propertyValue(tokenMeta.getUrl()))
+                .logo(Optional.ofNullable(tokenMeta.getLogo()).map(this::convertToLogoData).orElse(null))
+                .version(Optional.ofNullable(tokenMeta.getVersion())
+                        .map(TokenPropertyNumber::getValue)
+                        .map(BigDecimal::valueOf)
+                        .orElse(null))
+                .decimals(decimals)
+                .build();
     }
 
-    /**
-     * @return the property's value, or null if the property is missing, has no value, or the value is blank
-     */
     @Nullable
     private static String propertyValue(@Nullable TokenProperty property) {
-        return Optional.ofNullable(property)
-                .map(TokenProperty::getValue)
-                .filter(value -> !value.isBlank())
-                .orElse(null);
+        return Optional.ofNullable(property).map(TokenProperty::getValue).orElse(null);
     }
 
     @Override
