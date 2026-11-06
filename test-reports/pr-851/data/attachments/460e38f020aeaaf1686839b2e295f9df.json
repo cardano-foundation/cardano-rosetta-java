@@ -1,0 +1,17 @@
+{
+  "method": "POST",
+  "url": "http://localhost:8082/search/transactions",
+  "body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "preprod"
+    },
+    "currency": {
+      "symbol": "0014df10745553444d",
+      "decimals": 6,
+      "metadata": {
+        "policyId": "16a55b2a349361ff88c03788f93e1e966e5d689605d044fef722ddde"
+      }
+    }
+  }
+}

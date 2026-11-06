@@ -1,0 +1,13 @@
+    assert response.status_code == 200
+    assert "transactionsCount" in metadata
+    assert "createdBy" in metadata, "Block must identify creator (pool ID)"
+    assert "size" in metadata, "Block must have size"
+    assert "epochNo" in metadata, "Block must have epoch number"
+    assert "slotNo" in metadata, "Block must have slot number"
+    assert isinstance(metadata["transactionsCount"], int)
+    assert metadata["transactionsCount"] >= 0
+    assert len(pool_id) == 56, "Pool ID must be 56 hex chars"
+    assert all(c in "0123456789abcdef" for c in pool_id.lower())
+    assert isinstance(metadata["size"], int) and metadata["size"] >= 0
+    assert isinstance(metadata["epochNo"], int) and metadata["epochNo"] >= 0
+    assert isinstance(metadata["slotNo"], int) and metadata["slotNo"] >= 0
