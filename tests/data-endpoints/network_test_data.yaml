@@ -68,6 +68,23 @@ preprod:
       test_address: "addr_test1qpq4x7rrrh3pxx0w8ng3xxjkshd070zg6hmux638ej57xtakfrrt9cwl632xwcrg8mumxfz5wvphzuxnrluexy2g4z5qxz5t2c"
       test_block: 4042548  # Block containing CIP-68 logo (URL) metadata
 
+  transaction_consistency:
+    transaction_identifier:
+      hash: "54938c566d8f4c045afb5e2892a5416f2f06c913ba2a444b1ea43c9b45232361"
+    block_identifier:
+      index: 5259307
+      hash: "31159d1d4e2231ccab4b179578936045e62bba7d041486d32b0a9d763e2185df"
+
+  balance_reconciliation:
+    block_identifier:
+      index: 5259307
+      hash: "31159d1d4e2231ccab4b179578936045e62bba7d041486d32b0a9d763e2185df"
+    accounts:
+      smart_wallet:
+        address: "addr_test1zzl9nam4pfweg7akf8ns646dqenermp55807u2sg0jz3rc6as3x55d8yw38nxlpxn3ysgqzlyj334dcj3h9lv5nhakcsudhvdm"
+      enterprise:
+        address: "addr_test1vqm5vyp8xztmxyl6mcr2xr5schajvsq8fjs8gn8g2zu0pgg8gckcp"
+
   # Governance test data - known transactions with governance operations
   # All from the shelley_base test address except pool_governance_vote.no
   governance:

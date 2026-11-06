@@ -17,8 +17,8 @@ These values are shared across all subcharts via `global.*`.
 |-------|---------|--------------------------|-------------|
 | `global.network` | `mainnet` | `NETWORK` | Blockchain network: `mainnet`, `preprod`, `preview` |
 | `global.protocolMagic` | `"764824073"` | `PROTOCOL_MAGIC` | Cardano protocol magic number (always a quoted string to prevent scientific notation) |
-| `global.releaseVersion` | `"2.3.1"` | `RELEASE_VERSION` | Docker image tag for API and indexer |
-| `global.cardanoNodeVersion` | `"11.1.2"` | `CARDANO_NODE_VERSION` | Cardano node image tag |
+| `global.releaseVersion` | `"2.4.1"` | `RELEASE_VERSION` | Docker image tag for API and indexer |
+| `global.cardanoNodeVersion` | `"11.1.3"` | `CARDANO_NODE_VERSION` | Cardano node image tag |
 | `global.pgVersionTag` | `REL_18_0` | `PG_VERSION_TAG` | PostgreSQL image tag |
 | `global.mithrilVersion` | `2630.1-hotfix` | `MITHRIL_VERSION` | Mithril client image tag |
 | `global.profile` | `mid` | — | Hardware profile: `entry`, `mid`, `advanced` |
@@ -113,6 +113,7 @@ Set `global.profile` to one of: `entry`, `mid`, `advanced`.
 | `rosetta-api.env.devkitEnabled` | `false` | `DEVKIT_ENABLED` | Enable DevKit integration |
 | `rosetta-api.env.tokenRegistryEnabled` | `false` | `TOKEN_REGISTRY_ENABLED` | Expose CIP-26/CIP-68 enrichment in `currency.metadata`. Does NOT affect `currency.decimals` — decimals is always resolved regardless. |
 | `rosetta-api.env.tokenRegistryLogoFetch` | `false` | `TOKEN_REGISTRY_LOGO_FETCH` | Include logos in enrichment (bandwidth-intensive). Requires `tokenRegistryEnabled=true`. |
+| `rosetta-api.env.cip113BaseScriptHash` | `""` (chart default); `d91d08e381f8ef95ffbb3f8048f020d7361ded8f3abfdf66c25fa838` in `values.yaml` (mainnet); `be59f7750a5d947bb649e70d574d066791ec34a1dfee2a087c8511e3` in `values-preprod.yaml` | `CIP113_BASE_SCRIPT_HASH` | CIP-113 programmable logic base script hash (28-byte hex). Network-specific |
 
 ### Ingress
 

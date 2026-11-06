@@ -6,6 +6,7 @@ public enum AddressType {
   ENTERPRISE("Enterprise"),
   BASE("Base"),
   REWARD("Reward"),
+  CIP_113("CIP-113"),
   POOL_KEY_HASH("Pool_Hash"),
   POOL_KEY_KASH_BECH_32("Pool_Hash_Bech32");
 

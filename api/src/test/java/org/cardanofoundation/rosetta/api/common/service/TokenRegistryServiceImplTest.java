@@ -36,6 +36,8 @@ class TokenRegistryServiceImplTest {
     private static final String POLICY_ID = "a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3";
     private static final String ASSET_SYMBOL_HEX = "54657374546f6b656e";
     private static final String SUBJECT = POLICY_ID + ASSET_SYMBOL_HEX;
+    // PNG file signature: hex "89504e470d0a1a0a", base64 "iVBORw0KGgo="
+    private static final byte[] PNG_HEADER_BYTES = HexFormat.of().parseHex("89504e470d0a1a0a");
 
     @BeforeEach
     void setUp() {
