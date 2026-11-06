@@ -1,0 +1,5 @@
+    assert response.status_code == 400
+    assert error_data["code"] == 4024
+    assert error_data["message"] == "Invalid token name"
+    assert error_data["retriable"] is False
+    assert error_data.get("details", {}).get("message") == symbol
