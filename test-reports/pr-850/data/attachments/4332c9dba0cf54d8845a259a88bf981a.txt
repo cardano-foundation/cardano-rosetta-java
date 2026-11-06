@@ -1,5 +1,0 @@
-    assert response.status_code == 200
-    assert "block_identifier" in data
-    assert data["block_identifier"]["index"] >= 0
-    assert "coins" in data
-    assert isinstance(data["coins"], list)
