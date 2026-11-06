@@ -3,7 +3,6 @@ package org.cardanofoundation.rosetta.yaciindexer.stores.txsize;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-
 import javax.annotation.Nullable;
 
 import lombok.RequiredArgsConstructor;

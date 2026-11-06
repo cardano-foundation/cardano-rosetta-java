@@ -1,22 +1,23 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
+import java.time.LocalDateTime;
+import java.util.UUID;
+
 import com.bloxbean.cardano.client.transaction.spec.governance.Vote;
 import com.bloxbean.cardano.client.transaction.spec.governance.VoterType;
-import com.bloxbean.cardano.client.transaction.spec.governance.actions.GovActionId;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.cardanofoundation.rosetta.api.block.model.domain.GovernancePoolVote;
 import org.cardanofoundation.rosetta.api.block.model.entity.VotingProcedureEntity;
 import org.cardanofoundation.rosetta.api.common.mapper.TokenRegistryMapperImpl;
 import org.cardanofoundation.rosetta.common.mapper.DataMapper;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

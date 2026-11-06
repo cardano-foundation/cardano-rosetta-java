@@ -1,18 +1,19 @@
 package org.cardanofoundation.rosetta.yaciindexer.job;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 import com.bloxbean.cardano.yaci.core.protocol.peersharing.messages.PeerAddress;
-import org.cardanofoundation.rosetta.yaciindexer.service.PeerDiscoveryManager;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import org.cardanofoundation.rosetta.yaciindexer.service.PeerDiscoveryManager;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -148,7 +149,7 @@ class PeerDiscoveryJobTest {
             // The @Scheduled annotation should be present on refreshPeers method
             // This is more of a compile-time check, but we can verify the method exists
             // and can be called
-            
+
             // Given
             when(peerDiscoveryManager.discoverPeers()).thenReturn(Collections.emptyList());
 

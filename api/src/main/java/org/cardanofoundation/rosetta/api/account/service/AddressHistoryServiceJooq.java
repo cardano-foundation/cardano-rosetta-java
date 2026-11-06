@@ -1,18 +1,20 @@
 package org.cardanofoundation.rosetta.api.account.service;
 
+import java.util.List;
 import jakarta.annotation.PostConstruct;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.account.model.repository.AddressHistoryRepository;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import org.cardanofoundation.rosetta.api.account.model.repository.AddressHistoryRepository;
 
 /**
  * JOOQ-based implementation of AddressHistoryService.
  * Delegates to the database-specific JOOQ repository implementations for optimal performance.
- * 
+ *
  * This implementation is activated when address-history.implementation=jooq
  */
 @Slf4j

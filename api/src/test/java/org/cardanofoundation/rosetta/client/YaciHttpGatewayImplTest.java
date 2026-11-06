@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.mockito.ArgumentCaptor;
@@ -19,8 +20,6 @@ import org.cardanofoundation.rosetta.client.model.domain.DiscoveredPeer;
 import org.cardanofoundation.rosetta.client.model.domain.StakeAccountInfo;
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.util.RosettaConstants;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -125,12 +124,12 @@ class YaciHttpGatewayImplTest {
 
         assertNotNull(actualResponse);
         assertEquals(2, actualResponse.size());
-        
+
         DiscoveredPeer firstPeer = actualResponse.get(0);
         assertEquals("IPv4", firstPeer.getType());
         assertEquals("192.168.1.1", firstPeer.getAddress());
         assertEquals(30000, firstPeer.getPort());
-        
+
         DiscoveredPeer secondPeer = actualResponse.get(1);
         assertEquals("IPv6", secondPeer.getType());
         assertEquals("2001:db8::1", secondPeer.getAddress());

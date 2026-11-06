@@ -4,7 +4,6 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -19,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.cardanofoundation.rosetta.api.BaseMapperSetup.BaseMappersConfig;
 import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.api.common.service.TokenRegistryService;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
@@ -43,7 +43,7 @@ public class BaseMapperSetup {
   public void before() {
     when(protocolParamService.findProtocolParameters()).thenReturn(protocolParams);
     when(protocolParams.getPoolDeposit()).thenReturn(new BigInteger("500"));
-    
+
     // Configure TokenRegistryService to return fallback metadata for any asset
     when(tokenRegistryService.getTokenMetadataBatch(anySet())).thenAnswer(invocation -> {
       Map<AssetFingerprint, TokenRegistryCurrencyData> result = new HashMap<>();

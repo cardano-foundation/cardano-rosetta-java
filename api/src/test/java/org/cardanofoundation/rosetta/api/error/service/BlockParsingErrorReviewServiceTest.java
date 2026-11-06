@@ -1,23 +1,25 @@
 package org.cardanofoundation.rosetta.api.error.service;
 
-import org.cardanofoundation.rosetta.api.error.model.domain.BlockParsingErrorReviewDTO;
-import org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus;
-import org.cardanofoundation.rosetta.api.error.model.entity.ErrorEntity;
-import org.cardanofoundation.rosetta.api.error.model.entity.ErrorReviewEntity;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
+
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import org.cardanofoundation.rosetta.api.error.model.domain.BlockParsingErrorReviewDTO;
+import org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus;
+import org.cardanofoundation.rosetta.api.error.model.entity.ErrorEntity;
+import org.cardanofoundation.rosetta.api.error.model.entity.ErrorReviewEntity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -52,7 +54,7 @@ class BlockParsingErrorReviewServiceTest {
             // given
             ReviewStatus status = ReviewStatus.UNREVIEWED;
             List<BlockParsingErrorReviewDTO> expectedResults = List.of(
-                new BlockParsingErrorReviewDTO(1, 123456L, "PARSE_ERROR", "Failed to parse", "Details", 
+                new BlockParsingErrorReviewDTO(1, 123456L, "PARSE_ERROR", "Failed to parse", "Details",
                     status, null, null, "Note", fixedTime)
             );
             when(errorReviewService.findTop1000ByReviewStatus(status)).thenReturn(expectedResults);
@@ -71,7 +73,7 @@ class BlockParsingErrorReviewServiceTest {
         void shouldReturnTop1000ErrorsWithoutFilterWhenStatusIsNull() {
             // given
             List<BlockParsingErrorReviewDTO> expectedResults = List.of(
-                new BlockParsingErrorReviewDTO(1, 123456L, "PARSE_ERROR", "Failed to parse", "Details", 
+                new BlockParsingErrorReviewDTO(1, 123456L, "PARSE_ERROR", "Failed to parse", "Details",
                     ReviewStatus.UNREVIEWED, null, null, "Note", fixedTime)
             );
             when(errorReviewService.findTop1000()).thenReturn(expectedResults);
@@ -95,7 +97,7 @@ class BlockParsingErrorReviewServiceTest {
             // given
             long blockNumber = 123456L;
             List<BlockParsingErrorReviewDTO> expectedResults = List.of(
-                new BlockParsingErrorReviewDTO(1, blockNumber, "PARSE_ERROR", "Failed to parse", "Details", 
+                new BlockParsingErrorReviewDTO(1, blockNumber, "PARSE_ERROR", "Failed to parse", "Details",
                     ReviewStatus.UNREVIEWED, null, null, "Note", fixedTime)
             );
             when(errorReviewService.findTop1000ByBlockNumber(blockNumber)).thenReturn(expectedResults);

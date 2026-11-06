@@ -1,15 +1,5 @@
 package org.cardanofoundation.rosetta.yaciindexer.service;
 
-import com.bloxbean.cardano.yaci.core.protocol.peersharing.messages.PeerAddress;
-import com.bloxbean.cardano.yaci.core.protocol.peersharing.messages.PeerAddressType;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -17,6 +7,17 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+
+import org.springframework.test.util.ReflectionTestUtils;
+import com.bloxbean.cardano.yaci.core.protocol.peersharing.messages.PeerAddress;
+import com.bloxbean.cardano.yaci.core.protocol.peersharing.messages.PeerAddressType;
+import org.mockito.InjectMocks;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -132,7 +133,7 @@ class PeerDiscoveryManagerTest {
                 executor.submit(() -> {
                     try {
                         startLatch.await(); // Wait for all threads to be ready
-                        
+
                         if (index % 3 == 0) {
                             // Write operation
                             peerDiscoveryManager.updateCachedPeers(peerLists.get(index / 3));
@@ -162,7 +163,7 @@ class PeerDiscoveryManagerTest {
             // Then
             assertThat(completed).isTrue();
             executor.shutdown();
-            
+
             // Final state should be consistent
             List<PeerAddress> finalPeers = peerDiscoveryManager.getCachedPeers();
             assertThat(finalPeers).isNotNull();
@@ -193,7 +194,7 @@ class PeerDiscoveryManagerTest {
 
             // Then - Iteration should complete without ConcurrentModificationException
             assertThat(count).isEqualTo(3); // Should have iterated over the original 3 elements
-            
+
             // Verify the list was actually updated
             assertThat(peerDiscoveryManager.getCachedPeers()).hasSize(1);
         }
@@ -254,14 +255,14 @@ class PeerDiscoveryManagerTest {
             // Then
             List<PeerAddress> cachedPeers = peerDiscoveryManager.getCachedPeers();
             assertThat(cachedPeers).hasSize(4);
-            
+
             long ipv4Count = cachedPeers.stream()
                     .filter(peer -> peer.getType() == PeerAddressType.IPv4)
                     .count();
             long ipv6Count = cachedPeers.stream()
                     .filter(peer -> peer.getType() == PeerAddressType.IPv6)
                     .count();
-            
+
             assertThat(ipv4Count).isEqualTo(2);
             assertThat(ipv6Count).isEqualTo(2);
         }

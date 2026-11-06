@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.yaciindexer.service;
 
-import org.junit.jupiter.api.Test;
 import co.nstant.in.cbor.model.Array;
 import co.nstant.in.cbor.model.ByteString;
 import co.nstant.in.cbor.model.DataItem;
@@ -10,6 +9,8 @@ import co.nstant.in.cbor.model.UnicodeString;
 import co.nstant.in.cbor.model.UnsignedInteger;
 import com.bloxbean.cardano.client.util.HexUtil;
 import com.bloxbean.cardano.yaci.core.util.CborSerializationUtil;
+
+import org.junit.jupiter.api.Test;
 
 import static co.nstant.in.cbor.model.SimpleValue.TRUE;
 import static org.assertj.core.api.Assertions.assertThat;

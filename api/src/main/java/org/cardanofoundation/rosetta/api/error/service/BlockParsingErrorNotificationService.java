@@ -1,13 +1,15 @@
 package org.cardanofoundation.rosetta.api.error.service;
 
+import java.util.List;
+import javax.annotation.PostConstruct;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.error.model.domain.BlockParsingErrorReviewDTO;
+
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.util.List;
+import org.cardanofoundation.rosetta.api.error.model.domain.BlockParsingErrorReviewDTO;
 
 import static org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus.UNREVIEWED;
 

@@ -1,18 +1,36 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
+# Enforces Conventional Commits (https://www.conventionalcommits.org) on the
+# commit subject line:
+#
+#   type(optional-scope)!: description
+#
+# Types are case-insensitive, as the spec requires; "!" marks a breaking change.
+# Messages git generates itself are allowed: "Merge ...", "Revert ...", and
+# "fixup!/squash!/amend!" (for rebase --autosquash).
+#
+# Enable once per clone:   git config core.hooksPath .githooks
+# Bypass (not recommended):  git commit --no-verify
 
-COLOR_RED=$(tput setaf 1)
-COLOR_GREEN=$(tput setaf 2)
-COLOR_RESET=$(tput sgr0)
+TYPES="build|ci|docs|feat|fix|perf|refactor|style|test|chore|revert"
 
-COMMIT_MESSAGE=$(head -1 $1)
-TYPES_REGEXP="build|ci|docs|feat|fix|perf|refactor|style|test|chore|revert"
-COMPLETE_REGEXP="^($TYPES_REGEXP)(\(.+\))?: "
+# First line that is neither a comment nor blank.
+subject=$(sed -n '/^#/d; /^[[:space:]]*$/d; p; q' "$1")
 
-if [[ ! ${COMMIT_MESSAGE} =~ ${COMPLETE_REGEXP} ]]
-then
-  echo -e "${COLOR_RED}[!] INVALID COMMIT MESSAGE ${COLOR_RESET}"
-  echo -e "${COLOR_GREEN}[+]${COLOR_RESET} It needs to follow conventional commits structure:"
-  echo -e "    type(scope): message"
-  echo -e "${COLOR_GREEN}[+]${COLOR_RESET} Following types are supported: $TYPES_REGEXP"
-  exit 1
+shopt -s nocasematch
+[[ "$subject" =~ ^(${TYPES})(\([^\)]+\))?!?:\ .+ ]] && exit 0
+[[ "$subject" =~ ^(Merge\ |Revert\ \"|(fixup|squash|amend)!\ ) ]] && exit 0
+
+red="" green="" reset=""
+if [ -t 2 ] && command -v tput >/dev/null 2>&1; then
+  red=$(tput setaf 1) green=$(tput setaf 2) reset=$(tput sgr0)
 fi
+{
+  echo ""
+  echo "${red}[!] Commit blocked: message does not follow Conventional Commits.${reset}"
+  echo "    got:      ${subject}"
+  echo "    expected: type(scope): description      e.g.  fix(api): handle empty token bundle"
+  echo "${green}[+]${reset} types:    ${TYPES//|/, }   (a trailing ! marks a breaking change, e.g. feat!: ...)"
+  echo ""
+} >&2
+exit 1

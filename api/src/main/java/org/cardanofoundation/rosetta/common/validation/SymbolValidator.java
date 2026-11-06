@@ -1,10 +1,10 @@
 package org.cardanofoundation.rosetta.common.validation;
 
+import javax.annotation.Nullable;
+
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.cardanofoundation.rosetta.common.util.HexUtils;
-
-import javax.annotation.Nullable;
 
 /**
  * Validates Cardano native asset symbols (asset names in hex).

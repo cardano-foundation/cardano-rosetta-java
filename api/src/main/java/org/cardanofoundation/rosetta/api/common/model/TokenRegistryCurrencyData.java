@@ -1,12 +1,13 @@
 package org.cardanofoundation.rosetta.api.common.model;
 
+import java.math.BigDecimal;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import javax.annotation.Nullable;
-import java.math.BigDecimal;
 
 /**
  * Domain object representing token registry currency metadata.
@@ -42,7 +43,16 @@ public class TokenRegistryCurrencyData {
     @Nullable
     private BigDecimal version;
 
-    @Nullable
+    /**
+     * Number of decimal places for the token. Always populated — {@link
+     * org.cardanofoundation.rosetta.api.common.service.TokenQueryService} guarantees a
+     * non-null value (defaulting to {@code 0} when neither CIP-26 nor CIP-68 provides an
+     * explicit count). Unlike the other metadata fields on this record, {@code decimals} is
+     * NOT gated by {@code TOKEN_REGISTRY_ENABLED}: it flows through to the wire
+     * unconditionally because Rosetta's {@code Currency.decimals} is a mandatory
+     * cross-chain field and clients expect it to always be present.
+     */
+    @Nonnull
     private Integer decimals;
 
     /**

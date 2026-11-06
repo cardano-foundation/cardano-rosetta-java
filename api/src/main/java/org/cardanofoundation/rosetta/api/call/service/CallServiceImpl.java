@@ -1,10 +1,21 @@
 package org.cardanofoundation.rosetta.api.call.service;
 
+import java.util.*;
+import jakarta.validation.constraints.NotNull;
+import javax.annotation.Nullable;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.AddressType;
 import com.bloxbean.cardano.client.address.util.AddressEncoderDecoderUtil;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.openapitools.client.model.AccountIdentifier;
+import org.openapitools.client.model.CallRequest;
+import org.openapitools.client.model.CallResponse;
+
 import org.cardanofoundation.rosetta.api.error.model.domain.BlockParsingErrorReviewDTO;
 import org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus;
 import org.cardanofoundation.rosetta.api.error.model.entity.ErrorReviewEntity;
@@ -14,15 +25,6 @@ import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.services.Cip113AddressService;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
-import org.openapitools.client.model.AccountIdentifier;
-import org.openapitools.client.model.CallRequest;
-import org.openapitools.client.model.CallResponse;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import jakarta.validation.constraints.NotNull;
-import javax.annotation.Nullable;
-import java.util.*;
 
 import static org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus.UNREVIEWED;
 
@@ -38,7 +40,7 @@ public class CallServiceImpl implements CallService {
     private static final int CREDENTIAL_HASH_LENGTH = 28;
     private static final int ENTERPRISE_ADDRESS_LENGTH = 1 + CREDENTIAL_HASH_LENGTH;
     private static final int BASE_ADDRESS_LENGTH = 1 + (2 * CREDENTIAL_HASH_LENGTH);
-    
+
     private final BlockParsingErrorReviewService blockParsingErrorReviewService;
     private final Cip113AddressService cip113AddressService;
 
@@ -208,22 +210,22 @@ public class CallServiceImpl implements CallService {
     @Transactional(readOnly = true)
     public CallResponse getParseErrorBlocks(@Nullable ReviewStatus status) {
         log.info("Getting parse error blocks with status filter: {}", status);
-        
+
         List<BlockParsingErrorReviewDTO> errorBlocks = blockParsingErrorReviewService.findTop1000(status);
-        
+
         // Build the response according to the API specification
         Map<String, Object> result = new LinkedHashMap<>();
 
         List<Map<String, Object>> parseErrorBlocks = errorBlocks.stream()
                 .map(this::mapToParseErrorBlock)
                 .toList();
-        
+
         result.put("parse_error_blocks", parseErrorBlocks);
-        
+
         CallResponse response = new CallResponse();
         response.setResult(result);
         response.setIdempotent(false);
-        
+
         log.info("Returning {} parse error blocks", parseErrorBlocks.size());
 
         return response;
@@ -248,7 +250,7 @@ public class CallServiceImpl implements CallService {
 
         return Optional.empty();
     }
-    
+
     @Override
     @Transactional(readOnly = false) // Explicitly allow writes
     public CallResponse markParseErrorBlockChecked(Map<String, Object> params) {
@@ -264,12 +266,12 @@ public class CallServiceImpl implements CallService {
         if (reviewStatus == UNREVIEWED) {
             throw ExceptionFactory.invalidBlockErrorReviewStatus();
         }
-        
+
         String checkedBy = (String) params.get("checked_by");
         String comment = (String) params.get("comment");
-        
+
         log.info("Marking parse error block {} as checked with reviewStatus: {}", blockNumber, reviewStatus);
-        
+
         // Find all errors for this block number
         List<BlockParsingErrorReviewDTO> errorBlocks = blockParsingErrorReviewService.findTop1000ByBlockNumber(blockNumber);
 
@@ -288,7 +290,7 @@ public class CallServiceImpl implements CallService {
         CallResponse response = new CallResponse();
         response.setResult(result);
         response.setIdempotent(true);
-        
+
         log.info("Updated {} errors for block {}", errors.size(), blockNumber);
 
         return response;

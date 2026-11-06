@@ -1,11 +1,11 @@
 package org.cardanofoundation.rosetta.yaciindexer.indexes;
 
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
-
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
 
 @Service
 @Profile({"h2", "test-integration"})

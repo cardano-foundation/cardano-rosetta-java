@@ -1,0 +1,27 @@
+name: Dependency Review
+
+# Blocks pull requests that introduce or upgrade to dependencies with known
+# high/critical vulnerabilities. It only inspects dependencies changed by the PR,
+# so existing alerts do not fail unrelated PRs. Needs no secrets, so it also
+# runs on PRs from forks.
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+
+permissions:
+  contents: read
+
+jobs:
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Review dependency changes
+        uses: actions/dependency-review-action@v5
+        with:
+          fail-on-severity: high

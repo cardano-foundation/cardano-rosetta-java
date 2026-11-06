@@ -1,5 +1,16 @@
 package org.cardanofoundation.rosetta.api.error.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.error.model.domain.BlockParsingErrorReviewDTO;
 import org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus;
@@ -7,15 +18,6 @@ import org.cardanofoundation.rosetta.api.error.model.entity.ErrorEntity;
 import org.cardanofoundation.rosetta.api.error.model.entity.ErrorReviewEntity;
 import org.cardanofoundation.rosetta.api.error.model.repository.ErrorRepository;
 import org.cardanofoundation.rosetta.api.error.model.repository.ErrorReviewRepository;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -66,7 +68,7 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
             Optional<BlockParsingErrorReviewDTO> result = results.stream()
                 .filter(r -> r.id().equals(100))
                 .findFirst();
-            
+
             assertTrue(result.isPresent());
             assertEquals(100, result.get().id());
             assertEquals(123456L, result.get().block());
@@ -115,7 +117,7 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
             errorReviewRepository.save(reviewEntity2);
 
             // when
-            List<BlockParsingErrorReviewDTO> results = 
+            List<BlockParsingErrorReviewDTO> results =
                 blockParsingErrorReviewService.findTop1000(ReviewStatus.REVIEWED_AFFECTS_US);
 
             // then
@@ -139,14 +141,14 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
             errorRepository.save(errorEntity);
 
             // when
-            List<BlockParsingErrorReviewDTO> results = 
+            List<BlockParsingErrorReviewDTO> results =
                 blockParsingErrorReviewService.findTop1000ByBlockNumber(blockNumber);
 
             // then
             Optional<BlockParsingErrorReviewDTO> result = results.stream()
                 .filter(r -> r.id().equals(103))
                 .findFirst();
-            
+
             assertTrue(result.isPresent());
             assertEquals(blockNumber, result.get().block());
             assertEquals("Block specific error", result.get().reason());

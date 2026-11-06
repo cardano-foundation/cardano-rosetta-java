@@ -1,9 +1,24 @@
 package org.cardanofoundation.rosetta.api.block.service;
 
+import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.StructuredTaskScope;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import jakarta.validation.constraints.NotNull;
+import javax.annotation.PostConstruct;
+
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
 import org.cardanofoundation.rosetta.api.account.mapper.AddressUtxoEntityToUtxo;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.account.model.entity.AddressUtxoEntity;
@@ -16,19 +31,6 @@ import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.*;
 import org.cardanofoundation.rosetta.api.block.model.repository.*;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
-import javax.annotation.PostConstruct;
-import java.time.Duration;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.StructuredTaskScope;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 @Component

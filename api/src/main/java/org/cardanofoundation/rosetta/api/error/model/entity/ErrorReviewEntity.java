@@ -1,14 +1,15 @@
 package org.cardanofoundation.rosetta.api.error.model.entity;
 
+import java.time.LocalDateTime;
 import jakarta.persistence.*;
+import javax.annotation.Nullable;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus;
 
-import javax.annotation.Nullable;
-import java.time.LocalDateTime;
+import org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus;
 
 @Entity
 @Table(name = "error_review")

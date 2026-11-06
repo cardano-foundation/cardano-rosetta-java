@@ -1,11 +1,13 @@
 package org.cardanofoundation.rosetta.common.util;
 
-import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
-import org.cardanofoundation.rosetta.common.exception.ApiException;
-import org.junit.jupiter.api.Test;
+import java.util.List;
+
 import org.openapitools.client.model.*;
 
-import java.util.List;
+import org.junit.jupiter.api.Test;
+
+import org.cardanofoundation.rosetta.common.enumeration.NetworkEnum;
+import org.cardanofoundation.rosetta.common.exception.ApiException;
 
 import static org.cardanofoundation.rosetta.common.util.ValidateParseUtil.*;
 import static org.junit.jupiter.api.Assertions.*;

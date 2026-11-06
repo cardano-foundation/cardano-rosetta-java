@@ -1,16 +1,17 @@
 package org.cardanofoundation.rosetta.yaciindexer.health;
 
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthIndicator;
+import org.springframework.stereotype.Component;
 import com.bloxbean.cardano.yaci.store.common.domain.HealthStatus;
 import com.bloxbean.cardano.yaci.store.common.domain.SyncStatus;
 import com.bloxbean.cardano.yaci.store.core.service.HealthService;
 import com.bloxbean.cardano.yaci.store.core.service.SyncStatusService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.HealthIndicator;
-import org.springframework.stereotype.Component;
 
-import org.cardanofoundation.rosetta.yaciindexer.indexes.IndexService;
 import org.cardanofoundation.rosetta.yaciindexer.indexes.IndexLifecycleState;
+import org.cardanofoundation.rosetta.yaciindexer.indexes.IndexService;
 
 /**
  * Readiness health indicator for the Yaci Indexer.

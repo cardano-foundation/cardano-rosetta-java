@@ -1,11 +1,10 @@
 package org.cardanofoundation.rosetta.common.services;
 
 import java.util.Optional;
-
 import jakarta.validation.constraints.NotNull;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.Credential;
 

@@ -1,12 +1,14 @@
 package org.cardanofoundation.rosetta.api.network.service.h2;
 
+import java.util.Collections;
+import java.util.List;
+
 import lombok.extern.slf4j.Slf4j;
-import org.cardanofoundation.rosetta.api.network.service.IndexCreationMonitor;
+
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
-import java.util.List;
+import org.cardanofoundation.rosetta.api.network.service.IndexCreationMonitor;
 
 /**
  * H2-specific implementation of IndexCreationMonitor.

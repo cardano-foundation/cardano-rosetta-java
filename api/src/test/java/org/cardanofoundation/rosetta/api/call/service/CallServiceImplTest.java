@@ -3,18 +3,18 @@ package org.cardanofoundation.rosetta.api.call.service;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
+import com.bloxbean.cardano.client.address.Address;
+import com.bloxbean.cardano.client.address.AddressType;
+import com.bloxbean.cardano.client.util.HexUtil;
 import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.CallRequest;
 import org.openapitools.client.model.CallResponse;
 import org.openapitools.client.model.NetworkIdentifier;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import com.bloxbean.cardano.client.address.Address;
-import com.bloxbean.cardano.client.address.AddressType;
-import com.bloxbean.cardano.client.util.HexUtil;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 import org.cardanofoundation.rosetta.common.exception.ApiException;
 import org.cardanofoundation.rosetta.common.services.Cip113AddressServiceImpl;

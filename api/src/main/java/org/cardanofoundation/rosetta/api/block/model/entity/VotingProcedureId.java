@@ -1,13 +1,13 @@
 package org.cardanofoundation.rosetta.api.block.model.entity;
 
+import java.io.Serializable;
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
 
 /**
  * Composite primary key for VotingProcedureEntity.

@@ -3,8 +3,6 @@ package org.cardanofoundation.rosetta.api.block.mapper;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
-import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -19,6 +17,8 @@ import org.cardanofoundation.rosetta.api.block.model.entity.BlockEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.TxnEntity;
 import org.cardanofoundation.rosetta.api.block.model.entity.UtxoKey;
 import org.cardanofoundation.rosetta.api.block.model.entity.projection.BlockIdentifierProjection;
+import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
+import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
 import org.cardanofoundation.rosetta.common.mapper.util.OperationMapperService;
 
@@ -62,7 +62,7 @@ public interface BlockMapper {
   @Mapping(target = "index", source = "blockNo")
   BlockIdentifier mapToBlockIdentifier(BlockTx source);
 
-  
+
   @Named("mapToRosettaTransactionWithMetadata")
   @Mapping(target = "transactionIdentifier", source = "source.hash")
   @Mapping(target = "metadata.size", source = "source.size")
@@ -91,7 +91,7 @@ public interface BlockMapper {
 
   @Mapping(target = "transaction", source = "model")
   BlockTransactionResponse mapToBlockTransactionResponse(BlockTx model);
-  
+
   @Mapping(target = "transaction", source = "model", qualifiedByName = "mapToRosettaTransactionWithMetadata")
   BlockTransactionResponse mapToBlockTransactionResponseWithMetadata(BlockTx model,
                                                                      @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap);

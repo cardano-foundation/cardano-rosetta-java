@@ -1,9 +1,8 @@
 package org.cardanofoundation.rosetta.common.exception;
 
-import jakarta.validation.constraints.NotNull;
-
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import jakarta.validation.constraints.NotNull;
 
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType;
 

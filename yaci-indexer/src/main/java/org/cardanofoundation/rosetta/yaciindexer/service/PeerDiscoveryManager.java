@@ -1,18 +1,19 @@
 package org.cardanofoundation.rosetta.yaciindexer.service;
 
-import com.bloxbean.cardano.yaci.core.protocol.peersharing.messages.PeerAddress;
-import com.bloxbean.cardano.yaci.helper.PeerDiscovery;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import reactor.core.publisher.Mono;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import com.bloxbean.cardano.yaci.core.protocol.peersharing.messages.PeerAddress;
+import com.bloxbean.cardano.yaci.helper.PeerDiscovery;
+import reactor.core.publisher.Mono;
 
 @Service
 @Slf4j

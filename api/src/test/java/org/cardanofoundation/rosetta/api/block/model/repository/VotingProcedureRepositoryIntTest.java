@@ -1,18 +1,20 @@
 package org.cardanofoundation.rosetta.api.block.model.repository;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import org.cardanofoundation.rosetta.api.IntegrationTest;
-import org.cardanofoundation.rosetta.api.block.model.entity.VotingProcedureEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.VoterType;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
+import org.cardanofoundation.rosetta.api.IntegrationTest;
+import org.cardanofoundation.rosetta.api.block.model.entity.VoterType;
+import org.cardanofoundation.rosetta.api.block.model.entity.VotingProcedureEntity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

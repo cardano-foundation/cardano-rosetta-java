@@ -1,14 +1,16 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
-import org.cardanofoundation.rosetta.api.common.mapper.TokenRegistryMapperImpl;
-import org.cardanofoundation.rosetta.common.mapper.DataMapper;
-import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+
+import org.cardanofoundation.rosetta.api.common.mapper.TokenRegistryMapperImpl;
+import org.cardanofoundation.rosetta.common.mapper.DataMapper;
+import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

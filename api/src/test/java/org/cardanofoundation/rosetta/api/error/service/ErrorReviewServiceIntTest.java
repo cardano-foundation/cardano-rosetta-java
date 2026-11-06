@@ -1,5 +1,16 @@
 package org.cardanofoundation.rosetta.api.error.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
+
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.error.model.domain.BlockParsingErrorReviewDTO;
 import org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus;
@@ -7,15 +18,6 @@ import org.cardanofoundation.rosetta.api.error.model.entity.ErrorEntity;
 import org.cardanofoundation.rosetta.api.error.model.entity.ErrorReviewEntity;
 import org.cardanofoundation.rosetta.api.error.model.repository.ErrorRepository;
 import org.cardanofoundation.rosetta.api.error.model.repository.ErrorReviewRepository;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -158,7 +160,7 @@ class ErrorReviewServiceIntTest extends IntegrationTest {
             Optional<BlockParsingErrorReviewDTO> result = results.stream()
                 .filter(r -> r.id().equals(5))
                 .findFirst();
-            
+
             assertTrue(result.isPresent());
             assertEquals(5, result.get().id());
             assertEquals(123456L, result.get().block());
@@ -211,9 +213,9 @@ class ErrorReviewServiceIntTest extends IntegrationTest {
             errorReviewService.upsert(reviewEntity2);
 
             // when
-            List<BlockParsingErrorReviewDTO> affectsUsResults = 
+            List<BlockParsingErrorReviewDTO> affectsUsResults =
                 errorReviewService.findTop1000ByReviewStatus(ReviewStatus.REVIEWED_AFFECTS_US);
-            List<BlockParsingErrorReviewDTO> doesNotAffectUsResults = 
+            List<BlockParsingErrorReviewDTO> doesNotAffectUsResults =
                 errorReviewService.findTop1000ByReviewStatus(ReviewStatus.REVIEWED_DOES_NOT_AFFECT_US);
 
             // then
@@ -246,7 +248,7 @@ class ErrorReviewServiceIntTest extends IntegrationTest {
             errorReviewService.upsert(reviewEntity);
 
             // when
-            List<BlockParsingErrorReviewDTO> results = 
+            List<BlockParsingErrorReviewDTO> results =
                 errorReviewService.findTop1000ByBlockNumber(blockNumber);
 
             // then
@@ -254,7 +256,7 @@ class ErrorReviewServiceIntTest extends IntegrationTest {
             Optional<BlockParsingErrorReviewDTO> result = results.stream()
                 .filter(r -> r.id().equals(8))
                 .findFirst();
-            
+
             assertTrue(result.isPresent());
             assertEquals(blockNumber, result.get().block());
             assertEquals("Block specific error", result.get().reason());
@@ -282,7 +284,7 @@ class ErrorReviewServiceIntTest extends IntegrationTest {
             Optional<BlockParsingErrorReviewDTO> result = results.stream()
                 .filter(r -> r.id().equals(9))
                 .findFirst();
-            
+
             assertTrue(result.isPresent());
             assertEquals(ReviewStatus.UNREVIEWED, result.get().status());
             assertNull(result.get().comment());
@@ -311,7 +313,7 @@ class ErrorReviewServiceIntTest extends IntegrationTest {
             Optional<BlockParsingErrorReviewDTO> result = results.stream()
                 .filter(r -> r.id().equals(10))
                 .findFirst();
-            
+
             assertTrue(result.isPresent());
             String expectedNote = "Please review all transactions within a block, https://explorer.cardano.org/block/" + blockNumber;
             assertEquals(expectedNote, result.get().note());
