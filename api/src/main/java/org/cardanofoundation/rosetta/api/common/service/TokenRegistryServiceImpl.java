@@ -56,7 +56,7 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
             Optional<TokenSubject> tokenSubject = tokenSubjectMap.get(subject);
 
             if (tokenSubject != null && tokenSubject.isPresent()) {
-                result.put(assetFingerprint, extractTokenMetadata(assetFingerprint, tokenSubject.get()));
+                result.put(assetFingerprint, extractTokenMetadata(assetFingerprint.getPolicyId(), tokenSubject.get()));
             } else {
                 // Always return fallback metadata with at least policyId
                 result.put(assetFingerprint, createFallbackMetadata(assetFingerprint.getPolicyId()));
@@ -66,45 +66,32 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
         return result;
     }
 
-    /**
-     * Maps a token registry V2 subject to Rosetta currency metadata, returning what the registry returns.
-     *
-     * <p>The policy ID and subject always come from the requested asset. Every metadata property is
-     * optional and passed through as served: since cf-token-metadata-registry 2.0.0 the V2 API (default
-     * {@code ?validation=ALL}) also serves tokens that break their CIP, together with their
-     * {@code validation_errors}, so {@code name} and {@code description} can be missing. A token with no
-     * metadata at all (e.g. a CIP-113 programmable token without CIP-26/CIP-68 metadata) is served with
-     * an empty {@code metadata} block. {@code decimals} defaults to 0, as CIP-26 defines.</p>
-     */
-    private TokenRegistryCurrencyData extractTokenMetadata(@NotNull AssetFingerprint assetFingerprint,
-                                                           @NotNull TokenSubject tokenSubject) {
-        // metadata is required by the registry's V2 contract; an empty block guards the HTTP boundary
-        TokenMetadata tokenMeta = Optional.ofNullable(tokenSubject.getMetadata()).orElseGet(TokenMetadata::new);
+    private TokenRegistryCurrencyData extractTokenMetadata(String policyId,
+                                                           TokenSubject tokenSubject) {
+        TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder = TokenRegistryCurrencyData.builder()
+                .policyId(policyId);
 
+        TokenMetadata tokenMeta = tokenSubject.getMetadata();
+
+        builder.subject(tokenSubject.getSubject());
+
+        // Optional fields; since cf-token-metadata-registry 2.0.0 this includes name and description:
+        // the V2 API also serves tokens that break their CIP (with validation_errors), which may lack them
+        Optional.ofNullable(tokenMeta.getName()).ifPresent(name -> builder.name(name.getValue()));
+        Optional.ofNullable(tokenMeta.getDescription()).ifPresent(description -> builder.description(description.getValue()));
+        Optional.ofNullable(tokenMeta.getTicker()).ifPresent(ticker -> builder.ticker(ticker.getValue()));
+        Optional.ofNullable(tokenMeta.getUrl()).ifPresent(url -> builder.url(url.getValue()));
+        Optional.ofNullable(tokenMeta.getLogo()).ifPresent(logo -> builder.logo(convertToLogoData(logo)));
+        Optional.ofNullable(tokenMeta.getVersion()).ifPresent(version -> builder.version(BigDecimal.valueOf(version.getValue())));
+
+        // Set decimals, defaulting to 0 if not found
         int decimals = Optional.ofNullable(tokenMeta.getDecimals())
                 .map(TokenPropertyNumber::getValue)
                 .map(Long::intValue)
                 .orElse(0);
+        builder.decimals(decimals);
 
-        return TokenRegistryCurrencyData.builder()
-                .policyId(assetFingerprint.getPolicyId())
-                .subject(assetFingerprint.toSubject())
-                .name(propertyValue(tokenMeta.getName()))
-                .description(propertyValue(tokenMeta.getDescription()))
-                .ticker(propertyValue(tokenMeta.getTicker()))
-                .url(propertyValue(tokenMeta.getUrl()))
-                .logo(Optional.ofNullable(tokenMeta.getLogo()).map(this::convertToLogoData).orElse(null))
-                .version(Optional.ofNullable(tokenMeta.getVersion())
-                        .map(TokenPropertyNumber::getValue)
-                        .map(BigDecimal::valueOf)
-                        .orElse(null))
-                .decimals(decimals)
-                .build();
-    }
-
-    @Nullable
-    private static String propertyValue(@Nullable TokenProperty property) {
-        return Optional.ofNullable(property).map(TokenProperty::getValue).orElse(null);
+        return builder.build();
     }
 
     @Override
