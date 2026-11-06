@@ -12,14 +12,14 @@ RUN apt update --fix-missing \
     && apt install -y --no-install-recommends maven curl ca-certificates \
     && apt clean
 
-# Download and setup JDK 25.0.2
+# Download and setup JDK 25.0.5 (Eclipse Temurin)
 RUN mkdir -p /opt/java \
-    && curl -L https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.2%2B10/OpenJDK25U-jdk_x64_linux_hotspot_25.0.2_10.tar.gz -o /opt/jdk.tar.gz \
+    && curl -L https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.5%2B8/OpenJDK25U-jdk_x64_linux_hotspot_25.0.5_8.tar.gz -o /opt/jdk.tar.gz \
     && tar -xzf /opt/jdk.tar.gz -C /opt/java \
     && rm /opt/jdk.tar.gz
 
 # Set JAVA_HOME and update PATH
-ENV JAVA_HOME=/opt/java/jdk-25.0.2+10
+ENV JAVA_HOME=/opt/java/jdk-25.0.5+8
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 COPY ./pom.xml /build/pom.xml
