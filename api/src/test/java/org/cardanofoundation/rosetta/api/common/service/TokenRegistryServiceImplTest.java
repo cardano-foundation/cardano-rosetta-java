@@ -45,6 +45,8 @@ class TokenRegistryServiceImplTest {
     private static final String ASSET_NAME = "TestToken"; // Human-readable name
     private static final String ASSET_SYMBOL_HEX = "54657374546f6b656e"; // hex encoding of "TestToken"
     private static final String SUBJECT = POLICY_ID + ASSET_SYMBOL_HEX;
+    // PNG file signature: hex "89504e470d0a1a0a", base64 "iVBORw0KGgo="
+    private static final byte[] PNG_HEADER_BYTES = HexFormat.of().parseHex("89504e470d0a1a0a");
 
     @BeforeEach
     void setUp() {
@@ -265,6 +267,118 @@ class TokenRegistryServiceImplTest {
             assertThat(metadata.getLogo()).isNotNull();
             assertThat(metadata.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.BASE64);
             assertThat(metadata.getLogo().getValue()).isEqualTo(expectedBase64);
+        }
+
+        @Test
+        @DisplayName("Should pass through CIP_26 base64 logo unchanged (token registry >= 2.0.0)")
+        void shouldPassThroughCip26Base64Logo() {
+            // given
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
+            String base64Logo = Base64.getEncoder().encodeToString(PNG_HEADER_BYTES);
+
+            TokenSubject tokenSubject = createTokenSubjectWithLogo("CIP_26", base64Logo);
+            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
+                .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
+
+            // when
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
+
+            // then
+            TokenRegistryCurrencyData metadata = result.get(assetFingerprint);
+            assertThat(metadata.getLogo()).isNotNull();
+            assertThat(metadata.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.BASE64);
+            assertThat(metadata.getLogo().getValue()).isEqualTo(base64Logo);
+        }
+
+        @Test
+        @DisplayName("Should return the same base64 logo from a hex (< 2.0.0) and a base64 (>= 2.0.0) token registry")
+        void shouldReturnSameLogoForHexAndBase64Registry() {
+            // given
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
+            String legacyHexLogo = HexFormat.of().formatHex(PNG_HEADER_BYTES);
+            String base64Logo = Base64.getEncoder().encodeToString(PNG_HEADER_BYTES);
+
+            TokenSubject legacyRegistrySubject = createTokenSubjectWithLogo("CIP_26", legacyHexLogo);
+            TokenSubject newRegistrySubject = createTokenSubjectWithLogo("CIP_26", base64Logo);
+            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
+                .thenReturn(Map.of(SUBJECT, Optional.of(legacyRegistrySubject)))
+                .thenReturn(Map.of(SUBJECT, Optional.of(newRegistrySubject)));
+
+            // when
+            TokenRegistryCurrencyData fromLegacyRegistry = tokenRegistryService.getTokenMetadataBatch(assetFingerprints).get(assetFingerprint);
+            TokenRegistryCurrencyData fromNewRegistry = tokenRegistryService.getTokenMetadataBatch(assetFingerprints).get(assetFingerprint);
+
+            // then
+            assertThat(fromLegacyRegistry.getLogo()).isNotNull();
+            assertThat(fromNewRegistry.getLogo()).isNotNull();
+            assertThat(fromLegacyRegistry.getLogo().getValue())
+                .isEqualTo(base64Logo)
+                .isEqualTo(fromNewRegistry.getLogo().getValue());
+            assertThat(Base64.getDecoder().decode(fromNewRegistry.getLogo().getValue())).isEqualTo(PNG_HEADER_BYTES);
+        }
+
+        @Test
+        @DisplayName("Should convert uppercase CIP_26 hex logo to base64")
+        void shouldConvertUppercaseHexLogoToBase64() {
+            // given
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
+            String upperHexLogo = HexFormat.of().withUpperCase().formatHex(PNG_HEADER_BYTES);
+
+            TokenSubject tokenSubject = createTokenSubjectWithLogo("CIP_26", upperHexLogo);
+            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
+                .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
+
+            // when
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
+
+            // then
+            TokenRegistryCurrencyData metadata = result.get(assetFingerprint);
+            assertThat(metadata.getLogo()).isNotNull();
+            assertThat(metadata.getLogo().getValue()).isEqualTo(Base64.getEncoder().encodeToString(PNG_HEADER_BYTES));
+        }
+
+        @Test
+        @DisplayName("Should return null logo when CIP_26 value is neither hex nor base64")
+        void shouldReturnNullLogoWhenNeitherHexNorBase64() {
+            // given
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
+            TokenSubject tokenSubject = createTokenSubjectWithLogo("CIP_26", "not a logo!");
+            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
+                .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
+
+            // when
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
+
+            // then
+            assertThat(result.get(assetFingerprint).getLogo()).isNull();
+        }
+
+        @Test
+        @DisplayName("Should return null logo when CIP_26 base64 value is missing padding")
+        void shouldReturnNullLogoForUnpaddedBase64() {
+            // given
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
+            String unpaddedBase64 = Base64.getEncoder().withoutPadding().encodeToString(PNG_HEADER_BYTES);
+
+            TokenSubject tokenSubject = createTokenSubjectWithLogo("CIP_26", unpaddedBase64);
+            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
+                .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
+
+            // when
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
+
+            // then
+            assertThat(result.get(assetFingerprint).getLogo()).isNull();
         }
 
         @Test
@@ -628,6 +742,116 @@ class TokenRegistryServiceImplTest {
 
             // then
             assertThat(result).isEmpty();
+        }
+    }
+
+    @Nested
+    @DisplayName("Optional Registry Fields Tests (cf-token-metadata-registry >= 2.0.0)")
+    class OptionalRegistryFieldsTests {
+
+        private final AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+
+        private TokenRegistryCurrencyData fetch(TokenSubject tokenSubject) {
+            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
+                .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
+
+            return tokenRegistryService.getTokenMetadataBatch(Set.of(assetFingerprint)).get(assetFingerprint);
+        }
+
+        private static TokenSubject subject(TokenMetadata metadata) {
+            return TokenSubject.builder().subject(SUBJECT).metadata(metadata).build();
+        }
+
+        private static TokenProperty property(String value) {
+            return TokenProperty.builder().value(value).source("CIP_26").build();
+        }
+
+        @Test
+        @DisplayName("Should map token without name")
+        void shouldMapTokenWithoutName() {
+            TokenRegistryCurrencyData metadata = fetch(subject(TokenMetadata.builder()
+                .description(property("Test Description"))
+                .ticker(property("TST"))
+                .build()));
+
+            assertThat(metadata.getPolicyId()).isEqualTo(POLICY_ID);
+            assertThat(metadata.getSubject()).isEqualTo(SUBJECT);
+            assertThat(metadata.getName()).isNull();
+            assertThat(metadata.getDescription()).isEqualTo("Test Description");
+            assertThat(metadata.getTicker()).isEqualTo("TST");
+        }
+
+        @Test
+        @DisplayName("Should map token without description")
+        void shouldMapTokenWithoutDescription() {
+            TokenRegistryCurrencyData metadata = fetch(subject(TokenMetadata.builder()
+                .name(property("Test Token"))
+                .build()));
+
+            assertThat(metadata.getName()).isEqualTo("Test Token");
+            assertThat(metadata.getDescription()).isNull();
+        }
+
+        @Test
+        @DisplayName("Should map token without name and description, keeping the other fields")
+        void shouldMapTokenWithoutNameAndDescription() {
+            TokenRegistryCurrencyData metadata = fetch(subject(TokenMetadata.builder()
+                .ticker(property("TST"))
+                .url(property("https://test.com"))
+                .decimals(TokenPropertyNumber.builder().value(6L).source("CIP_26").build())
+                .build()));
+
+            assertThat(metadata.getPolicyId()).isEqualTo(POLICY_ID);
+            assertThat(metadata.getSubject()).isEqualTo(SUBJECT);
+            assertThat(metadata.getName()).isNull();
+            assertThat(metadata.getDescription()).isNull();
+            assertThat(metadata.getTicker()).isEqualTo("TST");
+            assertThat(metadata.getUrl()).isEqualTo("https://test.com");
+            assertThat(metadata.getDecimals()).isEqualTo(6);
+        }
+
+        @Test
+        @DisplayName("Should map name and description properties with null value to null")
+        void shouldMapPropertiesWithNullValueToNull() {
+            TokenRegistryCurrencyData metadata = fetch(subject(TokenMetadata.builder()
+                .name(property(null))
+                .description(property(null))
+                .build()));
+
+            assertThat(metadata.getName()).isNull();
+            assertThat(metadata.getDescription()).isNull();
+        }
+
+        @Test
+        @DisplayName("Should pass through blank name and description as served by the registry")
+        void shouldPassThroughBlankValues() {
+            TokenRegistryCurrencyData metadata = fetch(subject(TokenMetadata.builder()
+                .name(property(""))
+                .description(property("   "))
+                .build()));
+
+            assertThat(metadata.getName()).isEmpty();
+            assertThat(metadata.getDescription()).isEqualTo("   ");
+        }
+
+        @Test
+        @DisplayName("Should return policyId, subject and decimals 0 for an empty metadata block (e.g. CIP-113 programmable token)")
+        void shouldMapEmptyMetadataBlock() {
+            TokenRegistryCurrencyData metadata = fetch(subject(TokenMetadata.builder().build()));
+
+            assertOnlyPolicyIdSubjectAndZeroDecimals(metadata);
+        }
+
+        private void assertOnlyPolicyIdSubjectAndZeroDecimals(TokenRegistryCurrencyData metadata) {
+            assertThat(metadata.getPolicyId()).isEqualTo(POLICY_ID);
+            assertThat(metadata.getSubject()).isEqualTo(SUBJECT);
+            assertThat(metadata.getName()).isNull();
+            assertThat(metadata.getDescription()).isNull();
+            assertThat(metadata.getTicker()).isNull();
+            assertThat(metadata.getUrl()).isNull();
+            assertThat(metadata.getLogo()).isNull();
+            assertThat(metadata.getVersion()).isNull();
+            assertThat(metadata.getDecimals()).isEqualTo(0);
         }
     }
 
