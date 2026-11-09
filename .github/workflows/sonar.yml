@@ -7,11 +7,12 @@ name: SonarCloud
 # CI-based analysis while Automatic Analysis is on, so before setting the variable a SonarCloud
 # organization admin must turn Automatic Analysis off and provide a valid SONAR_TOKEN (see PR #802).
 
+# develop is the long-lived integration branch; devel is the temporary branch the 3.0.0 line is built on.
 on:
   push:
-    branches: [ main, devel ]
+    branches: [ main, develop, devel ]
   pull_request:
-    branches: [ main, devel ]
+    branches: [ main, develop, devel ]
   workflow_dispatch:
 
 permissions:
