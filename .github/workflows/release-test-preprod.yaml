@@ -48,8 +48,8 @@ env:
   MITHRIL_IMAGE: ${{ inputs.candidate_mithril_image }}
   POSTGRES_IMAGE: ${{ inputs.candidate_postgres_image }}
 
-  # Release Testing has its own project, data, network, and host ports. The PR
-  # Preprod project remains running while this workflow exercises the candidate.
+  # Release Testing owns its project, data, network, and host ports. Both Preprod
+  # workflows hold the host lock until their own deployment has been stopped.
   PROJECT_NAME: rosetta-release-test
   DATA_ROOT: /opt/rosetta-release-test
 
@@ -105,7 +105,7 @@ jobs:
           : "${TEST_WALLET_MNEMONIC:?Missing TEST_WALLET_MNEMONIC secret}"
           export PATH="$HOME/.local/bin:$PATH"
 
-          for command in curl docker find findmnt git jq realpath stat sudo uv; do
+          for command in curl docker find git jq realpath sudo uv; do
             command -v "$command"
           done
           docker compose version
@@ -198,8 +198,8 @@ jobs:
               -exec cp -- {} "$evidence_dir/logs/" \;
           fi
 
-      - name: Tear down failed Release Testing deployment
-        if: ${{ failure() }}
+      - name: Collect deployment logs and stop Release Testing
+        if: ${{ always() }}
         run: |
           set -euo pipefail
 
@@ -210,7 +210,7 @@ jobs:
           fi
           source "$RELEASE_SCRIPTS/release_test_compose.sh"
 
-          # Container logs are the only post-mortem left once the stack is gone.
+          # Keep deployment evidence before stopping the stack.
           evidence_dir="$RUNNER_TEMP/release-evidence-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           mkdir -p "$evidence_dir"
           if ! release_compose logs --no-color --timestamps \
@@ -219,7 +219,7 @@ jobs:
             echo "Compose log collection failed; see compose-logs.stderr in the evidence artifact."
           fi
 
-          release_compose down
+          stop_compose_release
           mv "$marker" "${marker}.finished"
 
       - name: Upload E2E evidence

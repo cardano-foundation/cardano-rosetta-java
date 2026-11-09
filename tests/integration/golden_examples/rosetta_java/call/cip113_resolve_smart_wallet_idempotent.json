@@ -1,0 +1,23 @@
+{
+  "test_name": "cip113 resolve smart wallet idempotent",
+  "description": "Resolve an existing CIP-113 smart wallet: the same address is returned unchanged",
+  "endpoint": "/call",
+  "request_body": {
+    "network_identifier": {
+      "blockchain": "cardano",
+      "network": "{{networkId}}"
+    },
+    "method": "resolve_smart_wallet_addr",
+    "parameters": {
+      "address": "addr_test1zzl9nam4pfweg7akf8ns646dqenermp55807u2sg0jz3rcaafxpncxpaxjsg9k3etntnk8ypdup8ryr6navxyz72c62q4ja877"
+    }
+  },
+  "expected_response": {
+    "result": {
+      "account_identifier": {
+        "address": "addr_test1zzl9nam4pfweg7akf8ns646dqenermp55807u2sg0jz3rcaafxpncxpaxjsg9k3etntnk8ypdup8ryr6navxyz72c62q4ja877"
+      }
+    },
+    "idempotent": true
+  }
+}

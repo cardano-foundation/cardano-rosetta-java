@@ -457,6 +457,7 @@ paths:
         This is a Cardano network-specific procedure call, using Coinbase Mesh’s generic /call endpoint. It enables exchanges and integrators to:
         - Review blocks that could not be fully parsed.
         - Mark blocks as “checked” if they do not affect their users or transactions.
+        - Resolve supported Cardano addresses to the configured CIP-113 smart-wallet address.
         ## Supported Methods
         
         ### get_parse_error_blocks
@@ -481,6 +482,32 @@ paths:
         **Response:**
         - `parse_error_blocks_response`: array of block numbers with parsing errors and their updated review status
         - `idempotent`: false (as this operation modifies error review status)
+
+        ### resolve_smart_wallet_addr
+        Resolves a supported Cardano address to the CIP-113 smart wallet address of the same owner, using the server's configured programmable logic base script hash (`CIP113_BASE_SCRIPT_HASH`). The input address must match the requested network. See the CIP-113 user guide in the documentation for background.
+
+        The owner credential is taken from the input as follows:
+        - Enterprise address with a key payment credential: the payment key hash.
+        - Base address with key payment and key stake credentials: the stake key hash.
+        - Base address whose payment credential is the configured programmable logic base and whose stake credential is a key: the stake key hash, so the address is returned unchanged.
+
+        The result is the base address made of the configured programmable logic base script hash and the owner credential. The call is idempotent.
+
+        **Request:**
+        - `network_identifier` (required): The standard top-level Rosetta network identifier containing `blockchain` and `network`
+        - `method` (required): `resolve_smart_wallet_addr`
+        - `parameters.address` (required): A non-empty Cardano address string
+
+        **Response:**
+        - `account_identifier.address`: The resolved CIP-113 smart-wallet address
+        - `idempotent`: true
+
+        **Errors:**
+        - `5051`: `parameters.address` is missing, blank or not a string
+        - `5063`, `5064`: `CIP113_BASE_SCRIPT_HASH` is not configured or is not a 28-byte hex string
+        - `5065`: the address has a script payment credential that cannot be mapped to a key owner (an enterprise script address, or a base address with a key stake credential whose payment script is not the configured programmable logic base)
+        - `5066`: the address type is not supported (reward, pointer, Byron, or a base address with a script stake credential, which includes a script-owned smart wallet address)
+        - `5067`: the address is malformed or belongs to another network
       operationId: call
       tags:
         - Call
@@ -1537,6 +1564,7 @@ components:
             For Cardano Rosetta, supported methods:
             - `get_parse_error_blocks`: Retrieves blocks with parsing errors
             - `mark_parse_error_block_checked`: Marks all errors for a block as reviewed
+            - `resolve_smart_wallet_addr`: Resolves a supported address to the configured CIP-113 smart-wallet address
           example: get_parse_error_blocks
         parameters:
           type: object
@@ -1552,6 +1580,9 @@ components:
             - `status` (required): Review status to set. Valid values: "REVIEWED_AFFECTS_US", "REVIEWED_DOES_NOT_AFFECT_US"
             - `checked_by` (optional): Identifier of who reviewed the block
             - `comment` (optional): Comment about the review
+
+            For `resolve_smart_wallet_addr`:
+            - `address` (required): Non-empty Cardano enterprise or base address on the requested network
           example:
             status: UNREVIEWED
     CallResponse:
@@ -1568,6 +1599,9 @@ components:
             
             For `get_parse_error_blocks`, the result contains:
             - `parse_error_blocks`: Array of error entries with block numbers and review status
+
+            For `resolve_smart_wallet_addr`, the result contains:
+            - `account_identifier.address`: The resolved CIP-113 smart-wallet address
           example:
             parse_error_blocks:
               - error_id: 1
@@ -1996,7 +2030,7 @@ components:
       properties:
         address_type:
           type: string
-          description: AddressType is the type of address that will be derived from the PublicKey. This field is used to indicate that a PublicKey is associated with a particular address type. If this field is not populated, it is assumed that the PublicKey is associated with the default address type for the network.
+          description: AddressType is the type of address that will be derived from the PublicKey. This field is used to indicate that a PublicKey is associated with a particular address type. If this field is not populated, it is assumed that the PublicKey is associated with the default address type for the network. Supported derive values are Enterprise, Base, Reward, and CIP-113 (case-sensitive). CIP-113 returns the smart wallet address of the public key, a base address whose payment credential is the configured programmable logic base script hash (CIP113_BASE_SCRIPT_HASH) and whose stake credential slot holds the hash of the public key. staking_credential is not allowed with CIP-113 and is rejected with error 5062.
         staking_credential:
           $ref: '#/components/schemas/PublicKey'
 

@@ -17,7 +17,8 @@ from client import RosettaClient
 
 # Load nearest .env walking up from this file's directory.
 # CI creates tests/data-endpoints/.env; locally falls back to repo root .env.
-load_dotenv(find_dotenv(), override=True)
+# Explicit environment variables take precedence over these file defaults.
+load_dotenv(find_dotenv(), override=False)
 
 
 MAX_ATTACHMENT_SIZE_BYTES = 5 * 1024 * 1024

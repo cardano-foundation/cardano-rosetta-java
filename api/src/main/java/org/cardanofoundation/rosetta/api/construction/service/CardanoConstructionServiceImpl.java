@@ -42,10 +42,12 @@ import org.cardanofoundation.rosetta.common.model.cardano.crypto.Signatures;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionData;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.TransactionParsed;
 import org.cardanofoundation.rosetta.common.model.cardano.transaction.UnsignedTransaction;
+import org.cardanofoundation.rosetta.common.services.Cip113AddressService;
 import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 import org.cardanofoundation.rosetta.common.time.OfflineSlotService;
 import org.cardanofoundation.rosetta.common.util.CardanoAddressUtils;
 import org.cardanofoundation.rosetta.common.util.Constants;
+import org.cardanofoundation.rosetta.common.util.HexUtils;
 import org.cardanofoundation.rosetta.common.util.OperationParseUtil;
 import org.cardanofoundation.rosetta.common.util.ValidateParseUtil;
 import org.openapitools.client.model.*;
@@ -71,11 +73,15 @@ import static org.cardanofoundation.rosetta.common.util.Constants.*;
 @RequiredArgsConstructor
 public class CardanoConstructionServiceImpl implements CardanoConstructionService {
 
+  private static final int RAW_KEY_HEX_LENGTH = 64;
+  private static final int EXTENDED_KEY_HEX_LENGTH = 128;
+
   private final LedgerBlockService ledgerBlockService;
   private final ProtocolParamService protocolParamService;
   private final TransactionOperationParser transactionOperationParser;
   private final RestTemplate restTemplate;
   private final OfflineSlotService offlineSlotService;
+  private final Cip113AddressService cip113AddressService;
 
   @Value("${cardano.rosetta.NODE_SUBMIT_API_PORT}")
   private int nodeSubmitApiPort;
@@ -597,11 +603,43 @@ public class CardanoConstructionServiceImpl implements CardanoConstructionServic
         address = AddressProvider
                 .getEntAddress(getHdPublicKeyFromRosettaKey(publicKey), networkEnum.getNetwork()).getAddress();
         break;
+      case CIP_113:
+        log.debug("Deriving CIP-113 address");
+        address = getCip113Address(publicKey, networkEnum);
+        break;
       default:
         log.error("Invalid address type: {}", addressType);
         throw ExceptionFactory.invalidAddressTypeError();
     }
     return address;
+  }
+
+  private String getCip113Address(PublicKey publicKey, NetworkEnum networkEnum) {
+    byte[] configuredScriptHash = cip113AddressService.getConfiguredScriptHash();
+    byte[] userCredential = getValidatedCip113PublicKey(publicKey).getKeyHash();
+
+    return cip113AddressService.buildSmartWalletAddress(
+        configuredScriptHash,
+        userCredential,
+        networkEnum);
+  }
+
+  private HdPublicKey getValidatedCip113PublicKey(PublicKey publicKey) {
+    if (publicKey.getCurveType() != null
+        && publicKey.getCurveType() != CurveType.EDWARDS25519) {
+      log.error("Unsupported public key curve type: {}", publicKey.getCurveType());
+      throw ExceptionFactory.invalidPublicKeyFormat();
+    }
+
+    String hexBytes = publicKey.getHexBytes();
+    if (hexBytes == null
+        || !HexUtils.isHexString(hexBytes)
+        || (hexBytes.length() != RAW_KEY_HEX_LENGTH && hexBytes.length() != EXTENDED_KEY_HEX_LENGTH)) {
+      log.error("Invalid CIP-113 public key hex bytes");
+      throw ExceptionFactory.invalidPublicKeyFormat();
+    }
+
+    return getHdPublicKeyFromRosettaKey(publicKey);
   }
 
   public HdPublicKey getHdPublicKeyFromRosettaKey(PublicKey publicKey) {
