@@ -39,10 +39,10 @@ jobs:
         with:
           fetch-depth: 0  # full history for accurate blame / new-code detection
 
-      - name: Set up Amazon Corretto 25
+      - name: Set up Eclipse Temurin 25
         uses: actions/setup-java@v6
         with:
-          distribution: 'corretto'
+          distribution: 'temurin'
           java-version: '25'
           cache: maven
 
