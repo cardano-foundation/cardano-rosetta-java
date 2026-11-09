@@ -36,6 +36,7 @@ public class BlockEntity {
   private BlockEntity prev;
 
   @OneToMany(fetch = FetchType.LAZY, mappedBy = "block")
+  @OrderBy("txIndex")
   private List<TxnEntity> transactions;
 
   @Column(name = "body_size")
