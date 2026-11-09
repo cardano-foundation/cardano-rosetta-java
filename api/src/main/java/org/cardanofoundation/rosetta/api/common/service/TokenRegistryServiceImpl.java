@@ -73,12 +73,12 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
 
         TokenMetadata tokenMeta = tokenSubject.getMetadata();
 
-        // Mandatory fields from registry API related to token data
         builder.subject(tokenSubject.getSubject());
-        builder.name(tokenMeta.getName().getValue());
-        builder.description(tokenMeta.getDescription().getValue());
 
-        // Optional fields
+        // Optional fields; since cf-token-metadata-registry 2.0.0 this includes name and description:
+        // the V2 API also serves tokens that break their CIP (with validation_errors), which may lack them
+        Optional.ofNullable(tokenMeta.getName()).ifPresent(name -> builder.name(name.getValue()));
+        Optional.ofNullable(tokenMeta.getDescription()).ifPresent(description -> builder.description(description.getValue()));
         Optional.ofNullable(tokenMeta.getTicker()).ifPresent(ticker -> builder.ticker(ticker.getValue()));
         Optional.ofNullable(tokenMeta.getUrl()).ifPresent(url -> builder.url(url.getValue()));
         Optional.ofNullable(tokenMeta.getLogo()).ifPresent(logo -> builder.logo(convertToLogoData(logo)));
@@ -319,13 +319,41 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
         if (value == null || value.isEmpty()) {
             return null;
         }
-        try {
-            byte[] bytes = HexFormat.of().parseHex(value);
-            return Base64.getEncoder().encodeToString(bytes);
-        } catch (IllegalArgumentException e) {
-            log.warn("Malformed hex logo value (length={}), skipping logo", value.length());
-            return null;
+        return toBase64Logo(value);
+    }
+
+    /**
+     * Normalises a CIP-26 logo from the token registry's V2 {@code metadata} block to base64.
+     *
+     * <p>cf-token-metadata-registry before 2.0.0 serves this logo hex-encoded; 2.0.0 and later serve it
+     * base64-encoded, as CIP-26 defines it (cf-token-metadata-registry#88). Both are supported, so Rosetta
+     * works against either registry version.</p>
+     *
+     * <p>Hex is checked first because a hex string can also be well-formed base64 (e.g. {@code "deadbeef"}),
+     * whereas a base64-encoded PNG (which starts with {@code "iVBORw0KGgo"}) is never pure hex.</p>
+     *
+     * <p>CIP-26 base64 is padded. {@link Base64.Decoder} (and Guava's {@code BaseEncoding.canDecode})
+     * also accept unpadded input, so the length is required to be a multiple of 4 as well.</p>
+     *
+     * @param value the non-empty logo value as served by the registry
+     * @return the logo as base64, or null if the value is neither hex nor base64
+     */
+    @Nullable
+    private static String toBase64Logo(@NotNull String value) {
+        if (value.length() % 2 == 0 && value.chars().allMatch(HexFormat::isHexDigit)) {
+            return Base64.getEncoder().encodeToString(HexFormat.of().parseHex(value));
         }
+        if (value.length() % 4 == 0) {
+            try {
+                Base64.getDecoder().decode(value);
+                return value;
+            } catch (IllegalArgumentException e) {
+                log.debug("CIP-26 logo value is not valid base64: {}", e.getMessage());
+            }
+        }
+        log.warn("CIP-26 logo value is neither hex nor base64 (length={}), skipping logo", value.length());
+
+        return null;
     }
 
     private TokenRegistryCurrencyData createFallbackMetadata(String policyId) {
