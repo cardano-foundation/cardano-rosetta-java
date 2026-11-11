@@ -4,10 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
-import org.cardanofoundation.rosetta.api.common.model.entity.Cip68MetadataEntity;
-import org.cardanofoundation.rosetta.api.common.model.entity.Cip26MetadataEntity;
-import org.cardanofoundation.rosetta.api.common.model.repository.Cip68MetadataRepository;
-import org.cardanofoundation.rosetta.api.common.model.repository.Cip26MetadataRepository;
+import com.bloxbean.cardano.yaci.store.extensions.assetstore.cip68.storage.impl.model.Cip68Metadata;
+import com.bloxbean.cardano.yaci.store.extensions.assetstore.cip26.storage.impl.model.Cip26Metadata;
+import com.bloxbean.cardano.yaci.store.extensions.assetstore.cip68.storage.impl.repository.Cip68MetadataRepository;
+import com.bloxbean.cardano.yaci.store.extensions.assetstore.cip26.storage.impl.repository.Cip26MetadataRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,8 +94,8 @@ public class TokenQueryServiceImpl implements TokenQueryService {
                 .map(AssetFingerprint::toSubject)
                 .toList();
 
-        Map<String, Cip26MetadataEntity> cip26 = cip26MetadataRepository.findAllBySubjectIn(subjects).stream()
-                .collect(Collectors.toMap(Cip26MetadataEntity::getSubject, Function.identity()));
+        Map<String, Cip26Metadata> cip26 = cip26MetadataRepository.findAllById(subjects).stream()
+                .collect(Collectors.toMap(Cip26Metadata::getSubject, Function.identity()));
         Cip68Batch cip68 = fetchCip68(fingerprints);
 
         Map<AssetFingerprint, TokenRegistryCurrencyData> result = new HashMap<>();
@@ -128,7 +128,7 @@ public class TokenQueryServiceImpl implements TokenQueryService {
             }
         }
 
-        Map<String, Cip68MetadataEntity> entitiesByRefNftKey = cip68ConcatenatedKeys.isEmpty()
+        Map<String, Cip68Metadata> entitiesByRefNftKey = cip68ConcatenatedKeys.isEmpty()
                 ? Map.of()
                 : cip68MetadataRepository.findLatestByConcatenatedKeys(cip68ConcatenatedKeys).stream()
                         .collect(Collectors.toMap(
@@ -154,7 +154,7 @@ public class TokenQueryServiceImpl implements TokenQueryService {
      * subject} on the wire based on {@code TOKEN_REGISTRY_ENABLED}.)
      */
     private TokenRegistryCurrencyData mergeMetadata(AssetFingerprint fingerprint,
-                                                    Map<String, Cip26MetadataEntity> cip26,
+                                                    Map<String, Cip26Metadata> cip26,
                                                     Cip68Batch cip68) {
         String subject = fingerprint.toSubject();
 
@@ -164,13 +164,13 @@ public class TokenQueryServiceImpl implements TokenQueryService {
                 .decimals(0); // default; overridden below if CIP-26 or CIP-68 has an explicit value
 
         // CIP-26 base
-        Cip26MetadataEntity cip26Entity = cip26.get(subject);
+        Cip26Metadata cip26Entity = cip26.get(subject);
         if (cip26Entity != null) {
             applyCip26(builder, cip26Entity);
         }
 
         // CIP-68 overrides (higher priority)
-        Cip68MetadataEntity cip68Entity = cip68.findFor(fingerprint);
+        Cip68Metadata cip68Entity = cip68.findFor(fingerprint);
         if (cip68Entity != null) {
             applyCip68(builder, cip68Entity, isRichFungibleToken(fingerprint.getSymbol()));
         }
@@ -208,7 +208,7 @@ public class TokenQueryServiceImpl implements TokenQueryService {
      * {@link #mergeMetadata} stays otherwise.
      */
     private void applyCip26(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
-                            Cip26MetadataEntity cip26) {
+                            Cip26Metadata cip26) {
         builder.name(defaultIfBlank(cip26.getName(), null));
         builder.description(defaultIfBlank(cip26.getDescription(), null));
         Optional.ofNullable(defaultIfBlank(cip26.getTicker(), null)).ifPresent(builder::ticker);
@@ -233,7 +233,7 @@ public class TokenQueryServiceImpl implements TokenQueryService {
      * {@code logo} in a 444 datum is not part of CIP-68, so it is not served.
      */
     private void applyCip68(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
-                            Cip68MetadataEntity cip68,
+                            Cip68Metadata cip68,
                             boolean richFungibleToken) {
         Optional.ofNullable(defaultIfBlank(cip68.getName(), null)).ifPresent(builder::name);
         Optional.ofNullable(defaultIfBlank(cip68.getDescription(), null)).ifPresent(builder::description);
@@ -291,11 +291,11 @@ public class TokenQueryServiceImpl implements TokenQueryService {
      * so callers can resolve entries in O(1) without re-parsing subject prefixes.
      */
     private record Cip68Batch(
-            Map<String, Cip68MetadataEntity> entitiesByRefNftKey,
+            Map<String, Cip68Metadata> entitiesByRefNftKey,
             Map<AssetFingerprint, String> refNftKeyByFingerprint) {
 
         @Nullable
-        Cip68MetadataEntity findFor(AssetFingerprint fingerprint) {
+        Cip68Metadata findFor(AssetFingerprint fingerprint) {
             String key = refNftKeyByFingerprint.get(fingerprint);
             return key == null ? null : entitiesByRefNftKey.get(key);
         }
