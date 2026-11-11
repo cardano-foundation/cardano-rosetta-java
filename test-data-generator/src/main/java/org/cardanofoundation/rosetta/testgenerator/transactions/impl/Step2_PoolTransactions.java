@@ -4,6 +4,7 @@ import com.bloxbean.cardano.client.account.Account;
 import com.bloxbean.cardano.client.address.Address;
 import com.bloxbean.cardano.client.address.AddressProvider;
 import com.bloxbean.cardano.client.address.Credential;
+import com.bloxbean.cardano.client.api.exception.ApiException;
 import com.bloxbean.cardano.client.api.model.Amount;
 import com.bloxbean.cardano.client.api.model.Result;
 import com.bloxbean.cardano.client.backend.model.Block;
@@ -186,9 +187,14 @@ public class Step2_PoolTransactions implements TransactionRunner {
     }
     log.info("Sender2 address: {}", sender2Addr);
 
+    // The retirement epoch must be after the current epoch (and at most eMax epochs ahead).
+    // A fixed epoch breaks when the devnet does not start at epoch 0 (yaci-cli 0.12 shifts
+    // genesis back a few epochs), so retire in the next epoch.
+    int retirementEpoch = currentEpoch() + 1;
+    log.info("Retiring pool {} in epoch {}", poolId, retirementEpoch);
+
     Tx retirePool = new Tx()
-            //.retirePool(poolId, 19)
-            .retirePool(poolId, 2)
+            .retirePool(poolId, retirementEpoch)
             .from(sender2Addr);
 
     Result<String> result = quickTxBuilder.compose(retirePool)
@@ -207,6 +213,18 @@ public class Step2_PoolTransactions implements TransactionRunner {
     }
 
     throw new RuntimeException("retiring pool transaction failed, reason:" + result.getResponse());
+  }
+
+  private static int currentEpoch() {
+    try {
+      Result<Block> latest = BaseFunctions.backendService.getBlockService().getLatestBlock();
+      if (!latest.isSuccessful()) {
+        throw new IllegalStateException("Could not get the latest block: " + latest.getResponse());
+      }
+      return latest.getValue().getEpoch();
+    } catch (ApiException e) {
+      throw new IllegalStateException("Could not get the latest block", e);
+    }
   }
 
   private String getPoolId() {
