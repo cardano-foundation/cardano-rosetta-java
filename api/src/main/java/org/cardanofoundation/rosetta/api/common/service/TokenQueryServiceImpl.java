@@ -14,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 
-import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.HashMap;
@@ -25,6 +24,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
 /**
  * Read-only service for querying token metadata from CIP-26 and CIP-68 tables
