@@ -46,6 +46,7 @@ public class Step4_Cip68Transactions implements TransactionRunner {
   private Account sender1;
   private Account holder;
   private String holderAddr;
+  private String referenceNftAddr;
   private ScriptPubkey policyScript;
   private String policyId;
 
@@ -60,13 +61,18 @@ public class Step4_Cip68Transactions implements TransactionRunner {
     holder = Account.createFromMnemonic(Networks.testnet(), TestConstants.SENDER_1_MNEMONIC,
         TestConstants.CIP68_HOLDER_ACCOUNT, 0);
     holderAddr = holder.baseAddress();
+    // Reference NFTs (with the datum) go to a separate address of the holder account: QuickTx merges the
+    // change into an output to the change address, and a UTXO with a datum is not used for coin selection,
+    // so the holder's funds must not end up next to a datum.
+    referenceNftAddr = Account.createFromMnemonic(Networks.testnet(), TestConstants.SENDER_1_MNEMONIC,
+        TestConstants.CIP68_HOLDER_ACCOUNT, 1).baseAddress();
     policyScript = cip68PolicyScript(sender1);
     try {
       policyId = policyScript.getPolicyId();
     } catch (CborSerializationException e) {
       throw new IllegalStateException("Could not compute the CIP-68 policy ID", e);
     }
-    log.info("CIP-68 policy ID: {}, holder: {}", policyId, holderAddr);
+    log.info("CIP-68 policy ID: {}, holder: {}, reference NFTs: {}", policyId, holderAddr, referenceNftAddr);
   }
 
   /** Single-signature native script on SENDER_1's payment key: the policy ID is stable across regenerations. */
@@ -112,7 +118,7 @@ public class Step4_Cip68Transactions implements TransactionRunner {
 
     Tx tx = new Tx()
         .mintAssets(policyScript, List.of(referenceNft, userToken))
-        .payToContract(holderAddr, Amount.asset(policyId, referenceNft.getName(), BigInteger.ONE),
+        .payToContract(referenceNftAddr, Amount.asset(policyId, referenceNft.getName(), BigInteger.ONE),
             referenceToken.getDatumAsPlutusData())
         .payToAddress(holderAddr, Amount.asset(policyId, userToken.getName(), BigInteger.valueOf(quantity)))
         .from(holderAddr);
