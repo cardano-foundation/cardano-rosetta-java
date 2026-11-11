@@ -75,7 +75,7 @@ Once the script reports `Regen complete`:
 mvn -pl api -am test
 ```
 
-Expect ~1087 tests. Some will fail because the new fixture has different absolute counts / chain-tip slot. These are *fixture-drift* failures, not regressions — work through them one by one with the categories below.
+Expect ~1099 tests. Some will fail because the new fixture has different absolute counts / chain-tip slot. These are *fixture-drift* failures, not regressions — work through them one by one with the categories below.
 
 ### 4. Categorise and fix the fixture-drift failures
 
@@ -87,7 +87,7 @@ H2_JAR="$(mvn -q -pl yaci-indexer dependency:build-classpath -Dmdep.outputFile=/
 These four categories cover everything we've seen so far. For each, the fix is a one-line edit, not a refactor.
 
 **A. Hardcoded transaction counts** — assertions like `total_count == 27`.
-The new fixture has a different transaction count (we last regenerated to 48). Query the new fixture to get the truth:
+The new fixture has a different transaction count (we last regenerated to 51). Query the new fixture to get the truth:
 ```bash
 java -cp "$H2_JAR" org.h2.tools.Shell \
   -url "jdbc:h2:file:$(pwd)/testData/devkit.db" \
@@ -100,7 +100,7 @@ Use `Edit` with `replace_all=true` on the literal count if it appears multiple t
 The minting order on a freshly-regenerated devkit is *not deterministic*. Replace positional access with a `.filter(b -> "<hex>".equals(b.getCurrency().getSymbol())).findFirst()` lookup. Example: `AccountBalanceApiTest.accountBalanceMintedTokenAndEmptyName_TestORG`.
 
 **C. Slot-dependent values** — `TTL`, `current_slot`, future-slot calculations.
-The devkit chain tip slot at the moment `TestDataGeneratorApp` finishes is fixture-dependent (currently 1939; yaci-cli 0.12 shifts genesis back a few epochs, so slots are higher than with older yaci-cli). Tests that assert an absolute TTL value need updating to the new chain-tip. Get the current tip with:
+The devkit chain tip slot at the moment `TestDataGeneratorApp` finishes is fixture-dependent (currently 1950; yaci-cli 0.12 shifts genesis back a few epochs, so slots are higher than with older yaci-cli). Tests that assert an absolute TTL value need updating to the new chain-tip. Get the current tip with:
 ```bash
 java -cp "$H2_JAR" org.h2.tools.Shell \
   -url "jdbc:h2:file:$(pwd)/testData/devkit.db" \
@@ -111,6 +111,10 @@ Then update the absolute expectation (`MAX(SLOT)` + 10). Example: `MetadataApiTe
 
 **D. Token-registry decimals** — tests expecting `decimals == 6` for `MyAsset` or similar minted-on-devkit tokens.
 The devkit fixture does **not** include CIP-26 entries for its minted tokens, so `TokenRegistryService` returns the default `decimals=0`. The intent of the test is fine but the assertion must match reality — change to `0` and add a comment that decimals resolution is covered separately by `TokenQueryServiceTest`. Example: `AccountCoinsApiTest.accountCoinsMultipleSpecifiedCurrencies_Test`.
+
+### CIP-68 test tokens
+
+`Step4_Cip68Transactions` mints a CIP-68 333 token (`RosettaFT`) and a 444 token (`RosettaRFT`) on a deterministic policy (SENDER_1's payment key), paid by the CIP-68 holder (`TestConstants.CIP68_HOLDER_ADDRESS`, account 1 of SENDER_1's mnemonic, topped up by the script as a third address). `TokenQueryServiceImplIntTest` reads them from the fixture. If it fails after a regeneration, check that `cip68_metadata` has two rows (labels 333 and 444).
 
 ### 5. Verify and commit
 

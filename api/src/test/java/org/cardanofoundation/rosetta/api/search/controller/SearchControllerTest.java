@@ -164,7 +164,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(request)))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.total_count").value(48))
+          .andExpect(jsonPath("$.total_count").value(51))
           .andExpect(jsonPath("$.next_offset").doesNotExist());
     }
 
@@ -211,7 +211,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(request)))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.total_count").value(48))
+          .andExpect(jsonPath("$.total_count").value(51))
           .andExpect(jsonPath("$.next_offset").doesNotExist());
     }
 
@@ -260,7 +260,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(request)))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.total_count").value(48)) // Total across all pages
+          .andExpect(jsonPath("$.total_count").value(51)) // Total across all pages
           .andExpect(jsonPath("$.transactions").isArray())
           .andExpect(jsonPath("$.transactions.length()").value(5)) // Only 5 results on current page
           .andExpect(jsonPath("$.next_offset").value(5));
@@ -284,7 +284,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(request)))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.total_count").value(48)) // Same total across all pages
+          .andExpect(jsonPath("$.total_count").value(51)) // Same total across all pages
           .andExpect(jsonPath("$.transactions").isArray())
           .andExpect(jsonPath("$.transactions.length()").value(5)) // Only 5 results on current page
           .andExpect(jsonPath("$.next_offset").value(10)); // Next offset should be 5 + 5 = 10
@@ -293,7 +293,7 @@ class SearchControllerTest extends BaseSpringMvcSetup {
     @Test
     @SneakyThrows
     void shouldReturnTotalCountAcrossAllPages_LastPage() {
-      // Given - Request near-end page with limit 5, offset 19 (48 total elements -> next 24)
+      // Given - Request near-end page with limit 5, offset 19 (51 total elements -> next 24)
       SearchTransactionsRequest request = SearchTransactionsRequest.builder()
           .networkIdentifier(NetworkIdentifier.builder()
               .blockchain(TestConstants.TEST_BLOCKCHAIN)
@@ -308,10 +308,10 @@ class SearchControllerTest extends BaseSpringMvcSetup {
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(request)))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.total_count").value(48)) // Same total across all pages
+          .andExpect(jsonPath("$.total_count").value(51)) // Same total across all pages
           .andExpect(jsonPath("$.transactions").isArray())
           .andExpect(jsonPath("$.transactions.length()").value(5)) // Only 5 results on current page
-          .andExpect(jsonPath("$.next_offset").value(24)); // Next page exists since 19+5=24 < 48 (total)
+          .andExpect(jsonPath("$.next_offset").value(24)); // Next page exists since 19+5=24 < 51 (total)
     }
 
     @Test
@@ -395,14 +395,14 @@ class SearchControllerTest extends BaseSpringMvcSetup {
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(smallPageRequest)))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.total_count").value(48))
+          .andExpect(jsonPath("$.total_count").value(51))
           .andExpect(jsonPath("$.transactions.length()").value(2));
 
       mockMvc.perform(post("/search/transactions")
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(largePageRequest)))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.total_count").value(48))
+          .andExpect(jsonPath("$.total_count").value(51))
           .andExpect(jsonPath("$.transactions.length()").value(10));
     }
   }
