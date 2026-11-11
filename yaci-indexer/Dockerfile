@@ -7,9 +7,20 @@ WORKDIR /build
 RUN printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https::Timeout "30";\nAcquire::http::No-Cache "true";\n' \
         > /etc/apt/apt.conf.d/99-retries
 
+# Ubuntu 24.04 only packages Maven 3.8.7, and flatten-maven-plugin 1.9.0 requires 3.9+.
 RUN apt update --fix-missing \
-    && apt install -y --no-install-recommends maven curl \
+    && apt install -y --no-install-recommends curl ca-certificates \
     && apt clean
+
+# Maven 3.10.0. Checksum is the sha256 of apache-maven-3.10.0-bin.tar.gz from Maven Central
+# (the published .sha512 matches the same archive).
+ARG MAVEN_VERSION=3.10.0
+ARG MAVEN_SHA256=a46cc51bc74fa23fd267c7a0b9132b146dcf526da60d31aa5174e565632e9e0e
+RUN curl -fsSL "https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/${MAVEN_VERSION}/apache-maven-${MAVEN_VERSION}-bin.tar.gz" -o /tmp/maven.tar.gz \
+    && echo "${MAVEN_SHA256}  /tmp/maven.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/maven.tar.gz -C /opt \
+    && ln -sfn "/opt/apache-maven-${MAVEN_VERSION}/bin/mvn" /usr/local/bin/mvn \
+    && rm /tmp/maven.tar.gz
 
 # Download and setup JDK 25 LTS (Eclipse Temurin, GPLv2 + Classpath Exception).
 # 25.0.5+8 ships the Mozilla NSS 3.131.1 trust store, which removes the roots that signed
