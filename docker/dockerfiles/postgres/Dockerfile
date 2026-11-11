@@ -1,4 +1,4 @@
-FROM ubuntu:24.04
+FROM ubuntu:26.04
 
 # Harden apt against transient Ubuntu-mirror hiccups (mirror sync in progress,
 # flaky DNS, stale CDN edges). Retry a few times, bump the read timeout, and
