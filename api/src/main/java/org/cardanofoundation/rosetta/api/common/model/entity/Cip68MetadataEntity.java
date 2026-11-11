@@ -20,7 +20,7 @@ import javax.annotation.Nullable;
  * <p>
  * The api and yaci-indexer modules are separate, so the api module keeps its own copies of the
  * yaci-store entities it reads. This copy keeps the full primary key and the columns Rosetta
- * serves; the column mappings follow the upstream entity. Not mapped: {@code image},
+ * serves; the column mappings follow the upstream entity. Not mapped:
  * {@code media_type}, {@code datum}, {@code properties}, {@code validation_errors},
  * {@code last_synced_at}.
  * <p>
@@ -88,6 +88,11 @@ public class Cip68MetadataEntity {
     @Nullable
     @Column(columnDefinition = "TEXT")
     private String logo;
+
+    /** CIP-68 {@code image}; served as the logo of a rich fungible token (444), which has no {@code logo}. */
+    @Nullable
+    @Column(columnDefinition = "TEXT")
+    private String image;
 
     /** CIP-68 metadata version; nullable since assets-ext {@code V0_1700_2} (an invalid version is reported, not dropped). */
     @Nullable

@@ -14,12 +14,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -36,8 +37,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TokenQueryServiceImpl implements TokenQueryService {
 
-    private static final String CIP68_FUNGIBLE_TOKEN_PREFIX = "0014df10";
-    private static final String CIP68_REFERENCE_TOKEN_PREFIX = "000643b0";
+    // CIP-68 asset name label prefixes (same as yaci-store assets-ext Cip68Constants)
+    private static final String CIP68_REFERENCE_TOKEN_PREFIX = "000643b0";      // label 100: reference NFT holding the datum
+    private static final String CIP68_FUNGIBLE_TOKEN_PREFIX = "0014df10";       // label 333: fungible token (FT)
+    private static final String CIP68_RICH_FUNGIBLE_TOKEN_PREFIX = "001bc280";  // label 444: rich fungible token (RFT)
 
     /**
      * Highest decimal count CIP-26 and CIP-68 allow. yaci-store assets-ext stores tokens that
@@ -71,7 +74,7 @@ public class TokenQueryServiceImpl implements TokenQueryService {
      * Issues a constant number of DB queries regardless of batch size:
      * <ul>
      *   <li>1 for CIP-26 metadata (with logo embedded on the same row)</li>
-     *   <li>1 for CIP-68 reference NFTs (only if the batch contains CIP-68 fungible tokens)</li>
+     *   <li>1 for CIP-68 reference NFTs (only if the batch contains CIP-68 333 / 444 fungible tokens)</li>
      * </ul>
      *
      * @param fingerprints asset fingerprints (policyId + symbol hex)
@@ -103,14 +106,15 @@ public class TokenQueryServiceImpl implements TokenQueryService {
     }
 
     /**
-     * Collects CIP-68 fungible-token candidates from the input fingerprints, issues a single
+     * Collects CIP-68 fungible-token candidates (333 and 444) from the input fingerprints, issues a single
      * window-function query against {@code cip68_metadata}, and returns both the result map
      * (keyed by reference-NFT concat key) and a reverse lookup from fingerprint to concat key
      * so the merge phase can resolve entries in O(1).
      */
     private Cip68Batch fetchCip68(Collection<AssetFingerprint> fingerprints) {
         Map<AssetFingerprint, String> refNftKeyByFingerprint = new HashMap<>();
-        List<String> cip68ConcatenatedKeys = new ArrayList<>();
+        // a 333 and a 444 token of the same reference NFT share one key
+        Set<String> cip68ConcatenatedKeys = new LinkedHashSet<>();
 
         for (AssetFingerprint fingerprint : fingerprints) {
             String refNftAssetName = toCip68ReferenceNftAssetName(fingerprint.getSymbol());
@@ -165,25 +169,30 @@ public class TokenQueryServiceImpl implements TokenQueryService {
         // CIP-68 overrides (higher priority)
         Cip68MetadataEntity cip68Entity = cip68.findFor(fingerprint);
         if (cip68Entity != null) {
-            applyCip68(builder, cip68Entity);
+            applyCip68(builder, cip68Entity, isRichFungibleToken(fingerprint.getSymbol()));
         }
 
         return builder.build();
     }
 
     /**
-     * Converts a fungible token symbol (starting with prefix {@code 0014df10}) into its
-     * corresponding CIP-68 reference NFT asset name (prefix {@code 000643b0}).
-     * Returns {@code null} if the symbol is not a CIP-68 fungible token.
+     * Converts a CIP-68 fungible token symbol, 333 (prefix {@code 0014df10}) or 444 (prefix
+     * {@code 001bc280}), into the asset name of its reference NFT (prefix {@code 000643b0}), which
+     * holds the metadata datum. Returns {@code null} for any other symbol: NFTs (222) and non-CIP-68
+     * tokens are not served from CIP-68, as in yaci-store assets-ext.
      */
     @Nullable
     private static String toCip68ReferenceNftAssetName(String symbol) {
         if (symbol.length() <= CIP68_FUNGIBLE_TOKEN_PREFIX.length()
-                || !symbol.startsWith(CIP68_FUNGIBLE_TOKEN_PREFIX)) {
+                || !(symbol.startsWith(CIP68_FUNGIBLE_TOKEN_PREFIX) || isRichFungibleToken(symbol))) {
             return null;
         }
 
         return CIP68_REFERENCE_TOKEN_PREFIX + symbol.substring(CIP68_FUNGIBLE_TOKEN_PREFIX.length());
+    }
+
+    private static boolean isRichFungibleToken(String symbol) {
+        return symbol.startsWith(CIP68_RICH_FUNGIBLE_TOKEN_PREFIX);
     }
 
     /**
@@ -210,9 +219,14 @@ public class TokenQueryServiceImpl implements TokenQueryService {
     /**
      * Applies CIP-68 fields (and optionally logo) to the builder. Unlike CIP-26, CIP-68 logos
      * may be stored as URLs or base64 blobs — the format is detected from the value.
+     * <p>
+     * A rich fungible token (444) has no {@code logo} in CIP-68: its picture is the {@code image},
+     * which is served as the logo, as yaci-store assets-ext and cf-token-metadata-registry do. A
+     * {@code logo} in a 444 datum is not part of CIP-68, so it is not served.
      */
     private void applyCip68(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
-                            Cip68MetadataEntity cip68) {
+                            Cip68MetadataEntity cip68,
+                            boolean richFungibleToken) {
         Optional.ofNullable(cip68.getName()).ifPresent(builder::name);
         Optional.ofNullable(cip68.getDescription()).ifPresent(builder::description);
         Optional.ofNullable(cip68.getTicker()).ifPresent(builder::ticker);
@@ -222,10 +236,11 @@ public class TokenQueryServiceImpl implements TokenQueryService {
         Optional.ofNullable(validDecimals(cip68.getDecimals(), cip68.getPolicyId() + cip68.getAssetName()))
                 .ifPresent(builder::decimals);
 
-        if (logoEnabled && cip68.getLogo() != null) {
+        String logo = richFungibleToken ? cip68.getImage() : cip68.getLogo();
+        if (logoEnabled && logo != null) {
             builder.logo(TokenRegistryCurrencyData.LogoData.builder()
-                    .format(detectLogoFormat(cip68.getLogo()))
-                    .value(cip68.getLogo())
+                    .format(detectLogoFormat(logo))
+                    .value(logo)
                     .build());
         }
     }

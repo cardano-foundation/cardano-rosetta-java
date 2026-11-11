@@ -48,6 +48,8 @@ class TokenQueryServiceTest {
     private static final String CIP68_FT_ASSET = "0014df10" + "aabbccdd";
     private static final String CIP68_REF_NFT_ASSET = "000643b0" + "aabbccdd";
     private static final String CIP68_SUBJECT = POLICY_ID + CIP68_FT_ASSET;
+    // CIP-68 rich fungible token (444) prefix + the same name: same reference NFT as CIP68_FT_ASSET
+    private static final String CIP68_RFT_ASSET = "001bc280" + "aabbccdd";
 
     @BeforeEach
     void setUp() {
@@ -238,6 +240,109 @@ class TokenQueryServiceTest {
 
             assertThat(result.getDecimals()).isEqualTo(2);
             assertThat(result.getVersion()).isNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("CIP-68 rich fungible tokens (444)")
+    class Cip68RichFungibleTokenTests {
+
+        private Cip68MetadataEntity.Cip68MetadataEntityBuilder referenceNft() {
+            return Cip68MetadataEntity.builder()
+                    .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).txHash("tx1").txIndex(0).label(444);
+        }
+
+        @Test
+        @DisplayName("Should resolve decimals, name and ticker of a 444 token from its reference NFT")
+        void shouldResolveRichFungibleTokenFromReferenceNft() {
+            when(cip26MetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
+            when(cip68MetadataRepository.findLatestByConcatenatedKeys(anyCollection()))
+                    .thenReturn(List.of(referenceNft().name("Rich Token").ticker("RICH").decimals(4L).build()));
+
+            TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_RFT_ASSET);
+
+            assertThat(result.getDecimals()).isEqualTo(4);
+            assertThat(result.getName()).isEqualTo("Rich Token");
+            assertThat(result.getTicker()).isEqualTo("RICH");
+            assertThat(result.getSubject()).isEqualTo(POLICY_ID + CIP68_RFT_ASSET);
+        }
+
+        @Test
+        @DisplayName("Should serve the image of a 444 token as its logo and ignore a logo field in its datum")
+        void shouldServeImageAsLogoForRichFungibleToken() {
+            ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);
+            when(cip26MetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
+            when(cip68MetadataRepository.findLatestByConcatenatedKeys(anyCollection()))
+                    .thenReturn(List.of(referenceNft().name("Rich Token")
+                            .image("ipfs://QmImage").logo("https://not-cip68-for-444.example/logo.png").build()));
+
+            TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_RFT_ASSET);
+
+            assertThat(result.getLogo()).isNotNull();
+            assertThat(result.getLogo().getValue()).isEqualTo("ipfs://QmImage");
+            assertThat(result.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.URL);
+        }
+
+        @Test
+        @DisplayName("Should not serve a logo for a 444 token without an image, even if its datum has a logo field")
+        void shouldNotServeDatumLogoForRichFungibleTokenWithoutImage() {
+            ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);
+            when(cip26MetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
+            when(cip68MetadataRepository.findLatestByConcatenatedKeys(anyCollection()))
+                    .thenReturn(List.of(referenceNft().name("Rich Token").logo("https://example.com/logo.png").build()));
+
+            TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_RFT_ASSET);
+
+            assertThat(result.getLogo()).isNull();
+        }
+
+        @Test
+        @DisplayName("Should keep serving the logo (not the image) for a 333 token")
+        void shouldServeLogoNotImageForFungibleToken() {
+            ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);
+            when(cip26MetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
+            when(cip68MetadataRepository.findLatestByConcatenatedKeys(anyCollection()))
+                    .thenReturn(List.of(referenceNft().label(333).name("FT")
+                            .logo("https://example.com/logo.png").image("ipfs://QmImage").build()));
+
+            TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
+
+            assertThat(result.getLogo()).isNotNull();
+            assertThat(result.getLogo().getValue()).isEqualTo("https://example.com/logo.png");
+        }
+
+        @Test
+        @DisplayName("A 333 and a 444 token of the same reference NFT resolve in one batch with a single lookup key")
+        void shouldResolveFungibleAndRichFungibleTokenOfSameReferenceNft() {
+            when(cip26MetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
+            when(cip68MetadataRepository.findLatestByConcatenatedKeys(anyCollection()))
+                    .thenReturn(List.of(referenceNft().name("Shared").decimals(2L).build()));
+            AssetFingerprint ft = AssetFingerprint.of(POLICY_ID, CIP68_FT_ASSET);
+            AssetFingerprint rft = AssetFingerprint.of(POLICY_ID, CIP68_RFT_ASSET);
+
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenQueryService.queryMetadataBatch(List.of(ft, rft));
+
+            assertThat(result.get(ft).getDecimals()).isEqualTo(2);
+            assertThat(result.get(rft).getDecimals()).isEqualTo(2);
+            assertThat(result.get(rft).getName()).isEqualTo("Shared");
+            @SuppressWarnings("unchecked")
+            ArgumentCaptor<Collection<String>> captor = ArgumentCaptor.forClass(Collection.class);
+            verify(cip68MetadataRepository).findLatestByConcatenatedKeys(captor.capture());
+            assertThat(captor.getValue()).containsExactly(POLICY_ID + CIP68_REF_NFT_ASSET);
+        }
+
+        @Test
+        @DisplayName("Should convert rich fungible prefix 001bc280 to reference NFT prefix 000643b0")
+        void shouldConvertRichFungibleToReferencePrefix() {
+            when(cip26MetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
+            when(cip68MetadataRepository.findLatestByConcatenatedKeys(anyCollection())).thenReturn(List.of());
+
+            querySingle(POLICY_ID, CIP68_RFT_ASSET);
+
+            @SuppressWarnings("unchecked")
+            ArgumentCaptor<Collection<String>> captor = ArgumentCaptor.forClass(Collection.class);
+            verify(cip68MetadataRepository).findLatestByConcatenatedKeys(captor.capture());
+            assertThat(captor.getValue()).containsExactly(POLICY_ID + CIP68_REF_NFT_ASSET);
         }
     }
 

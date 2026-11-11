@@ -13,7 +13,7 @@ Cardano native tokens (multi-assets) can have associated metadata that provides 
 Cardano Rosetta Java merges metadata from two complementary sources:
 
 - **CIP-26** — the off-chain token metadata registry on GitHub: [cardano-foundation/cardano-token-registry](https://github.com/cardano-foundation/cardano-token-registry) for mainnet, [input-output-hk/metadata-registry-testnet](https://github.com/input-output-hk/metadata-registry-testnet) for preprod and preview. Used for static information about fungible tokens.
-- **CIP-68** — an on-chain metadata standard where a reference NFT (prefix `000643b0`) holds the metadata for its sibling fungible token (prefix `0014df10`).
+- **CIP-68** — an on-chain metadata standard where a reference NFT (prefix `000643b0`) holds the metadata for its sibling user token. Rosetta serves fungible tokens: **333** (prefix `0014df10`) and **rich fungible tokens, 444** (prefix `001bc280`). NFTs (222, prefix `000de140`) are not served, as in yaci-store assets-ext.
 
 ### Decimals vs enrichment — two different things
 
@@ -58,7 +58,7 @@ When `TOKEN_REGISTRY_ENABLED=true`, the following endpoints include enriched met
 | `description` | yes | Token description | `"Utility token for …"` |
 | `ticker` | yes | Token ticker/symbol | `"MKT"` |
 | `url` | yes | Project website URL | `"https://example.com"` |
-| `logo` | yes — and only when `TOKEN_REGISTRY_LOGO_FETCH=true` | Logo payload — base64 (CIP-26) or URL (CIP-68) | `{ "format": "url", "value": "ipfs://…" }` |
+| `logo` | yes — and only when `TOKEN_REGISTRY_LOGO_FETCH=true` | Logo payload — base64 (CIP-26) or URL / base64 (CIP-68). For a 444 rich fungible token, which has no `logo` in CIP-68, its `image` is served as the logo | `{ "format": "url", "value": "ipfs://…" }` |
 | `version` | yes | CIP-68 metadata version | `1` |
 
 Separately on `currency.decimals` (not inside `metadata`):
@@ -268,7 +268,7 @@ All endpoints that return `currency` objects (`/account/balance`, `/account/coin
 - If the row exists but `decimals` is `null`, the token issuer did not register a decimal count — `0` is the correct fallback in that case.
 - If the row has a `decimals` value outside 0–255, it breaks the CIP and is ignored (see `validation_errors` on the row) — `0` is returned.
 - If `cip26_metadata` is empty, check that the `yaci-indexer` can reach `github.com` (see [Operational requirements](#operational-requirements)).
-- For CIP-68 fungible tokens, check `cip68_metadata` with the `000643b0` prefix in `asset_name` — the reference NFT holds the decimals.
+- For CIP-68 fungible tokens (333 `0014df10…` and 444 `001bc280…`), check `cip68_metadata` with the `000643b0` prefix in `asset_name` — the reference NFT holds the decimals.
 
 ### Enrichment fields are missing (metadata only has `policyId`)
 
