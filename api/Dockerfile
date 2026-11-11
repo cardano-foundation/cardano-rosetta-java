@@ -1,4 +1,4 @@
-FROM ubuntu:24.04 AS build-common
+FROM ubuntu:26.04 AS build-common
 WORKDIR /build
 
 # Harden apt against transient Ubuntu-mirror hiccups (mirror sync in progress,
@@ -7,7 +7,8 @@ WORKDIR /build
 RUN printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https::Timeout "30";\nAcquire::http::No-Cache "true";\n' \
         > /etc/apt/apt.conf.d/99-retries
 
-# Install necessary tools but not OpenJDK from apt
+# Install necessary tools but not OpenJDK from apt.
+# Ubuntu 26.04's distro maven package is 3.9.12.
 RUN apt update --fix-missing \
     && apt install -y --no-install-recommends maven curl ca-certificates \
     && apt clean
