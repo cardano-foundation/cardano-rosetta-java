@@ -39,6 +39,13 @@ public class TokenQueryServiceImpl implements TokenQueryService {
     private static final String CIP68_FUNGIBLE_TOKEN_PREFIX = "0014df10";
     private static final String CIP68_REFERENCE_TOKEN_PREFIX = "000643b0";
 
+    /**
+     * Highest decimal count CIP-26 and CIP-68 allow. yaci-store assets-ext stores tokens that
+     * break their CIP (reported in {@code validation_errors}) instead of dropping them, so an
+     * out-of-range value can reach us; it is treated as absent rather than served.
+     */
+    private static final long MAX_DECIMALS = 255;
+
     private final TokenMetadataRepository tokenMetadataRepository;
     private final MetadataReferenceNftRepository metadataReferenceNftRepository;
 
@@ -181,8 +188,8 @@ public class TokenQueryServiceImpl implements TokenQueryService {
 
     /**
      * Applies CIP-26 fields (and optionally logo) to the builder. Only overrides decimals if
-     * the source has an explicit value — the 0 default seeded in {@link #mergeMetadata} stays
-     * otherwise.
+     * the source has an explicit value within the CIP range — the 0 default seeded in
+     * {@link #mergeMetadata} stays otherwise.
      */
     private void applyCip26(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
                             TokenMetadataEntity cip26) {
@@ -191,9 +198,7 @@ public class TokenQueryServiceImpl implements TokenQueryService {
         Optional.ofNullable(cip26.getTicker()).ifPresent(builder::ticker);
         Optional.ofNullable(cip26.getUrl()).ifPresent(builder::url);
 
-        if (cip26.getDecimals() != null) {
-            builder.decimals(Math.toIntExact(cip26.getDecimals()));
-        }
+        Optional.ofNullable(validDecimals(cip26.getDecimals(), cip26.getSubject())).ifPresent(builder::decimals);
         if (logoEnabled && cip26.getLogo() != null) {
             builder.logo(TokenRegistryCurrencyData.LogoData.builder()
                     .format(TokenRegistryCurrencyData.LogoFormat.BASE64)
@@ -214,9 +219,8 @@ public class TokenQueryServiceImpl implements TokenQueryService {
         Optional.ofNullable(cip68.getUrl()).ifPresent(builder::url);
         Optional.ofNullable(cip68.getVersion()).ifPresent(v -> builder.version(BigDecimal.valueOf(v)));
 
-        if (cip68.getDecimals() != null) {
-            builder.decimals(Math.toIntExact(cip68.getDecimals()));
-        }
+        Optional.ofNullable(validDecimals(cip68.getDecimals(), cip68.getPolicyId() + cip68.getAssetName()))
+                .ifPresent(builder::decimals);
 
         if (logoEnabled && cip68.getLogo() != null) {
             builder.logo(TokenRegistryCurrencyData.LogoData.builder()
@@ -224,6 +228,23 @@ public class TokenQueryServiceImpl implements TokenQueryService {
                     .value(cip68.getLogo())
                     .build());
         }
+    }
+
+    /**
+     * Returns the decimal count if it is within the CIP range [0, {@value #MAX_DECIMALS}], or
+     * {@code null} (treated as absent, so the next source or the 0 default applies) otherwise.
+     */
+    @Nullable
+    private static Integer validDecimals(@Nullable Long decimals, String subject) {
+        if (decimals == null) {
+            return null;
+        }
+        if (decimals < 0 || decimals > MAX_DECIMALS) {
+            log.debug("Ignoring out-of-range decimals {} for subject {}", decimals, subject);
+            return null;
+        }
+
+        return decimals.intValue();
     }
 
     /**

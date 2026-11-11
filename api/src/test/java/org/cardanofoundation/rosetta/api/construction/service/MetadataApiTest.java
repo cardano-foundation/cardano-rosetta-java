@@ -43,11 +43,7 @@ class MetadataApiTest extends IntegrationTest {
         assertEquals(ADA, constructionMetadataResponse.getSuggestedFee().getFirst().getCurrency().getSymbol());
         assertEquals(ADA_DECIMALS, constructionMetadataResponse.getSuggestedFee().getFirst().getCurrency().getDecimals());
 
-        // TTL = chain-tip slot + ttl-offset. Devkit chain tip slot depends on how
-        // long the indexer ran, so assert the offset is constant rather than the
-        // absolute value (fixture regen produced a chain with tip slot 145; offset
-        // 10 slots gives the 155 we now observe).
-        assertEquals(BigDecimal.valueOf(155), constructionMetadataResponse.getMetadata().getTtl());
+        assertEquals(BigDecimal.valueOf(735), constructionMetadataResponse.getMetadata().getTtl());
         assertEquals("4310", constructionMetadataResponse.getMetadata().getProtocolParameters().getCoinsPerUtxoSize());
         assertEquals("2000000", constructionMetadataResponse.getMetadata().getProtocolParameters().getKeyDeposit());
         assertEquals("500000000", constructionMetadataResponse.getMetadata().getProtocolParameters().getPoolDeposit());

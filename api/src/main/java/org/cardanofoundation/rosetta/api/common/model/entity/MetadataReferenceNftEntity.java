@@ -69,6 +69,7 @@ public class MetadataReferenceNftEntity {
     @Column(columnDefinition = "TEXT")
     private String logo;
 
-    @Column(nullable = false)
-    private Long version;
+    @Nullable
+    @Column
+    private Long version; // nullable since yaci-store assets-ext V0_1700_2 (an invalid version is reported, not dropped)
 }

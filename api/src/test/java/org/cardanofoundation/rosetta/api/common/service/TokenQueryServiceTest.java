@@ -11,6 +11,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -174,6 +176,68 @@ class TokenQueryServiceTest {
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, ASSET_HEX);
 
             assertThat(result.getDecimals()).isEqualTo(0);
+        }
+
+        @ParameterizedTest(name = "CIP-26 decimals {0} -> 0")
+        @ValueSource(longs = {-1L, 256L, 4_294_967_296L, Long.MAX_VALUE})
+        @DisplayName("Should treat out-of-range CIP-26 decimals as absent (0) instead of failing")
+        void shouldTreatOutOfRangeCip26DecimalsAsAbsent(long decimals) {
+            TokenMetadataEntity cip26 = TokenMetadataEntity.builder()
+                    .subject(SUBJECT).name("Token").description("Desc").decimals(decimals).build();
+            when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of(cip26));
+
+            TokenRegistryCurrencyData result = querySingle(POLICY_ID, ASSET_HEX);
+
+            assertThat(result.getDecimals()).isEqualTo(0);
+            assertThat(result.getName()).isEqualTo("Token");
+        }
+
+        @Test
+        @DisplayName("Should accept the CIP upper bound of 255 decimals")
+        void shouldAcceptMaxDecimals() {
+            TokenMetadataEntity cip26 = TokenMetadataEntity.builder()
+                    .subject(SUBJECT).name("Token").description("Desc").decimals(255L).build();
+            when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of(cip26));
+
+            TokenRegistryCurrencyData result = querySingle(POLICY_ID, ASSET_HEX);
+
+            assertThat(result.getDecimals()).isEqualTo(255);
+        }
+
+        @Test
+        @DisplayName("Out-of-range CIP-68 decimals should fall back to the CIP-26 value")
+        void outOfRangeCip68DecimalsShouldFallBackToCip26() {
+            TokenMetadataEntity cip26 = TokenMetadataEntity.builder()
+                    .subject(CIP68_SUBJECT).name("CIP26 Name").description("CIP26 Desc").decimals(6L).build();
+            when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of(cip26));
+
+            MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
+                    .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
+                    .name("CIP68 Name").decimals(1_000L).build();
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection()))
+                    .thenReturn(List.of(cip68));
+
+            TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
+
+            assertThat(result.getDecimals()).isEqualTo(6);
+            assertThat(result.getName()).isEqualTo("CIP68 Name");
+        }
+
+        @Test
+        @DisplayName("CIP-68 row with null version (allowed since assets-ext V0_1700_2) should not fail")
+        void cip68NullVersionShouldNotFail() {
+            when(tokenMetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
+
+            MetadataReferenceNftEntity cip68 = MetadataReferenceNftEntity.builder()
+                    .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
+                    .name("CIP68 Name").decimals(2L).version(null).build();
+            when(metadataReferenceNftRepository.findLatestByConcatenatedKeys(anyCollection()))
+                    .thenReturn(List.of(cip68));
+
+            TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
+
+            assertThat(result.getDecimals()).isEqualTo(2);
+            assertThat(result.getVersion()).isNull();
         }
     }
 
