@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.account.service;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -43,7 +44,7 @@ class AddressHistoryServiceHibernateTest {
   void findCompleteTransactionHistoryByAddress_throwsTimeoutError_whenDbQueriesExceedTimeout() {
     ReflectionTestUtils.setField(addressHistoryService, "addressHistoryApiTimeoutSecs", 1);
     when(addressUtxoRepository.findOutputTransactionsByAddress(ADDRESS)).thenAnswer(invocation -> {
-      Thread.sleep(10_000); // interrupted when the scope times out
+      new CountDownLatch(1).await(); // blocks until the scope times out and interrupts it
       return List.of();
     });
 

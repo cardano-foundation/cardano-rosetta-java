@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 
 import lombok.val;
 
@@ -418,7 +419,7 @@ class LedgerBlockServiceImplTest {
     // Given
     ledgerBlockService.setBlockTransactionApiTimeoutSecs(1);
     when(addressUtxoRepository.findByTxHashIn(anyList())).thenAnswer(invocation -> {
-      Thread.sleep(10_000); // interrupted when the scope times out
+      new CountDownLatch(1).await(); // blocks until the scope times out and interrupts it
       return List.of();
     });
 

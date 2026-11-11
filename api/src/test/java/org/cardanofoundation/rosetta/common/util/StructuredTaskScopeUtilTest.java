@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.common.util;
 
 import java.time.Duration;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.StructuredTaskScope;
 
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class StructuredTaskScopeUtilTest {
 
   @Test
-  void join_returnsNormally_whenAllSubtasksSucceed() throws Exception {
+  void join_returnsNormally_whenAllSubtasksSucceed() {
     try (var scope = openScope(Duration.ofSeconds(5))) {
       StructuredTaskScope.Subtask<String> subtask = scope.fork(() -> "ok");
 
@@ -42,7 +43,7 @@ class StructuredTaskScopeUtilTest {
   void join_throwsTimeoutError_whenSubtasksExceedTimeout() {
     try (var scope = openScope(Duration.ofSeconds(1))) {
       scope.fork(() -> {
-        Thread.sleep(10_000); // interrupted when the scope times out
+        new CountDownLatch(1).await(); // blocks until the scope times out and interrupts it
         return null;
       });
 
@@ -57,7 +58,7 @@ class StructuredTaskScopeUtilTest {
   void join_throwsUnspecifiedErrorAndKeepsInterruptFlag_whenInterrupted() {
     try (var scope = openScope(Duration.ofSeconds(5))) {
       scope.fork(() -> {
-        Thread.sleep(10_000); // interrupted when the scope is closed
+        new CountDownLatch(1).await(); // blocks until the scope is closed and interrupts it
         return null;
       });
 
