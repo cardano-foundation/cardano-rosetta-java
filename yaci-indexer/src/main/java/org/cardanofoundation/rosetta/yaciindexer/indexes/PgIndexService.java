@@ -43,7 +43,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * </ul>
  */
 @Service
-@Profile("!h2 & !test-integration")
+@Profile("!h2 & !h2-testdata & !test-integration")
 @Slf4j
 @RequiredArgsConstructor
 public class PgIndexService implements IndexService {
