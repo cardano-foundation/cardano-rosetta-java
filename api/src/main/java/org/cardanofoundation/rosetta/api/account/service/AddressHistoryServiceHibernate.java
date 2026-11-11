@@ -4,7 +4,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.account.model.repository.AddressUtxoRepository;
-import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.util.StructuredTaskScopeUtil;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,7 +52,7 @@ public class AddressHistoryServiceHibernate implements AddressHistoryService {
             StructuredTaskScope.Subtask<List<String>> inputTransactions = scope.fork(() ->
                     addressUtxoRepository.findInputTransactionsByAddress(address));
 
-            scope.join();
+            StructuredTaskScopeUtil.join(scope, "address transaction history");
 
             // Use LinkedHashSet to preserve order while removing duplicates
             Set<String> allTransactions = new LinkedHashSet<>();
@@ -60,16 +60,6 @@ public class AddressHistoryServiceHibernate implements AddressHistoryService {
             allTransactions.addAll(inputTransactions.get());
 
             return List.copyOf(allTransactions);
-        } catch (StructuredTaskScope.FailedException e) {
-            log.error("Error fetching address transaction history", e);
-            throw ExceptionFactory.unspecifiedError("Error fetching address transaction history, msg:%s".formatted(e.getMessage()));
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            log.error("Error fetching address transaction history", e);
-            throw ExceptionFactory.unspecifiedError("Error fetching address transaction history, msg:%s".formatted(e.getMessage()));
-        } catch (StructuredTaskScope.TimeoutException e) {
-            log.error("Timeout fetching address transaction history", e);
-            throw ExceptionFactory.timeOut("timeout while fetching address transaction history from db.");
         }
     }
 
