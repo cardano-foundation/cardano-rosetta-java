@@ -4,10 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
-import org.cardanofoundation.rosetta.api.common.model.entity.MetadataReferenceNftEntity;
-import org.cardanofoundation.rosetta.api.common.model.entity.TokenMetadataEntity;
-import org.cardanofoundation.rosetta.api.common.model.repository.MetadataReferenceNftRepository;
-import org.cardanofoundation.rosetta.api.common.model.repository.TokenMetadataRepository;
+import org.cardanofoundation.rosetta.api.common.model.entity.Cip68MetadataEntity;
+import org.cardanofoundation.rosetta.api.common.model.entity.Cip26MetadataEntity;
+import org.cardanofoundation.rosetta.api.common.model.repository.Cip68MetadataRepository;
+import org.cardanofoundation.rosetta.api.common.model.repository.Cip26MetadataRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,8 +46,8 @@ public class TokenQueryServiceImpl implements TokenQueryService {
      */
     private static final long MAX_DECIMALS = 255;
 
-    private final TokenMetadataRepository tokenMetadataRepository;
-    private final MetadataReferenceNftRepository metadataReferenceNftRepository;
+    private final Cip26MetadataRepository cip26MetadataRepository;
+    private final Cip68MetadataRepository cip68MetadataRepository;
 
     /**
      * Controls whether the {@code logo} field is exposed on the wire. With the V2 assets-ext
@@ -88,8 +88,8 @@ public class TokenQueryServiceImpl implements TokenQueryService {
                 .map(AssetFingerprint::toSubject)
                 .toList();
 
-        Map<String, TokenMetadataEntity> cip26 = tokenMetadataRepository.findAllBySubjectIn(subjects).stream()
-                .collect(Collectors.toMap(TokenMetadataEntity::getSubject, Function.identity()));
+        Map<String, Cip26MetadataEntity> cip26 = cip26MetadataRepository.findAllBySubjectIn(subjects).stream()
+                .collect(Collectors.toMap(Cip26MetadataEntity::getSubject, Function.identity()));
         Cip68Batch cip68 = fetchCip68(fingerprints);
 
         Map<AssetFingerprint, TokenRegistryCurrencyData> result = new HashMap<>();
@@ -121,9 +121,9 @@ public class TokenQueryServiceImpl implements TokenQueryService {
             }
         }
 
-        Map<String, MetadataReferenceNftEntity> entitiesByRefNftKey = cip68ConcatenatedKeys.isEmpty()
+        Map<String, Cip68MetadataEntity> entitiesByRefNftKey = cip68ConcatenatedKeys.isEmpty()
                 ? Map.of()
-                : metadataReferenceNftRepository.findLatestByConcatenatedKeys(cip68ConcatenatedKeys).stream()
+                : cip68MetadataRepository.findLatestByConcatenatedKeys(cip68ConcatenatedKeys).stream()
                         .collect(Collectors.toMap(
                                 e -> e.getPolicyId() + e.getAssetName(),
                                 Function.identity()));
@@ -147,7 +147,7 @@ public class TokenQueryServiceImpl implements TokenQueryService {
      * subject} on the wire based on {@code TOKEN_REGISTRY_ENABLED}.)
      */
     private TokenRegistryCurrencyData mergeMetadata(AssetFingerprint fingerprint,
-                                                    Map<String, TokenMetadataEntity> cip26,
+                                                    Map<String, Cip26MetadataEntity> cip26,
                                                     Cip68Batch cip68) {
         String subject = fingerprint.toSubject();
 
@@ -157,13 +157,13 @@ public class TokenQueryServiceImpl implements TokenQueryService {
                 .decimals(0); // default; overridden below if CIP-26 or CIP-68 has an explicit value
 
         // CIP-26 base
-        TokenMetadataEntity cip26Entity = cip26.get(subject);
+        Cip26MetadataEntity cip26Entity = cip26.get(subject);
         if (cip26Entity != null) {
             applyCip26(builder, cip26Entity);
         }
 
         // CIP-68 overrides (higher priority)
-        MetadataReferenceNftEntity cip68Entity = cip68.findFor(fingerprint);
+        Cip68MetadataEntity cip68Entity = cip68.findFor(fingerprint);
         if (cip68Entity != null) {
             applyCip68(builder, cip68Entity);
         }
@@ -192,7 +192,7 @@ public class TokenQueryServiceImpl implements TokenQueryService {
      * {@link #mergeMetadata} stays otherwise.
      */
     private void applyCip26(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
-                            TokenMetadataEntity cip26) {
+                            Cip26MetadataEntity cip26) {
         builder.name(cip26.getName());
         builder.description(cip26.getDescription());
         Optional.ofNullable(cip26.getTicker()).ifPresent(builder::ticker);
@@ -212,7 +212,7 @@ public class TokenQueryServiceImpl implements TokenQueryService {
      * may be stored as URLs or base64 blobs — the format is detected from the value.
      */
     private void applyCip68(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
-                            MetadataReferenceNftEntity cip68) {
+                            Cip68MetadataEntity cip68) {
         Optional.ofNullable(cip68.getName()).ifPresent(builder::name);
         Optional.ofNullable(cip68.getDescription()).ifPresent(builder::description);
         Optional.ofNullable(cip68.getTicker()).ifPresent(builder::ticker);
@@ -268,11 +268,11 @@ public class TokenQueryServiceImpl implements TokenQueryService {
      * so callers can resolve entries in O(1) without re-parsing subject prefixes.
      */
     private record Cip68Batch(
-            Map<String, MetadataReferenceNftEntity> entitiesByRefNftKey,
+            Map<String, Cip68MetadataEntity> entitiesByRefNftKey,
             Map<AssetFingerprint, String> refNftKeyByFingerprint) {
 
         @Nullable
-        MetadataReferenceNftEntity findFor(AssetFingerprint fingerprint) {
+        Cip68MetadataEntity findFor(AssetFingerprint fingerprint) {
             String key = refNftKeyByFingerprint.get(fingerprint);
             return key == null ? null : entitiesByRefNftKey.get(key);
         }
