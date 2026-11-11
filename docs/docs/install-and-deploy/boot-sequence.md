@@ -163,7 +163,7 @@ These volumes must be persisted across container restarts to avoid re-syncing fr
 | `CARDANO_NODE_SOCKET_PATH` | `${CARDANO_NODE_DIR}/node.socket` | same as host | IPC socket for node communication |
 | `CARDANO_NODE_DB` | `${CARDANO_NODE_DIR}/db` | same as host | Blockchain ledger |
 | `CARDANO_CONFIG` | `./config/node/mainnet` | `/config` | Genesis files, topology |
-| `DB_PATH` | `/opt/rosetta-java-mainnet/sql_data` | `/var/lib/postgresql/data` | PostgreSQL data files |
+| `DB_PATH` | `/opt/rosetta-java-mainnet/sql_data` | `/var/lib/postgresql` | PostgreSQL data files (`18/docker` inside the volume) |
 
   </TabItem>
   <TabItem value="preprod" label="Preprod">
@@ -174,7 +174,7 @@ These volumes must be persisted across container restarts to avoid re-syncing fr
 | `CARDANO_NODE_SOCKET_PATH` | `${CARDANO_NODE_DIR}/node.socket` | same as host | IPC socket for node communication |
 | `CARDANO_NODE_DB` | `${CARDANO_NODE_DIR}/db` | same as host | Blockchain ledger |
 | `CARDANO_CONFIG` | `./config/node/preprod` | `/config` | Genesis files, topology |
-| `DB_PATH` | `/opt/rosetta-java-preprod/sql_data` | `/var/lib/postgresql/data` | PostgreSQL data files |
+| `DB_PATH` | `/opt/rosetta-java-preprod/sql_data` | `/var/lib/postgresql` | PostgreSQL data files (`18/docker` inside the volume) |
 
   </TabItem>
 </Tabs>

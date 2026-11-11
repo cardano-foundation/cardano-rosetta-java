@@ -160,10 +160,15 @@ kubectl get pods -n cardano -w
 
 ### Phase 3 — PostgreSQL Startup
 
-PostgreSQL starts as soon as its PVC is available — it has no dependency on cardano-node.
+PostgreSQL 18.6 starts as soon as its PVC is available — it has no dependency on cardano-node.
 While the node is syncing, PostgreSQL initialises its data directory and schema migrations
 run immediately. This means yaci-indexer can begin connecting and indexing as soon as the
 node's socat bridge (TCP port 3002) is reachable, without waiting hours for full sync.
+
+The PVC is mounted at `/var/lib/postgresql`. The cluster is created at `/var/lib/postgresql/18/docker`.
+A data directory created by PostgreSQL 16 or 17 cannot be started by PostgreSQL 18: resync the
+indexer, or migrate with `pg_upgrade` or dump/restore. See the
+[Docker upgrade note](../docker#upgrading-to-postgresql-18) for checksums and the data-directory layout.
 
 ```bash
 kubectl logs -f statefulset/rosetta-postgresql -n cardano

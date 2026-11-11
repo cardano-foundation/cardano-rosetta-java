@@ -25,8 +25,13 @@ RUN apt update && apt install -y \
   && update-locale LANG=en_US.UTF-8 \
   && apt clean
 
-ENV PG_VERSION_TAG=REL_18_0
-ENV PG_DATA="/var/lib/postgresql/data"
+# Source tag for the PostgreSQL git checkout. REL_18_6 is PostgreSQL 18.6,
+# the latest 18.x published as an official Docker image (postgres:18.6).
+ENV PG_VERSION_TAG=REL_18_6
+# PostgreSQL 18 keeps the cluster at /var/lib/postgresql/<major>/docker and
+# the volume at /var/lib/postgresql, matching the official image layout:
+# https://github.com/docker-library/postgres/pull/1259
+ENV PG_DATA=/var/lib/postgresql/18/docker
 ENV PG_BIN="/usr/local/pgsql/bin"
 ENV PATH="$PG_BIN:$PATH"
 
@@ -40,9 +45,9 @@ RUN git clone --branch $PG_VERSION_TAG https://github.com/postgres/postgres.git 
 
 RUN useradd -m -U -s /bin/bash postgres
 
-RUN mkdir -p $PG_DATA 
+RUN mkdir -p "$PG_DATA"
 
-VOLUME ["$PG_DATA"]
+VOLUME ["/var/lib/postgresql"]
 
 COPY ./docker/dockerfiles/postgres/entrypoint.sh /sbin/entrypoint.sh
 RUN chmod +x /sbin/entrypoint.sh

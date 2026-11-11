@@ -86,7 +86,7 @@ spec:
               protocol: TCP
           volumeMounts:
             - name: pg-data
-              mountPath: /var/lib/postgresql/data
+              mountPath: /var/lib/postgresql
             - name: dshm
               mountPath: /dev/shm
           readinessProbe:

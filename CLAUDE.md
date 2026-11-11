@@ -70,7 +70,7 @@ docker compose restart api
 - **Lombok** for boilerplate reduction
 - **JUnit 5** with `@Nested` test organization
 - **AssertJ** for test assertions
-- **PostgreSQL** (production) / **H2** (development/testing)
+- **PostgreSQL 18.6** (production; source tag `REL_18_6`) / **H2** (development/testing)
 
 ### Code Generation Pattern
 - All API endpoints and DTOs are generated from `api.yaml`
@@ -87,6 +87,7 @@ docker compose restart api
 - **Custom entities** with JSON storage for UTXO data using Hypersistence Utils
 - **Yaci-Store** handles blockchain data synchronization in separate indexer module
 - Database migration handled through Yaci Store's built-in Flyway integration
+- The PostgreSQL 18.6 cluster lives at `/var/lib/postgresql/18/docker`. Volumes mount at `/var/lib/postgresql`. A data directory created by PostgreSQL 16 or 17 cannot be opened by 18 (resync, `pg_upgrade`, or dump/restore).
 
 ### API Layer Organization
 Each Rosetta endpoint has its own package under `api/src/main/java/org/cardanofoundation/rosetta/api/`:

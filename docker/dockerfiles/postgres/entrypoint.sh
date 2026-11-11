@@ -1,5 +1,75 @@
 #!/bin/bash
 
+# Reject a pre-18 cluster, and move a PostgreSQL 18 cluster that still sits at
+# the old mount (/var/lib/postgresql/data, or the volume root after that mount
+# is retargeted to /var/lib/postgresql) into PG_DATA.
+prepare_data_directory() {
+    mkdir -p "$(dirname "$PG_DATA")"
+
+    if [ -s "$PG_DATA/PG_VERSION" ]; then
+        return 0
+    fi
+
+    local legacy=""
+    if [ -s /var/lib/postgresql/PG_VERSION ]; then
+        legacy=/var/lib/postgresql
+    elif [ -s /var/lib/postgresql/data/PG_VERSION ]; then
+        legacy=/var/lib/postgresql/data
+    fi
+
+    if [ -n "$legacy" ]; then
+        local oldver
+        oldver=$(tr -d '[:space:]' < "$legacy/PG_VERSION")
+        if [ "$oldver" = "18" ]; then
+            echo "Relocating PostgreSQL 18 cluster from ${legacy} to ${PG_DATA}"
+            mkdir -p "$PG_DATA"
+            shopt -s dotglob nullglob
+            local item base
+            for item in "$legacy"/*; do
+                base=$(basename "$item")
+                if [ "$legacy" = "/var/lib/postgresql" ] && [ "$base" = "18" ]; then
+                    continue
+                fi
+                mv "$item" "$PG_DATA/"
+            done
+            shopt -u dotglob nullglob
+            if [ ! -s "$PG_DATA/PG_VERSION" ]; then
+                echo "ERROR: failed to relocate the PostgreSQL data directory to ${PG_DATA}"
+                exit 1
+            fi
+            echo "Relocation complete."
+            return 0
+        fi
+
+        cat <<EOF
+ERROR: found a PostgreSQL ${oldver} data directory at ${legacy}.
+PostgreSQL 18 cannot start a data directory created by PostgreSQL ${oldver}.
+Resync the indexer, or migrate with pg_upgrade or dump/restore.
+pg_upgrade requires matching data checksums. New clusters from this image
+enable checksums (the PostgreSQL 18 initdb default). For a source cluster
+without checksums, enable them first or set POSTGRES_INITDB_ARGS=--no-data-checksums
+on the new cluster.
+Mount volumes at /var/lib/postgresql. This image keeps the cluster at ${PG_DATA}.
+EOF
+        exit 1
+    fi
+
+    local other otherver
+    for other in /var/lib/postgresql/*/docker; do
+        if [ -s "$other/PG_VERSION" ] && [ "$other" != "$PG_DATA" ]; then
+            otherver=$(tr -d '[:space:]' < "$other/PG_VERSION")
+            cat <<EOF
+ERROR: found a PostgreSQL ${otherver} data directory at ${other}.
+This image starts the cluster at ${PG_DATA} only.
+Resync the indexer, or migrate with pg_upgrade or dump/restore.
+EOF
+            exit 1
+        fi
+    done
+
+    mkdir -p "$PG_DATA"
+}
+
 database_initialization() {
     echo "$PGPASSWORD" > /tmp/password
     echo "*:*:*:postgres:$PGPASSWORD" > /home/postgres/.pgpass
@@ -8,7 +78,23 @@ database_initialization() {
     chown postgres:postgres /home/postgres/.pgpass
 
     if [ -z "$(ls -A "$PG_DATA")" ]; then
-        sudo -u postgres "$PG_BIN/initdb" --pgdata="$PG_DATA" --auth=md5 --auth-local=md5 --auth-host=md5 --username=postgres --pwfile=/tmp/password
+        local -a initdb_args=(
+            --pgdata="$PG_DATA"
+            --auth=md5
+            --auth-local=md5
+            --auth-host=md5
+            --username=postgres
+            --pwfile=/tmp/password
+        )
+        # PostgreSQL 18 initdb enables data checksums by default. Pass
+        # POSTGRES_INITDB_ARGS=--no-data-checksums only when pg_upgrade must
+        # match a source cluster that was created without checksums.
+        if [ -n "${POSTGRES_INITDB_ARGS:-}" ]; then
+            # shellcheck disable=SC2206
+            local -a extra=( ${POSTGRES_INITDB_ARGS} )
+            initdb_args+=("${extra[@]}")
+        fi
+        sudo -u postgres "$PG_BIN/initdb" "${initdb_args[@]}"
     else
         echo "Database already initialized, skipping initdb."
     fi
@@ -136,6 +222,9 @@ create_database_and_user() {
 
     echo "User configured"
 }
+
+echo "Preparing data directory..."
+prepare_data_directory
 
 chown -R postgres:postgres "$PG_DATA"
 chmod -R 0700 "$PG_DATA"

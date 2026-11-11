@@ -140,6 +140,9 @@ docker compose logs -f
 > [!NOTE]
 > [Mithril snapshots](https://mithril.network/doc/) are used automatically to accelerate initial sync. Full sync times vary based on hardware and network conditions.
 
+> [!IMPORTANT]
+> The database is PostgreSQL 18.6. A data directory created by PostgreSQL 16 or 17 cannot be started by PostgreSQL 18. Resync the indexer, or migrate with `pg_upgrade` or dump/restore. Mount the database volume at `/var/lib/postgresql`. Details are in the [Docker install guide](https://cardano-foundation.github.io/cardano-rosetta-java/docs/install-and-deploy/docker#upgrading-to-postgresql-18).
+
 ## System Requirements
 
 Based on our [hardware profiles](https://cardano-foundation.github.io/cardano-rosetta-java/docs/install-and-deploy/hardware-profiles):
