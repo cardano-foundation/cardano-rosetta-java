@@ -9,7 +9,6 @@ RUN printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https:
         > /etc/apt/apt.conf.d/99-retries
 
 # Install dependencies.
-# libncursesw5-dev has no installation candidate on Ubuntu 26.04; libncurses-dev supplies the wide-character headers.
 RUN apt update --fix-missing \
     && apt install -y --no-install-recommends \
         automake build-essential pkg-config libffi-dev libgmp-dev libssl-dev libncurses-dev libsystemd-dev zlib1g-dev make \
