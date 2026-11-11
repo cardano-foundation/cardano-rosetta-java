@@ -28,6 +28,23 @@ public class TestConstants {
   public static final String STAKE_ADDRESS_WITH_EARNED_REWARDS = "stake_test1uqjg6peuwpjaexgdd2vy2h69zn6pjz33pdsvekjcq88uxmgc6qc7u";
   public static final String STAKE_ADDRESS_WITH_MINTED_TOKENS = "stake_test1uq54hxr3x4ssv9hnca8prj2dw7mva4wveya86uvulvf4qcsceluue";
 
+  // CIP-68 tokens minted by Step4_Cip68Transactions. The policy is a single-signature native script on
+  // SENDER_1's payment key, so the policy ID is the same on every regeneration of the fixture.
+  // The tokens and both reference NFTs go to account index CIP68_HOLDER_ACCOUNT_INDEX of SENDER_1_MNEMONIC.
+  public static final int CIP68_HOLDER_ACCOUNT_INDEX = 1;
+  public static final String CIP68_FT_NAME = "RosettaFT";            // 333 fungible token
+  public static final String CIP68_FT_TICKER = "RFT";
+  public static final int CIP68_FT_DECIMALS = 6;
+  public static final String CIP68_FT_DESCRIPTION = "Rosetta CIP-68 fungible test token";
+  public static final String CIP68_FT_URL = "https://cardano-foundation.github.io/cardano-rosetta-java";
+  public static final String CIP68_FT_LOGO = "https://cardano-foundation.github.io/cardano-rosetta-java/img/ft.png";
+  public static final long CIP68_FT_QUANTITY = 1_000_000L;
+  public static final String CIP68_RFT_NAME = "RosettaRFT";          // 444 rich fungible token
+  public static final int CIP68_RFT_DECIMALS = 2;
+  public static final String CIP68_RFT_DESCRIPTION = "Rosetta CIP-68 rich fungible test token";
+  public static final String CIP68_RFT_IMAGE = "ipfs://QmRosettaRichFungibleTestTokenImage";
+  public static final long CIP68_RFT_QUANTITY = 500L;
+
   private TestConstants() {
   }
 }

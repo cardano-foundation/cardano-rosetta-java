@@ -21,7 +21,11 @@ public enum TestTransactionNames {
   DREP_VOTE_DELEGATION("drep_vote_delegation"),
   GOVERNANCE_ACTION_INFO("governance_action_info"),
   SPO_VOTE_WITH_RATIONALE("spo_vote_with_rationale"),
-  SPO_VOTE_WITHOUT_RATIONALE("spo_vote_without_rationale");
+  SPO_VOTE_WITHOUT_RATIONALE("spo_vote_without_rationale"),
+
+  // Transaction names for Cip68Transactions
+  CIP68_FT_MINT("cip68_ft_mint"),
+  CIP68_RFT_MINT("cip68_rft_mint");
 
   private final String name;
 
