@@ -67,6 +67,9 @@ public class AddressHistoryServiceHibernate implements AddressHistoryService {
             Thread.currentThread().interrupt();
             log.error("Error fetching address transaction history", e);
             throw ExceptionFactory.unspecifiedError("Error fetching address transaction history, msg:%s".formatted(e.getMessage()));
+        } catch (StructuredTaskScope.TimeoutException e) {
+            log.error("Timeout fetching address transaction history", e);
+            throw ExceptionFactory.timeOut("timeout while fetching address transaction history from db.");
         }
     }
 

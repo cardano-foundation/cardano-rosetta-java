@@ -260,6 +260,10 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
       log.error("Error fetching transaction data", e);
 
       throw ExceptionFactory.unspecifiedError("Error fetching transaction data, msg:%s".formatted(e.getMessage()));
+    } catch (StructuredTaskScope.TimeoutException e) {
+      log.error("Error fetching transaction data", e);
+
+      throw ExceptionFactory.timeOut("timeout while fetching transaction data from db.");
     }
   }
 
