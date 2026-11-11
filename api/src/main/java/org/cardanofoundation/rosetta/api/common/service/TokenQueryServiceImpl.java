@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
+
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.HashMap;
@@ -195,6 +197,10 @@ public class TokenQueryServiceImpl implements TokenQueryService {
         return symbol.startsWith(CIP68_RICH_FUNGIBLE_TOKEN_PREFIX);
     }
 
+    // Empty or blank text values (e.g. ticker "", logo "", or the image "" of a 444 token, seen in real
+    // CIP-68 datums) are treated as missing via defaultIfBlank(value, null): they are not served, and
+    // they do not override a value from the other standard.
+
     /**
      * Applies CIP-26 fields (and optionally logo) to the builder. Only overrides decimals if
      * the source has an explicit value within the CIP range — the 0 default seeded in
@@ -202,13 +208,13 @@ public class TokenQueryServiceImpl implements TokenQueryService {
      */
     private void applyCip26(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
                             Cip26MetadataEntity cip26) {
-        builder.name(nonBlank(cip26.getName()));
-        builder.description(nonBlank(cip26.getDescription()));
-        Optional.ofNullable(nonBlank(cip26.getTicker())).ifPresent(builder::ticker);
-        Optional.ofNullable(nonBlank(cip26.getUrl())).ifPresent(builder::url);
+        builder.name(defaultIfBlank(cip26.getName(), null));
+        builder.description(defaultIfBlank(cip26.getDescription(), null));
+        Optional.ofNullable(defaultIfBlank(cip26.getTicker(), null)).ifPresent(builder::ticker);
+        Optional.ofNullable(defaultIfBlank(cip26.getUrl(), null)).ifPresent(builder::url);
 
         Optional.ofNullable(validDecimals(cip26.getDecimals(), cip26.getSubject())).ifPresent(builder::decimals);
-        String logo = nonBlank(cip26.getLogo());
+        String logo = defaultIfBlank(cip26.getLogo(), null);
         if (logoEnabled && logo != null) {
             builder.logo(TokenRegistryCurrencyData.LogoData.builder()
                     .format(TokenRegistryCurrencyData.LogoFormat.BASE64)
@@ -228,32 +234,22 @@ public class TokenQueryServiceImpl implements TokenQueryService {
     private void applyCip68(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
                             Cip68MetadataEntity cip68,
                             boolean richFungibleToken) {
-        Optional.ofNullable(nonBlank(cip68.getName())).ifPresent(builder::name);
-        Optional.ofNullable(nonBlank(cip68.getDescription())).ifPresent(builder::description);
-        Optional.ofNullable(nonBlank(cip68.getTicker())).ifPresent(builder::ticker);
-        Optional.ofNullable(nonBlank(cip68.getUrl())).ifPresent(builder::url);
+        Optional.ofNullable(defaultIfBlank(cip68.getName(), null)).ifPresent(builder::name);
+        Optional.ofNullable(defaultIfBlank(cip68.getDescription(), null)).ifPresent(builder::description);
+        Optional.ofNullable(defaultIfBlank(cip68.getTicker(), null)).ifPresent(builder::ticker);
+        Optional.ofNullable(defaultIfBlank(cip68.getUrl(), null)).ifPresent(builder::url);
         Optional.ofNullable(cip68.getVersion()).ifPresent(v -> builder.version(BigDecimal.valueOf(v)));
 
         Optional.ofNullable(validDecimals(cip68.getDecimals(), cip68.getPolicyId() + cip68.getAssetName()))
                 .ifPresent(builder::decimals);
 
-        String logo = nonBlank(richFungibleToken ? cip68.getImage() : cip68.getLogo());
+        String logo = defaultIfBlank(richFungibleToken ? cip68.getImage() : cip68.getLogo(), null);
         if (logoEnabled && logo != null) {
             builder.logo(TokenRegistryCurrencyData.LogoData.builder()
                     .format(detectLogoFormat(logo))
                     .value(logo)
                     .build());
         }
-    }
-
-    /**
-     * Treats an empty or blank text value as missing. CIP-68 datums (and possibly CIP-26 entries)
-     * can carry {@code ""} for e.g. ticker, logo or image: such a value is not served (no empty
-     * ticker or empty logo object) and does not override a value from the other standard.
-     */
-    @Nullable
-    private static String nonBlank(@Nullable String value) {
-        return value == null || value.isBlank() ? null : value;
     }
 
     /**
