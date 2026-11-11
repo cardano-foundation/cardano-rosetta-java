@@ -18,8 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
-import org.cardanofoundation.rosetta.api.common.model.entity.Cip68MetadataEntity;
-import org.cardanofoundation.rosetta.api.common.model.repository.Cip68MetadataRepository;
+import com.bloxbean.cardano.yaci.store.extensions.assetstore.cip68.storage.impl.model.Cip68Metadata;
+import com.bloxbean.cardano.yaci.store.extensions.assetstore.cip68.storage.impl.repository.Cip68MetadataRepository;
 import org.cardanofoundation.rosetta.testgenerator.transactions.impl.Step4_Cip68Transactions;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,11 +65,11 @@ class TokenQueryServiceImplIntTest extends IntegrationTest {
 
   @Test
   void fixtureContainsReferenceNftDatumsForBothTokens() {
-    List<Cip68MetadataEntity> rows = cip68MetadataRepository.findLatestByConcatenatedKeys(List.of(
+    List<Cip68Metadata> rows = cip68MetadataRepository.findLatestByConcatenatedKeys(List.of(
         policyId + REFERENCE_NFT_PREFIX + hex(CIP68_FT_NAME),
         policyId + REFERENCE_NFT_PREFIX + hex(CIP68_RFT_NAME)));
 
-    assertThat(rows).extracting(Cip68MetadataEntity::getLabel).containsExactlyInAnyOrder(333, 444);
+    assertThat(rows).extracting(Cip68Metadata::getLabel).containsExactlyInAnyOrder(333, 444);
   }
 
   @Test

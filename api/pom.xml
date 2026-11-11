@@ -145,6 +145,22 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
+        <!-- yaci-store assets-ext as a library: its JPA entities and repositories for cip26_metadata /
+             cip68_metadata (tables written by yaci-indexer), instead of copying them. Only those packages
+             are scanned (RosettaApiApplication), so no yaci-store service, job or migration runs here.
+             Transitive dependencies (yaci-store core, node client, JGit, cf-tokens-cip26, ...) are not
+             needed by the entities and repositories and are excluded. -->
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>yaci-store-assets-ext</artifactId>
+            <version>${yaci-store.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
         <dependency>
             <artifactId>hibernate-jpamodelgen</artifactId>
