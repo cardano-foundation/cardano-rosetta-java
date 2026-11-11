@@ -1,7 +1,7 @@
 # Postgres Performance Engineer - Agent Guide
 
 ## Overview
-The Postgres Performance Engineer is a specialized agent designed to monitor and optimize PostgreSQL 18.6 performance in the rosetta-preprod environment. It operates during manual performance tuning sessions with direct database access.
+The Postgres Performance Engineer is a specialized agent designed to monitor and optimize PostgreSQL 18.7 performance in the rosetta-preprod environment. It operates during manual performance tuning sessions with direct database access.
 
 ## Connection Setup
 
@@ -83,7 +83,7 @@ docker exec -it cardano-rosetta-java-db-1 /bin/bash
 
 ### Configuration File Location
 ```bash
-/var/lib/postgresql/18/docker/postgresql.conf
+/var/lib/postgresql/data/postgresql.conf
 ```
 
 ### Essential Configuration Settings

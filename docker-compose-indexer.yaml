@@ -105,8 +105,7 @@ services:
       DB_POSTGRES_BGWRITER_DELAY: ${DB_POSTGRES_BGWRITER_DELAY}
     restart: on-failure
     volumes:
-      # PostgreSQL 18 stores the cluster at /var/lib/postgresql/18/docker.
-      - ${DB_PATH}:/var/lib/postgresql
+      - ${DB_PATH}:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "PGPASSWORD=${DB_SECRET} pg_isready -U ${DB_USER} -d ${DB_NAME} -p ${DB_PORT} -h localhost"]
       interval: 10s

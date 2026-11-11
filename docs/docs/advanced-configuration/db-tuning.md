@@ -76,7 +76,7 @@ Then restart PostgreSQL.
 Once logging is enabled, find queries **not using indexes**:
 
 ```bash
-cat /var/lib/postgresql/18/docker/log/postgresql.log | grep 'Seq Scan'
+cat /var/lib/postgresql/data/log/postgresql.log | grep 'Seq Scan'
 ```
 
 If many queries are using `Seq Scan`, they are not hitting indexes.

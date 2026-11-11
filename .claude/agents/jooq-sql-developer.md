@@ -17,7 +17,7 @@ Your core responsibilities include:
 - Apply proper indexing strategies and query hints when necessary
 - We are using Yaci-Store, so investigate Yaci-Store db schema + own schema. 
 - We only need H2 and Postgres support.
-- Production Postgres is 18.6. H2 is used for development and tests.
+- Production Postgres is 18.7. H2 is used for development and tests.
 
 **Database Performance Optimization:**
 - Analyze query execution plans and identify bottlenecks

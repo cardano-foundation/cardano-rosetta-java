@@ -161,19 +161,19 @@ docker compose restart yaci-indexer
 | Path                       | Description                |
 | -------------------------- | -------------------------- |
 | `/node/db`                 | Cardano Node Data          |
-| `/var/lib/postgresql` | PostgreSQL volume. The 18.6 cluster is at `/var/lib/postgresql/18/docker` |
+| `/var/lib/postgresql/data` | PostgreSQL Data            |
 | `/networks`                | Network config location    |
 | `/logs`                    | Log files for each service |
 
 ## Upgrading to PostgreSQL 18
 
-The database image is PostgreSQL 18.6, built from the `REL_18_6` source tag. Official Docker Hub tag `postgres:18` is the same 18.6 release.
+The database image is PostgreSQL 18.7, built from the `REL_18_7` source tag.
 
-A data directory created by PostgreSQL 16 or 17 cannot be started by PostgreSQL 18. Resync the indexer and keep the Cardano node data, or migrate the cluster with `pg_upgrade` or dump/restore.
+**From PostgreSQL 18.x (e.g. 18.0 in Rosetta 2.x):** nothing to do. The data directory stays where it was (`/var/lib/postgresql/data`, host `DB_PATH`) and is not moved; a minor update starts the existing cluster as it is, with no dump/restore or `pg_upgrade`. PostgreSQL 18.7 fixes GIN index corruption issues; if you suspect the GIN index on `address_utxo.amounts` is affected, rebuild it with `REINDEX INDEX CONCURRENTLY idx_address_utxo_amounts_gin;`.
+
+**From PostgreSQL 16 or 17:** PostgreSQL 18 cannot start that data directory, and the container stops with an error without changing it. Resync the indexer and keep the Cardano node data, or migrate the cluster with `pg_upgrade` or dump/restore.
 
 `pg_upgrade` requires the same data-checksum setting on both clusters. `initdb` in PostgreSQL 18 enables data checksums by default, and this image keeps that default. A source cluster created without checksums must have checksums enabled first (`pg_checksums --enable` while that server is stopped), or the new cluster must be initialized with `POSTGRES_INITDB_ARGS=--no-data-checksums`.
-
-Mount the database volume at `/var/lib/postgresql`, not `/var/lib/postgresql/data`. The cluster files live at `/var/lib/postgresql/18/docker`. On startup, a PostgreSQL 18 cluster found at the previous location is moved there. A cluster from any other major version is left in place and the container exits with an error.
 
 ## Running Integration Tests
 

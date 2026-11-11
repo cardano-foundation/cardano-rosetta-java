@@ -93,10 +93,10 @@ The indexer features modular components that support different aspects of the Ca
 PostgreSQL database stores indexed blockchain data in a structured format optimized for API queries. While YACI store supports multiple database options, PostgreSQL is the default and recommended choice for this implementation.
 
 :::info
-**Version**: 18.6 (`PG_VERSION_TAG=REL_18_6`)  
+**Version**: 18.7 (`PG_VERSION_TAG=REL_18_7`)  
 **Schema name**: Based on network (e.g., mainnet, preprod)  
 **Default credentials**: Username: rosetta_db_admin, Password: configurable  
-**Data directory**: `/var/lib/postgresql/18/docker` (volume mounted at `/var/lib/postgresql`, host path `${DB_PATH}`)
+**Data directory**: `/var/lib/postgresql/data` (mapped to `${DB_PATH}` on the host)
 :::
 
 Configurable performance parameters through [hardware profiles](../install-and-deploy/hardware-profiles).

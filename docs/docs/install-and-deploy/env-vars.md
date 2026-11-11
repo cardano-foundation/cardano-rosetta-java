@@ -40,7 +40,7 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `NETWORK`                                     | Network                                                               | mainnet                                | added in release 1.0.0  |
 | `MITHRIL_SYNC`                                | Sync from Mithril snapshot                                            | true                                   | added in release 1.0.0  |
 | `PROTOCOL_MAGIC`                              | Cardano protocol magic                                                | 764824073                              | added in release 1.0.0  |
-| `PG_VERSION_TAG`                              | Postgres version tag for building from source                         | REL_18_6                               | PostgreSQL 18.6. See the upgrade note in the Docker guide. |
+| `PG_VERSION_TAG`                              | Postgres version tag for building from source                         | REL_18_7                               | PostgreSQL 18.7. See the upgrade note in the Docker guide. |
 | `DB_NAME`                                     | Postgres database                                                     | rosetta-java                           | added in release 1.0.0  |
 | `DB_USER`                                     | Postgres admin user                                                   | rosetta_db_admin                       | added in release 1.0.0  |
 | `DB_SECRET`                                   | Postgres admin secret                                                 | weakpwd#123_d                          | added in release 1.0.0  |

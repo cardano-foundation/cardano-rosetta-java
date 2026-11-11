@@ -1,73 +1,27 @@
 #!/bin/bash
 
-# Reject a pre-18 cluster, and move a PostgreSQL 18 cluster that still sits at
-# the old mount (/var/lib/postgresql/data, or the volume root after that mount
-# is retargeted to /var/lib/postgresql) into PG_DATA.
-prepare_data_directory() {
-    mkdir -p "$(dirname "$PG_DATA")"
+# The data directory is never moved: it stays at $PG_DATA (/var/lib/postgresql/data). A minor
+# update within the same major version (e.g. 18.0 -> 18.7) starts the existing cluster as it is.
+# A cluster created by another major version cannot be started; stop with a clear message instead
+# of PostgreSQL's own error.
+check_data_directory() {
+    mkdir -p "$PG_DATA"
 
     if [ -s "$PG_DATA/PG_VERSION" ]; then
-        return 0
-    fi
-
-    local legacy=""
-    if [ -s /var/lib/postgresql/PG_VERSION ]; then
-        legacy=/var/lib/postgresql
-    elif [ -s /var/lib/postgresql/data/PG_VERSION ]; then
-        legacy=/var/lib/postgresql/data
-    fi
-
-    if [ -n "$legacy" ]; then
-        local oldver
-        oldver=$(tr -d '[:space:]' < "$legacy/PG_VERSION")
-        if [ "$oldver" = "18" ]; then
-            echo "Relocating PostgreSQL 18 cluster from ${legacy} to ${PG_DATA}"
-            mkdir -p "$PG_DATA"
-            shopt -s dotglob nullglob
-            local item base
-            for item in "$legacy"/*; do
-                base=$(basename "$item")
-                if [ "$legacy" = "/var/lib/postgresql" ] && [ "$base" = "18" ]; then
-                    continue
-                fi
-                mv "$item" "$PG_DATA/"
-            done
-            shopt -u dotglob nullglob
-            if [ ! -s "$PG_DATA/PG_VERSION" ]; then
-                echo "ERROR: failed to relocate the PostgreSQL data directory to ${PG_DATA}"
-                exit 1
-            fi
-            echo "Relocation complete."
-            return 0
-        fi
-
-        cat <<EOF
-ERROR: found a PostgreSQL ${oldver} data directory at ${legacy}.
-PostgreSQL 18 cannot start a data directory created by PostgreSQL ${oldver}.
-Resync the indexer, or migrate with pg_upgrade or dump/restore.
-pg_upgrade requires matching data checksums. New clusters from this image
-enable checksums (the PostgreSQL 18 initdb default). For a source cluster
-without checksums, enable them first or set POSTGRES_INITDB_ARGS=--no-data-checksums
-on the new cluster.
-Mount volumes at /var/lib/postgresql. This image keeps the cluster at ${PG_DATA}.
-EOF
-        exit 1
-    fi
-
-    local other otherver
-    for other in /var/lib/postgresql/*/docker; do
-        if [ -s "$other/PG_VERSION" ] && [ "$other" != "$PG_DATA" ]; then
-            otherver=$(tr -d '[:space:]' < "$other/PG_VERSION")
+        local expected found
+        expected="${PG_VERSION_TAG#REL_}"
+        expected="${expected%%_*}"
+        found=$(tr -d '[:space:]' < "$PG_DATA/PG_VERSION")
+        if [ "$found" != "$expected" ]; then
             cat <<EOF
-ERROR: found a PostgreSQL ${otherver} data directory at ${other}.
-This image starts the cluster at ${PG_DATA} only.
-Resync the indexer, or migrate with pg_upgrade or dump/restore.
+ERROR: the data directory ${PG_DATA} was created by PostgreSQL ${found}.
+This image runs PostgreSQL ${expected} (${PG_VERSION_TAG}), which cannot start it.
+Resync the indexer (the Cardano node data can be kept), or migrate the cluster
+with pg_upgrade or dump/restore. Nothing was changed in ${PG_DATA}.
 EOF
             exit 1
         fi
-    done
-
-    mkdir -p "$PG_DATA"
+    fi
 }
 
 database_initialization() {
@@ -223,8 +177,8 @@ create_database_and_user() {
     echo "User configured"
 }
 
-echo "Preparing data directory..."
-prepare_data_directory
+echo "Checking data directory..."
+check_data_directory
 
 chown -R postgres:postgres "$PG_DATA"
 chmod -R 0700 "$PG_DATA"
