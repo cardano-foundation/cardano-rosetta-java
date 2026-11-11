@@ -327,6 +327,25 @@ class AccountMapperUtilTest {
         }
 
         @Test
+        void shouldFallBackToZeroDecimalsWhenTokenIsMissingFromMetadataMap() {
+            // A token that is not in the pre-fetched metadata map must not fail: decimals falls back to 0
+            String policyId = "a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3";
+            String assetName = "TestToken";
+            List<AddressBalance> balances = List.of(
+                createAddressBalance(Constants.LOVELACE, BigInteger.valueOf(1000000)),
+                createAddressBalance(policyId + assetName, BigInteger.valueOf(500))
+            );
+
+            List<Amount> amounts = accountMapperUtil.mapAddressBalancesToAmounts(balances, Map.of());
+
+            assertEquals(2, amounts.size());
+            Amount tokenAmount = amounts.get(1);
+            assertEquals("500", tokenAmount.getValue());
+            assertEquals(0, tokenAmount.getCurrency().getDecimals());
+            assertNull(tokenAmount.getCurrency().getMetadata());
+        }
+
+        @Test
         void shouldHandleTokenWithNullMetadataObject() {
             // Test case for token with completely null metadata - should be treated as not found
             String policyId = "a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3"; // exactly 56 chars
@@ -389,6 +408,25 @@ class AccountMapperUtilTest {
             assertEquals("1000000", coin.getAmount().getValue());
             assertEquals(Constants.ADA, coin.getAmount().getCurrency().getSymbol());
             assertNull(coin.getMetadata()); // No native tokens
+        }
+
+        @Test
+        void shouldFallBackToZeroDecimalsWhenUtxoTokenIsMissingFromMetadataMap() {
+            String policyId = "a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3e4f5a0b1c2d3";
+            String assetName = "TestToken";
+            List<Utxo> utxos = List.of(
+                    createUtxo("txhash1", 0, List.of(
+                            createAmt(null, Constants.LOVELACE, BigInteger.valueOf(2000000)),
+                            createAmt(policyId, assetName, BigInteger.valueOf(500), policyId + assetName)
+                    ))
+            );
+
+            List<Coin> coins = accountMapperUtil.mapUtxosToCoins(utxos, Map.of());
+
+            Amount tokenAmount = coins.get(0).getMetadata().get("txhash1:0").get(0).getTokens().get(0);
+            assertEquals("500", tokenAmount.getValue());
+            assertEquals(0, tokenAmount.getCurrency().getDecimals());
+            assertNull(tokenAmount.getCurrency().getMetadata());
         }
 
         @Test
