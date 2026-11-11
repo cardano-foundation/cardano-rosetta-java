@@ -9,12 +9,12 @@ import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.cardanofoundation.rosetta.api.common.service.TokenQueryService;
 
 import org.cardanofoundation.rosetta.api.common.service.TokenQueryServiceImpl;
-import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 
@@ -30,9 +30,9 @@ public class TestConfig {
     @Bean
     @Primary
     public TokenQueryService tokenQueryService() {
-        TokenQueryServiceImpl mock = Mockito.mock(TokenQueryServiceImpl.class);
+        TokenQueryServiceImpl tokenQueryService = mock(TokenQueryServiceImpl.class);
 
-        when(mock.queryMetadataBatch(anyCollection())).thenAnswer(invocation -> {
+        when(tokenQueryService.queryMetadataBatch(anyCollection())).thenAnswer(invocation -> {
             Collection<AssetFingerprint> fingerprints = invocation.getArgument(0);
             return fingerprints.stream().collect(Collectors.toMap(
                     fp -> fp,
@@ -47,7 +47,7 @@ public class TestConfig {
                             .build()));
         });
 
-        return mock;
+        return tokenQueryService;
     }
 
 }

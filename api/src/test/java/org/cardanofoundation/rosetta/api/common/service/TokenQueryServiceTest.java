@@ -77,7 +77,7 @@ class TokenQueryServiceTest {
             assertThat(result.getSubject()).isEqualTo(SUBJECT);
             assertThat(result.getName()).isNull();
             assertThat(result.getDescription()).isNull();
-            assertThat(result.getDecimals()).isEqualTo(0);
+            assertThat(result.getDecimals()).isZero();
         }
 
         @Test
@@ -94,7 +94,7 @@ class TokenQueryServiceTest {
             assertThat(result.getDescription()).isEqualTo("Dog token");
             assertThat(result.getTicker()).isEqualTo("HOSKY");
             assertThat(result.getUrl()).isEqualTo("https://hosky.io");
-            assertThat(result.getDecimals()).isEqualTo(0);
+            assertThat(result.getDecimals()).isZero();
         }
 
         @Test
@@ -175,7 +175,7 @@ class TokenQueryServiceTest {
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, ASSET_HEX);
 
-            assertThat(result.getDecimals()).isEqualTo(0);
+            assertThat(result.getDecimals()).isZero();
         }
 
         @ParameterizedTest(name = "CIP-26 decimals {0} -> 0")
@@ -188,7 +188,7 @@ class TokenQueryServiceTest {
 
             TokenRegistryCurrencyData result = querySingle(POLICY_ID, ASSET_HEX);
 
-            assertThat(result.getDecimals()).isEqualTo(0);
+            assertThat(result.getDecimals()).isZero();
             assertThat(result.getName()).isEqualTo("Token");
         }
 
@@ -245,32 +245,18 @@ class TokenQueryServiceTest {
     @DisplayName("CIP-68 subject prefix conversion")
     class Cip68PrefixConversionTests {
 
-        @Test
-        @DisplayName("Should not attempt CIP-68 lookup for non-fungible token prefix")
-        void shouldSkipNonFungiblePrefix() {
+        @ParameterizedTest(name = "symbol \"{0}\"")
+        @ValueSource(strings = {
+                "000de140aabb", // CIP-68 NFT prefix (222), not the fungible one
+                ASSET_HEX,      // plain asset name without a CIP-68 prefix
+                "",             // empty symbol
+                "0014df10"      // bare fungible prefix with no name part
+        })
+        @DisplayName("Should not attempt CIP-68 lookup for symbols that are not CIP-68 fungible tokens")
+        void shouldSkipCip68LookupForNonFungibleSymbols(String symbol) {
             when(cip26MetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
 
-            querySingle(POLICY_ID, "000de140aabb"); // NFT prefix, not fungible
-
-            verifyNoInteractions(cip68MetadataRepository);
-        }
-
-        @Test
-        @DisplayName("Should not attempt CIP-68 lookup for plain asset name without prefix")
-        void shouldSkipPlainAssetName() {
-            when(cip26MetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
-
-            querySingle(POLICY_ID, ASSET_HEX);
-
-            verifyNoInteractions(cip68MetadataRepository);
-        }
-
-        @Test
-        @DisplayName("Should not attempt CIP-68 lookup for empty symbol")
-        void shouldSkipEmptySymbol() {
-            when(cip26MetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
-
-            querySingle(POLICY_ID, "");
+            querySingle(POLICY_ID, symbol);
 
             verifyNoInteractions(cip68MetadataRepository);
         }
@@ -289,16 +275,6 @@ class TokenQueryServiceTest {
             ArgumentCaptor<Collection<String>> captor = ArgumentCaptor.forClass(Collection.class);
             verify(cip68MetadataRepository).findLatestByConcatenatedKeys(captor.capture());
             assertThat(captor.getValue()).containsExactly(POLICY_ID + "000643b0" + hexName);
-        }
-
-        @Test
-        @DisplayName("Should skip CIP-68 when symbol is exactly the prefix length with no name part")
-        void shouldSkipWhenSymbolIsBarePrefix() {
-            when(cip26MetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
-
-            querySingle(POLICY_ID, "0014df10"); // prefix only, no hex name
-
-            verifyNoInteractions(cip68MetadataRepository);
         }
     }
 

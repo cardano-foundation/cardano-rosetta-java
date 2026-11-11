@@ -56,7 +56,7 @@ class DataMapperTest {
 
             assertThat(result.getValue()).isEqualTo("1000000");
             assertThat(result.getCurrency().getSymbol()).isEqualTo("484f534b59");
-            assertThat(result.getCurrency().getDecimals()).isEqualTo(0);
+            assertThat(result.getCurrency().getDecimals()).isZero();
             assertThat(result.getCurrency().getMetadata()).isNotNull();
             assertThat(result.getCurrency().getMetadata().getPolicyId()).isEqualTo("abc123");
             assertThat(result.getCurrency().getMetadata().getName()).isEqualTo("HOSKY");
