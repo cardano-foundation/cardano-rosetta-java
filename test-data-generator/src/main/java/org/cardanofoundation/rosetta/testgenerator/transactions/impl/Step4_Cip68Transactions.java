@@ -41,6 +41,7 @@ import static org.cardanofoundation.rosetta.testgenerator.common.BaseFunctions.q
  * because the same transaction mints the 333 / 444 user token.
  */
 @Slf4j
+@SuppressWarnings("java:S101") // StepN_ prefix = execution order, the naming convention of the other transaction runners
 public class Step4_Cip68Transactions implements TransactionRunner {
 
   private Account sender1;
