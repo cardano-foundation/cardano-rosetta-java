@@ -11,8 +11,8 @@ RUN printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https:
 # Install dependencies.
 RUN apt update --fix-missing \
     && apt install -y --no-install-recommends \
-        automake build-essential pkg-config libffi-dev libgmp-dev libssl-dev libncurses-dev libsystemd-dev zlib1g-dev make \
-        g++ tmux git jq wget libtool autoconf liblmdb-dev curl ca-certificates \
+        automake build-essential pkg-config libffi-dev libgmp-dev libssl-dev libsystemd-dev zlib1g-dev make \
+        g++ tmux git jq wget libncurses-dev libtool autoconf liblmdb-dev curl ca-certificates \
         liburing-dev libsnappy-dev protobuf-compiler \
     && apt-get clean
 
