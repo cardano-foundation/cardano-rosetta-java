@@ -33,7 +33,8 @@ import org.cardanofoundation.rosetta.testgenerator.transactions.TransactionRunne
 import static org.cardanofoundation.rosetta.testgenerator.common.BaseFunctions.quickTxBuilder;
 
 /**
- * Mints CIP-68 tokens so the fixture has cip68_metadata rows (yaci-store assets-ext):
+ * Mints CIP-68 tokens so the fixture has cip68_metadata rows (yaci-store assets-ext), paid by the
+ * CIP-68 holder account (topped up by the regenerate-testdata-db skill):
  * a fungible token (333, prefix 0014df10) with a logo, and a rich fungible token (444, prefix
  * 001bc280) with an image. Each mint transaction also mints the reference NFT (100, prefix
  * 000643b0) and sends it with the metadata as an inline datum; assets-ext indexes the datum
@@ -43,7 +44,7 @@ import static org.cardanofoundation.rosetta.testgenerator.common.BaseFunctions.q
 public class Step4_Cip68Transactions implements TransactionRunner {
 
   private Account sender1;
-  private String sender1Addr;
+  private Account holder;
   private String holderAddr;
   private ScriptPubkey policyScript;
   private String policyId;
@@ -56,9 +57,9 @@ public class Step4_Cip68Transactions implements TransactionRunner {
   @Override
   public void init() {
     sender1 = new Account(Networks.testnet(), TestConstants.SENDER_1_MNEMONIC);
-    sender1Addr = sender1.baseAddress();
-    holderAddr = new Account(Networks.testnet(), TestConstants.SENDER_1_MNEMONIC,
-        TestConstants.CIP68_HOLDER_ACCOUNT_INDEX).baseAddress();
+    holder = Account.createFromMnemonic(Networks.testnet(), TestConstants.SENDER_1_MNEMONIC,
+        TestConstants.CIP68_HOLDER_ACCOUNT, 0);
+    holderAddr = holder.baseAddress();
     policyScript = cip68PolicyScript(sender1);
     try {
       policyId = policyScript.getPolicyId();
@@ -114,9 +115,12 @@ public class Step4_Cip68Transactions implements TransactionRunner {
         .payToContract(holderAddr, Amount.asset(policyId, referenceNft.getName(), BigInteger.ONE),
             referenceToken.getDatumAsPlutusData())
         .payToAddress(holderAddr, Amount.asset(policyId, userToken.getName(), BigInteger.valueOf(quantity)))
-        .from(sender1Addr);
+        .from(holderAddr);
 
+    // The holder pays (it is topped up by the regenerate-testdata-db skill), so SENDER_1's UTXOs,
+    // which other tests rely on, are not touched; SENDER_1 only signs as the policy key.
     Result<String> result = quickTxBuilder.compose(tx)
+        .withSigner(SignerProviders.signerFrom(holder))
         .withSigner(SignerProviders.signerFrom(sender1))
         .completeAndWait(Duration.ofMinutes(1));
     if (!result.isSuccessful()) {

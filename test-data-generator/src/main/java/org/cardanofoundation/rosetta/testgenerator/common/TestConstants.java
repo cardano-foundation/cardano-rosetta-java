@@ -30,8 +30,11 @@ public class TestConstants {
 
   // CIP-68 tokens minted by Step4_Cip68Transactions. The policy is a single-signature native script on
   // SENDER_1's payment key, so the policy ID is the same on every regeneration of the fixture.
-  // The tokens and both reference NFTs go to account index CIP68_HOLDER_ACCOUNT_INDEX of SENDER_1_MNEMONIC.
-  public static final int CIP68_HOLDER_ACCOUNT_INDEX = 1;
+  // The tokens and both reference NFTs go to account CIP68_HOLDER_ACCOUNT (address 0) of SENDER_1_MNEMONIC
+  // (CIP68_HOLDER_ADDRESS): a separate account, so its stake key differs from SENDER_1's and SENDER_1's
+  // balances are untouched. It also pays for the mints and is topped up by the regenerate-testdata-db skill.
+  public static final int CIP68_HOLDER_ACCOUNT = 1;
+  public static final String CIP68_HOLDER_ADDRESS = "addr_test1qpx3zpsg0wl3hfmmsdeumustk5zm3j9a74n9upu46dxfvzf6sa4xylhy9l2p6lv9ezd5lvmfxunwrpz4284rz2hll89qlvteha";
   public static final String CIP68_FT_NAME = "RosettaFT";            // 333 fungible token
   public static final String CIP68_FT_TICKER = "RFT";
   public static final int CIP68_FT_DECIMALS = 6;

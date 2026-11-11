@@ -48,6 +48,8 @@ CLUSTER_NAME="default"
 # Pulled from test-data-generator TestConstants:
 ADDR1="addr_test1qz5t8wq55e09usmh07ymxry8atzwxwt2nwwzfngg6esffxvw2pfap6uqmkj3n6zmlrsgz397md2gt7yqs5p255uygaesx608y5"
 ADDR2="addr_test1qp73ljurtknpm5fgey5r2y9aympd33ksgw0f8rc5khheg83y35rncur9mjvs665cg4052985ry9rzzmqend9sqw0cdksxvefah"
+# CIP68_HOLDER_ADDRESS: pays for and holds the CIP-68 test tokens (Step4_Cip68Transactions)
+ADDR3="addr_test1qpx3zpsg0wl3hfmmsdeumustk5zm3j9a74n9upu46dxfvzf6sa4xylhy9l2p6lv9ezd5lvmfxunwrpz4284rz2hll89qlvteha"
 
 # Ports yaci-cli local cluster exposes:
 BF_URL="http://localhost:8080/api/v1/blocks/latest"
@@ -141,7 +143,7 @@ log "Starting yaci-cli devnet (cluster: $CLUSTER_NAME)"
 # These two env vars drive yaci-cli's bundled FirstRunTopupAccounts listener
 # and enable yaci-store (port 8080 BlockFrost API needed by TestDataGenerator).
 export yaci_store_enabled=true
-export topup_addresses="${ADDR1}:110000,${ADDR2}:110000"
+export topup_addresses="${ADDR1}:110000,${ADDR2}:110000,${ADDR3}:1000"
 
 # Drive yaci-cli non-interactively by piping commands. Final 'exit' is omitted —
 # we hold the process alive so the node stays up while we run the indexer.
