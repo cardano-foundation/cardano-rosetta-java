@@ -202,16 +202,17 @@ public class TokenQueryServiceImpl implements TokenQueryService {
      */
     private void applyCip26(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
                             Cip26MetadataEntity cip26) {
-        builder.name(cip26.getName());
-        builder.description(cip26.getDescription());
-        Optional.ofNullable(cip26.getTicker()).ifPresent(builder::ticker);
-        Optional.ofNullable(cip26.getUrl()).ifPresent(builder::url);
+        builder.name(nonBlank(cip26.getName()));
+        builder.description(nonBlank(cip26.getDescription()));
+        Optional.ofNullable(nonBlank(cip26.getTicker())).ifPresent(builder::ticker);
+        Optional.ofNullable(nonBlank(cip26.getUrl())).ifPresent(builder::url);
 
         Optional.ofNullable(validDecimals(cip26.getDecimals(), cip26.getSubject())).ifPresent(builder::decimals);
-        if (logoEnabled && cip26.getLogo() != null) {
+        String logo = nonBlank(cip26.getLogo());
+        if (logoEnabled && logo != null) {
             builder.logo(TokenRegistryCurrencyData.LogoData.builder()
                     .format(TokenRegistryCurrencyData.LogoFormat.BASE64)
-                    .value(cip26.getLogo())
+                    .value(logo)
                     .build());
         }
     }
@@ -227,22 +228,32 @@ public class TokenQueryServiceImpl implements TokenQueryService {
     private void applyCip68(TokenRegistryCurrencyData.TokenRegistryCurrencyDataBuilder builder,
                             Cip68MetadataEntity cip68,
                             boolean richFungibleToken) {
-        Optional.ofNullable(cip68.getName()).ifPresent(builder::name);
-        Optional.ofNullable(cip68.getDescription()).ifPresent(builder::description);
-        Optional.ofNullable(cip68.getTicker()).ifPresent(builder::ticker);
-        Optional.ofNullable(cip68.getUrl()).ifPresent(builder::url);
+        Optional.ofNullable(nonBlank(cip68.getName())).ifPresent(builder::name);
+        Optional.ofNullable(nonBlank(cip68.getDescription())).ifPresent(builder::description);
+        Optional.ofNullable(nonBlank(cip68.getTicker())).ifPresent(builder::ticker);
+        Optional.ofNullable(nonBlank(cip68.getUrl())).ifPresent(builder::url);
         Optional.ofNullable(cip68.getVersion()).ifPresent(v -> builder.version(BigDecimal.valueOf(v)));
 
         Optional.ofNullable(validDecimals(cip68.getDecimals(), cip68.getPolicyId() + cip68.getAssetName()))
                 .ifPresent(builder::decimals);
 
-        String logo = richFungibleToken ? cip68.getImage() : cip68.getLogo();
+        String logo = nonBlank(richFungibleToken ? cip68.getImage() : cip68.getLogo());
         if (logoEnabled && logo != null) {
             builder.logo(TokenRegistryCurrencyData.LogoData.builder()
                     .format(detectLogoFormat(logo))
                     .value(logo)
                     .build());
         }
+    }
+
+    /**
+     * Treats an empty or blank text value as missing. CIP-68 datums (and possibly CIP-26 entries)
+     * can carry {@code ""} for e.g. ticker, logo or image: such a value is not served (no empty
+     * ticker or empty logo object) and does not override a value from the other standard.
+     */
+    @Nullable
+    private static String nonBlank(@Nullable String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 
     /**

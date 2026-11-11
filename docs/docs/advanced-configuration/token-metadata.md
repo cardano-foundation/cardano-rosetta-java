@@ -70,7 +70,7 @@ Separately on `currency.decimals` (not inside `metadata`):
 When both standards describe the same token, **CIP-68 takes priority** field-by-field — any field left unset in CIP-68 falls back to the CIP-26 value.
 
 :::note Tokens that break their CIP
-yaci-store assets-ext stores tokens whose metadata breaks CIP-26 or CIP-68 (and reports what they break in a `validation_errors` column) instead of dropping them. Rosetta serves such metadata as stored, with one exception: a `decimals` value outside the CIP range 0–255 is treated as absent, so the CIP-26 value (for a CIP-68 token) or `0` is returned instead.
+yaci-store assets-ext stores tokens whose metadata breaks CIP-26 or CIP-68 (and reports what they break in a `validation_errors` column) instead of dropping them. Rosetta serves such metadata as stored, with two exceptions: a `decimals` value outside the CIP range 0–255 is treated as absent, so the CIP-26 value (for a CIP-68 token) or `0` is returned instead; and an empty or blank text value (e.g. `ticker: ""`, `logo: ""`, or an empty `image` of a 444 token) is treated as missing, so it is left out instead of served as an empty value, and a CIP-26 value is used if there is one.
 :::
 
 #### Before and After Examples

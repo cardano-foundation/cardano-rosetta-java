@@ -244,6 +244,86 @@ class TokenQueryServiceTest {
     }
 
     @Nested
+    @DisplayName("Empty or blank values are treated as missing")
+    class BlankValueTests {
+
+        @Test
+        @DisplayName("Empty CIP-68 ticker and logo (333) are not served")
+        void emptyCip68TickerAndLogoAreNotServed() {
+            ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);
+            when(cip26MetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
+            when(cip68MetadataRepository.findLatestByConcatenatedKeys(anyCollection()))
+                    .thenReturn(List.of(Cip68MetadataEntity.builder()
+                            .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
+                            .name("Token #1").ticker("").logo("").decimals(6L).build()));
+
+            TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
+
+            assertThat(result.getName()).isEqualTo("Token #1");
+            assertThat(result.getDecimals()).isEqualTo(6);
+            assertThat(result.getTicker()).isNull();
+            assertThat(result.getLogo()).isNull();
+        }
+
+        @Test
+        @DisplayName("Empty image of a 444 token gives no logo")
+        void emptyRichFungibleImageGivesNoLogo() {
+            ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);
+            when(cip26MetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of());
+            when(cip68MetadataRepository.findLatestByConcatenatedKeys(anyCollection()))
+                    .thenReturn(List.of(Cip68MetadataEntity.builder()
+                            .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(444)
+                            .name("AquaCoin").image("").build()));
+
+            TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_RFT_ASSET);
+
+            assertThat(result.getName()).isEqualTo("AquaCoin");
+            assertThat(result.getLogo()).isNull();
+        }
+
+        @Test
+        @DisplayName("Empty or blank CIP-68 values do not override CIP-26 values")
+        void blankCip68ValuesDoNotOverrideCip26() {
+            ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);
+            Cip26MetadataEntity cip26 = Cip26MetadataEntity.builder()
+                    .subject(CIP68_SUBJECT).name("CIP26 Name").description("CIP26 Desc").ticker("C26")
+                    .url("https://cip26.example").logo("iVBORw0KGgo=").build();
+            when(cip26MetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of(cip26));
+            when(cip68MetadataRepository.findLatestByConcatenatedKeys(anyCollection()))
+                    .thenReturn(List.of(Cip68MetadataEntity.builder()
+                            .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
+                            .name("  ").description("").ticker("").url(" ").logo("").build()));
+
+            TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
+
+            assertThat(result.getName()).isEqualTo("CIP26 Name");
+            assertThat(result.getDescription()).isEqualTo("CIP26 Desc");
+            assertThat(result.getTicker()).isEqualTo("C26");
+            assertThat(result.getUrl()).isEqualTo("https://cip26.example");
+            assertThat(result.getLogo()).isNotNull();
+            assertThat(result.getLogo().getValue()).isEqualTo("iVBORw0KGgo=");
+        }
+
+        @Test
+        @DisplayName("Empty CIP-26 values are not served")
+        void emptyCip26ValuesAreNotServed() {
+            ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);
+            Cip26MetadataEntity cip26 = Cip26MetadataEntity.builder()
+                    .subject(SUBJECT).name("").description(" ").ticker("").url("").logo("").decimals(2L).build();
+            when(cip26MetadataRepository.findAllBySubjectIn(anyList())).thenReturn(List.of(cip26));
+
+            TokenRegistryCurrencyData result = querySingle(POLICY_ID, ASSET_HEX);
+
+            assertThat(result.getDecimals()).isEqualTo(2);
+            assertThat(result.getName()).isNull();
+            assertThat(result.getDescription()).isNull();
+            assertThat(result.getTicker()).isNull();
+            assertThat(result.getUrl()).isNull();
+            assertThat(result.getLogo()).isNull();
+        }
+    }
+
+    @Nested
     @DisplayName("CIP-68 rich fungible tokens (444)")
     class Cip68RichFungibleTokenTests {
 
