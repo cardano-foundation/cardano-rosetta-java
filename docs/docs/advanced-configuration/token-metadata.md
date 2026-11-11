@@ -12,7 +12,7 @@ Cardano native tokens (multi-assets) can have associated metadata that provides 
 
 Cardano Rosetta Java merges metadata from two complementary sources:
 
-- **CIP-26** — the off-chain token metadata registry maintained on the [Cardano Foundation GitHub repository](https://github.com/cardano-foundation/cardano-token-registry). Used for static information about fungible tokens.
+- **CIP-26** — the off-chain token metadata registry on GitHub: [cardano-foundation/cardano-token-registry](https://github.com/cardano-foundation/cardano-token-registry) for mainnet, [input-output-hk/metadata-registry-testnet](https://github.com/input-output-hk/metadata-registry-testnet) for preprod and preview. Used for static information about fungible tokens.
 - **CIP-68** — an on-chain metadata standard where a reference NFT (prefix `000643b0`) holds the metadata for its sibling fungible token (prefix `0014df10`).
 
 ### Decimals vs enrichment — two different things
@@ -65,9 +65,13 @@ Separately on `currency.decimals` (not inside `metadata`):
 
 | Wire field | Description | Example |
 |------------|-------------|---------|
-| `currency.decimals` | Always present, always correct — reflects CIP-26/CIP-68 value or `0` fallback | `6` |
+| `currency.decimals` | Always present — reflects the CIP-26/CIP-68 value, or `0` when there is none or it is outside the CIP range 0–255 | `6` |
 
 When both standards describe the same token, **CIP-68 takes priority** field-by-field — any field left unset in CIP-68 falls back to the CIP-26 value.
+
+:::note Tokens that break their CIP
+yaci-store assets-ext stores tokens whose metadata breaks CIP-26 or CIP-68 (and reports what they break in a `validation_errors` column) instead of dropping them. Rosetta serves such metadata as stored, with one exception: a `decimals` value outside the CIP range 0–255 is treated as absent, so the CIP-26 value (for a CIP-68 token) or `0` is returned instead.
+:::
 
 #### Before and After Examples
 
@@ -150,10 +154,15 @@ Metadata enrichment is fully database-backed — there is no runtime HTTP call t
 ```
 
 **Key properties:**
-- The `yaci-store-assets-ext` module runs inside the `yaci-indexer` and populates the two tables above. It is **always enabled** in the bundled `yaci-indexer` — you do not need to install or configure a separate service.
+- The `yaci-store-assets-ext` module runs inside the `yaci-indexer` and populates the two tables above. It is **always enabled** in the bundled `yaci-indexer` — you do not need to install or configure a separate token registry service.
 - Initial CIP-26 sync from GitHub typically takes a few minutes after the indexer starts. CIP-68 data is indexed continuously as blocks are processed.
 - The Rosetta API reads these tables in a constant number of batched queries per request (one CIP-26 metadata query — logo is on the same row — and one CIP-68 query only if the request contains CIP-68 fungible tokens).
 - The flag only controls serialization; it does not skip DB reads. Decimals must be resolved correctly even when the flag is off.
+
+### Operational requirements
+
+- **Outbound access to GitHub from the `yaci-indexer`.** CIP-26 metadata is synced by cloning the registry repository over HTTPS (into the indexer's `/tmp`) and refreshing it every 60 minutes. The repository is chosen from the network: mainnet uses `cardano-foundation/cardano-token-registry`, preprod and preview use `input-output-hk/metadata-registry-testnet`; on other networks (e.g. a local devnet) the CIP-26 sync is skipped. Without GitHub access, CIP-26 tokens get `decimals: 0` and no CIP-26 enrichment; CIP-68 metadata (read from the chain) is unaffected.
+- **Indexing from genesis.** CIP-68 metadata is built from on-chain reference NFT datums as blocks are indexed, so an indexer database created by an older release without assets-ext must be resynced to have complete CIP-68 data.
 
 ## Enabling Token Metadata
 
@@ -257,6 +266,8 @@ All endpoints that return `currency` objects (`/account/balance`, `/account/coin
 - Confirm the token has a CIP-26 entry: `SELECT decimals FROM cip26_metadata WHERE subject = '<policyId||assetName>'`.
 - If the row is missing, the assets-ext module hasn't synced that subject yet. Initial GitHub sync takes a few minutes after indexer startup.
 - If the row exists but `decimals` is `null`, the token issuer did not register a decimal count — `0` is the correct fallback in that case.
+- If the row has a `decimals` value outside 0–255, it breaks the CIP and is ignored (see `validation_errors` on the row) — `0` is returned.
+- If `cip26_metadata` is empty, check that the `yaci-indexer` can reach `github.com` (see [Operational requirements](#operational-requirements)).
 - For CIP-68 fungible tokens, check `cip68_metadata` with the `000643b0` prefix in `asset_name` — the reference NFT holds the decimals.
 
 ### Enrichment fields are missing (metadata only has `policyId`)
