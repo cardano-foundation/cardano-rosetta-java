@@ -165,14 +165,6 @@ docker compose restart yaci-indexer
 | `/networks`                | Network config location    |
 | `/logs`                    | Log files for each service |
 
-## Upgrading to PostgreSQL 18
-
-The database image is PostgreSQL 18.7.
-
-**From PostgreSQL 18.x (e.g. 18.0 in Rosetta 2.x):** nothing to do. The data directory stays where it was (`/var/lib/postgresql/data`, host `DB_PATH`) and is not moved; a minor update starts the existing cluster as it is, with no dump/restore or `pg_upgrade`. PostgreSQL 18.7 fixes GIN index corruption issues; if you suspect the GIN index on `address_utxo.amounts` is affected, rebuild it with `REINDEX INDEX CONCURRENTLY idx_address_utxo_amounts_gin;`.
-
-**From PostgreSQL 16 or 17:** PostgreSQL 18 cannot start that data directory, and the container stops with an error without changing it. Resync the indexer and keep the Cardano node data, or migrate the cluster with `pg_upgrade` or dump/restore.
-
 ## Running Integration Tests
 
 <Tabs>

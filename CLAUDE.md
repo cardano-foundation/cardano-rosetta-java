@@ -87,7 +87,6 @@ docker compose restart api
 - **Custom entities** with JSON storage for UTXO data using Hypersistence Utils
 - **Yaci-Store** handles blockchain data synchronization in separate indexer module
 - Database migration handled through Yaci Store's built-in Flyway integration
-- The PostgreSQL data directory is `/var/lib/postgresql/data` (host `DB_PATH`). An existing PostgreSQL 18 data directory is used as is after an 18.x update. One created by PostgreSQL 16 or 17 cannot be opened by 18 (resync, `pg_upgrade`, or dump/restore).
 
 ### API Layer Organization
 Each Rosetta endpoint has its own package under `api/src/main/java/org/cardanofoundation/rosetta/api/`:
