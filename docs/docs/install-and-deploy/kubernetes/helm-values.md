@@ -20,7 +20,7 @@ These values are shared across all subcharts via `global.*`.
 | `global.releaseVersion` | `"2.4.1"` | `RELEASE_VERSION` | Docker image tag for API and indexer |
 | `global.cardanoNodeVersion` | `"11.1.3"` | `CARDANO_NODE_VERSION` | Cardano node image tag |
 | `global.pgVersionTag` | `REL_18_7` | `PG_VERSION_TAG` | PostgreSQL image tag |
-| `global.mithrilVersion` | `2630.1-hotfix` | `MITHRIL_VERSION` | Mithril client image tag |
+| `global.mithrilVersion` | `2642.0` | `MITHRIL_VERSION` | Mithril client image tag |
 | `global.profile` | `mid` | — | Hardware profile: `entry`, `mid`, `advanced` |
 | `global.sync` | `true` | `SYNC` | Set `false` for offline (API-only) mode |
 
