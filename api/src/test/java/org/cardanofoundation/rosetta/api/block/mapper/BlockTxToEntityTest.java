@@ -35,7 +35,6 @@ class BlockTxToEntityTest extends BaseMapperSetup {
     assertThat(into.getBlockHash()).isEqualTo(from.getBlock().getHash());
     assertThat(into.getBlockNo()).isEqualTo(from.getBlock().getNumber());
     assertThat(into.getSize()).isZero();
-    assertThat(into.getScriptSize()).isZero();
 
     assertThat(into.getInputs()).hasSameSizeAs(from.getInputKeys());
     assertThat(into.getInputs()).extracting("txHash")
@@ -59,7 +58,7 @@ class BlockTxToEntityTest extends BaseMapperSetup {
         .fee(BigInteger.TEN)
         .inputKeys(List.of(inUtxKey))
         .outputKeys(List.of(outUtxKey))
-        .sizeEntity(new TransactionSizeEntity("txHash", 0L, 0, 0))
+        .sizeEntity(new TransactionSizeEntity("txHash", 0L, 0))
         .build();
   }
 
