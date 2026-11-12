@@ -70,7 +70,7 @@ docker compose restart api
 - **Lombok** for boilerplate reduction
 - **JUnit 5** with `@Nested` test organization
 - **AssertJ** for test assertions
-- **PostgreSQL 18.7** (production; source tag `REL_18_7`) / **H2** (development/testing)
+- **PostgreSQL 18.7** (production) / **H2** (development/testing)
 
 ### Code Generation Pattern
 - All API endpoints and DTOs are generated from `api.yaml`
