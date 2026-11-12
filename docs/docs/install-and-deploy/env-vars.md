@@ -40,7 +40,7 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `NETWORK`                                     | Network                                                               | mainnet                                | added in release 1.0.0  |
 | `MITHRIL_SYNC`                                | Sync from Mithril snapshot                                            | true                                   | added in release 1.0.0  |
 | `PROTOCOL_MAGIC`                              | Cardano protocol magic                                                | 764824073                              | added in release 1.0.0  |
-| `PG_VERSION_TAG`                              | Postgres version tag for building from source                         | REL_18_0                               | added in release 1.2.9  |
+| `PG_VERSION_TAG`                              | Postgres version tag for building from source                         | REL_18_7                               | added in release 1.2.9  |
 | `DB_NAME`                                     | Postgres database                                                     | rosetta-java                           | added in release 1.0.0  |
 | `DB_USER`                                     | Postgres admin user                                                   | rosetta_db_admin                       | added in release 1.0.0  |
 | `DB_SECRET`                                   | Postgres admin secret                                                 | weakpwd#123_d                          | added in release 1.0.0  |
@@ -86,8 +86,7 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `DEVKIT_ENABLED`                              | Devkit enabled                                                        | false                                  | added in release 1.0.0  |
 | `DEVKIT_URL`                                  | Devkit URL                                                            | yaci-cli                               | added in release 1.0.0  |
 | `DEVKIT_PORT`                                 | Devkit port                                                           | 3333                                   | added in release 1.0.0  |
-| `LOG_FILE_PATH`                               | Log file directory path                                               | /var/log/rosetta-java                  | added in release 1.0.0  |
-| `LOG_FILE_NAME`                               | Log file name with path                                               | /var/log/rosetta-java/rosetta-java.log | added in release 1.0.0  |
+| `LOG_FILE_NAME`                               | Log file name with path                                               | /var/log/rosetta-java/rosetta-api.log  | added in release 1.0.0  |
 | `LOG_FILE_MAX_SIZE`                           | Maximum size per log file                                             | 10MB                                   | added in release 1.0.0  |
 | `LOG_FILE_MAX_HISTORY`                        | Number of log files to retain                                         | 10                                     | added in release 1.0.0  |
 | `SYNC`                                        | Enable online mode (DB/indexer start after node reaches tip)          | true                                   | added in release 1.2.0  |

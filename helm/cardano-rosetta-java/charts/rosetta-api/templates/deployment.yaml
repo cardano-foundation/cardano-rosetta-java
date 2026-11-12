@@ -20,7 +20,7 @@ spec:
 
       initContainers:
         - name: wait-for-postgres
-          image: postgres:16-alpine
+          image: postgres:18-alpine
           command:
             - sh
             - -c
@@ -38,7 +38,7 @@ spec:
             {{- toYaml .Values.global.initContainerResources | nindent 12 }}
 
         - name: wait-for-schema
-          image: postgres:16-alpine
+          image: postgres:18-alpine
           env:
             - name: PGPASSWORD
               valueFrom:

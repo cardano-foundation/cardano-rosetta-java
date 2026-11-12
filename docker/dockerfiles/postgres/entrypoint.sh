@@ -1,5 +1,29 @@
 #!/bin/bash
 
+# The data directory is never moved: it stays at $PG_DATA (/var/lib/postgresql/data). A minor
+# update within the same major version (e.g. 18.0 -> 18.7) starts the existing cluster as it is.
+# A cluster created by another major version cannot be started; stop with a clear message instead
+# of PostgreSQL's own error.
+check_data_directory() {
+    mkdir -p "$PG_DATA"
+
+    if [ -s "$PG_DATA/PG_VERSION" ]; then
+        local expected found
+        expected="${PG_VERSION_TAG#REL_}"
+        expected="${expected%%_*}"
+        found=$(tr -d '[:space:]' < "$PG_DATA/PG_VERSION")
+        if [ "$found" != "$expected" ]; then
+            cat <<EOF
+ERROR: the data directory ${PG_DATA} was created by PostgreSQL ${found}.
+This image runs PostgreSQL ${expected} (${PG_VERSION_TAG}), which cannot start it.
+Resync the indexer (the Cardano node data can be kept), or migrate the cluster
+with pg_upgrade or dump/restore. Nothing was changed in ${PG_DATA}.
+EOF
+            exit 1
+        fi
+    fi
+}
+
 database_initialization() {
     echo "$PGPASSWORD" > /tmp/password
     echo "*:*:*:postgres:$PGPASSWORD" > /home/postgres/.pgpass
@@ -136,6 +160,9 @@ create_database_and_user() {
 
     echo "User configured"
 }
+
+echo "Checking data directory..."
+check_data_directory
 
 chown -R postgres:postgres "$PG_DATA"
 chmod -R 0700 "$PG_DATA"
