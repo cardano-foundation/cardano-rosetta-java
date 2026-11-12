@@ -33,18 +33,18 @@ class CustomTransactionSizeStoreTest {
   }
 
   @Test
-  void givenFullTxCbor_shouldStoreLedgerSizeAndPlutusScriptSize() {
+  void givenFullTxCbor_shouldStoreLedgerSize() {
     TransactionEvent transactionEvent = TestDataGenerator.newTransactionEvent();
 
     customTransactionSizeStore.handleTransactionEvent(transactionEvent);
 
     Mockito.verify(transactionSizeRepository).saveAll(captor.capture());
-    // size: 19-byte Alonzo+ tx CBOR minus the is_valid byte; scriptSize: Plutus V1 + V2 + V3 script bytes
+    // size: 19-byte Alonzo+ tx CBOR minus the is_valid byte
     assertThat(captor.getValue())
             .containsExactlyInAnyOrder(
-                    new TransactionSizeEntity("txHash1", 70001L, 18, 144),
-                    new TransactionSizeEntity("txHash2", 70002L, 18, 192),
-                    new TransactionSizeEntity("txHash3", 70003L, 18, 240)
+                    new TransactionSizeEntity("txHash1", 70001L, 18),
+                    new TransactionSizeEntity("txHash2", 70002L, 18),
+                    new TransactionSizeEntity("txHash3", 70003L, 18)
             );
   }
 
