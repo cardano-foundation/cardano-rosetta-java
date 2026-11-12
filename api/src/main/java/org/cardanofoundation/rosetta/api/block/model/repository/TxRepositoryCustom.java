@@ -7,11 +7,16 @@ import org.springframework.data.domain.Page;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface TxRepositoryCustom {
 
   List<TxnEntity> findTransactionsByBlockHash(String blockHash);
+
+  List<String> findTransactionHashesByBlockHash(String blockHash);
+
+  Optional<TxnEntity> findTransactionByBlockAndTxHash(Long blockNumber, String blockHash, String txHash);
 
   Page<TxnEntity> searchTxnEntitiesAND(Set<String> txHashes,
                                        Set<String> addressHashes,
