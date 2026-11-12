@@ -101,11 +101,6 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
         .isEqualTo(into.getBlock().getTransactions().stream()
             .map(t -> t.getMetadata().getSize()).toList());
 
-    assertThat(from.getTransactions())
-        .extracting(BlockTx::getScriptSize)
-        .isEqualTo(into.getBlock().getTransactions().stream()
-            .map(t -> t.getMetadata().getScriptSize()).toList());
-
     assertThat((into.getBlock().getTransactions()))
         .extracting(t -> t.getOperations().size())
         .isEqualTo(List.of(8, 8, 8));
@@ -316,7 +311,6 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
                     .blockNo(1L)
                     .fee("fee1")
                     .size(1L)
-                    .scriptSize(1L)
                     .invalid(false)
                     .stakeRegistrations(newStakeRegistrations(1, 2))
                     .stakePoolDelegations(newDelegations(1, 2))
@@ -331,7 +325,6 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
                     .blockNo(2L)
                     .fee("fee2")
                     .size(2L)
-                    .scriptSize(2L)
                     .invalid(false)
                     .stakeRegistrations(newStakeRegistrations(3, 4))
                     .stakePoolDelegations(newDelegations(3, 4))
@@ -346,7 +339,6 @@ class BlockToBlockResponseTest extends BaseMapperSetup {
                     .blockNo(3L)
                     .fee("fee3")
                     .size(3L)
-                    .scriptSize(3L)
                     .invalid(false)
                     .stakeRegistrations(newStakeRegistrations(5, 6))
                     .stakePoolDelegations(newDelegations(5, 6))

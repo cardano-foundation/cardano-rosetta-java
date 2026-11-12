@@ -26,7 +26,4 @@ public class TransactionSizeEntity {
   @Column(name = "size")
   private int size;
 
-  @Column(name = "script_size")
-  private int scriptSize;
-
 }

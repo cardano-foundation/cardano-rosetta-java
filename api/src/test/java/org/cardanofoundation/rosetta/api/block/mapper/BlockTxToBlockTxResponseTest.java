@@ -38,7 +38,6 @@ class BlockTxToBlockTxResponseTest extends BaseMapperSetup {
 
     Transaction tx = into.getTransaction();
     assertThat(tx.getMetadata().getSize()).isEqualTo(from.getSize());
-    assertThat(tx.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
     assertThat(tx.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
 
     assertThat(tx.getRelatedTransactions()).isNull();
@@ -52,7 +51,6 @@ class BlockTxToBlockTxResponseTest extends BaseMapperSetup {
         .size(1L)
         .fee("123")
         .hash("hash12")
-        .scriptSize(0L)
         .inputs(List.of(newUtxo()))
         .stakePoolDelegations(newDelegations())
         .poolRegistrations(newPoolRegistrations())
