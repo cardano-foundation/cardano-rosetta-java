@@ -33,16 +33,16 @@
         <version.springdoc-openapi-ui>1.8.0</version.springdoc-openapi-ui>
         <version.openapi-generator-maven-plugin>6.4.0</version.openapi-generator-maven-plugin>
         <version.maven-compiler-plugin>3.15.0</version.maven-compiler-plugin>
-        <version.maven-surefire-plugin>3.5.5</version.maven-surefire-plugin>
+        <version.maven-surefire-plugin>3.6.1</version.maven-surefire-plugin>
         <version.hibernate-types>3.15.0</version.hibernate-types>
-        <version.jacoco-maven-plugin>0.8.14</version.jacoco-maven-plugin>
-        <version.flatten-maven-plugin>1.7.3</version.flatten-maven-plugin>
+        <version.jacoco-maven-plugin>0.8.16</version.jacoco-maven-plugin>
+        <version.flatten-maven-plugin>1.9.0</version.flatten-maven-plugin>
         <version.lombok>1.18.44</version.lombok>
-        <version.swagger-annotations>2.2.45</version.swagger-annotations>
+        <version.swagger-annotations>2.2.55</version.swagger-annotations>
         <version.log4j>2.25.3</version.log4j>
         <version.client-lib>0.7.3</version.client-lib>
         <version.yaci>0.4.7</version.yaci>
-        <version.commons-io>2.14.0</version.commons-io>
+        <version.commons-io>2.22.0</version.commons-io>
         <version.javax-validation-api>2.0.1.Final</version.javax-validation-api>
         <version.findsecbugs-plugin>1.13.0</version.findsecbugs-plugin>
         <version.assertj-core>3.27.7</version.assertj-core>
@@ -51,7 +51,7 @@
         <version.git.commit>4.9.10</version.git.commit>
         <version.lombok.mapstruct.binding>0.2.0</version.lombok.mapstruct.binding>
         <version.cardano.conversions>1.2.1</version.cardano.conversions>
-        <version.vavr>1.0.1</version.vavr>
+        <version.vavr>1.1.0</version.vavr>
         <version.jupiter>5.14.3</version.jupiter>
         <version.jooq>3.21.1</version.jooq>
         <test.exclusions>
@@ -209,12 +209,12 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>versions-maven-plugin</artifactId>
-                <version>2.21.0</version>
+                <version>2.25.1</version>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>
-                <version>1.1.0</version>
+                <version>${version.flatten-maven-plugin}</version>
                 <configuration>
                     <updatePomFile>true</updatePomFile>
                     <flattenMode>resolveCiFriendliesOnly</flattenMode>
