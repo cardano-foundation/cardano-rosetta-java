@@ -29,6 +29,8 @@ public final class TxSizeUtil {
     }
 
     /**
+     * TODO: remove once yaci-store ships TxSizeUtil.
+     *
      * @param txCbor full transaction CBOR
      * @return ledger size in bytes, or null when {@code txCbor} is not a full transaction
      */
