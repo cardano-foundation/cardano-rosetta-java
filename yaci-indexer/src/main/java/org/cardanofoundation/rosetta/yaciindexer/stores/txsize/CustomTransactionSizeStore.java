@@ -2,7 +2,6 @@ package org.cardanofoundation.rosetta.yaciindexer.stores.txsize;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -12,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.bloxbean.cardano.yaci.core.model.Witnesses;
 import com.bloxbean.cardano.yaci.helper.model.Transaction;
 import com.bloxbean.cardano.yaci.store.events.TransactionEvent;
 
@@ -61,16 +59,8 @@ public class CustomTransactionSizeStore {
     return TransactionSizeEntity.builder()
             .txHash(tx.getTxHash())
             .size(size)
-            .scriptSize(plutusScriptSize(tx.getWitnesses()))
             .blockNumber(tx.getBlockNumber())
             .build();
-  }
-
-  private static int plutusScriptSize(Witnesses witnesses) {
-    return Stream.of(witnesses.getPlutusV1Scripts(), witnesses.getPlutusV2Scripts(), witnesses.getPlutusV3Scripts())
-            .flatMap(List::stream)
-            .mapToInt(script -> script.getContent().length() / 2)
-            .sum();
   }
 
 }
