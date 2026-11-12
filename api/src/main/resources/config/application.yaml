@@ -12,6 +12,12 @@ spring:
     import:
       - classpath:config/db-indexes.yaml
   jackson:
+    use-jackson2-defaults: true
+    default-property-inclusion: NON_NULL
+    datatype:
+      datetime:
+        write-dates-as-timestamps: false
+  jackson2:
     default-property-inclusion: NON_NULL
     serialization:
       write-dates-as-timestamps: false
@@ -22,6 +28,9 @@ spring:
     settings:
       render-schema: false
       render-catalog: false
+  jpa:
+    properties:
+      hypersistence.utils.json.serializer: org.cardanofoundation.rosetta.config.CloningJsonSerializer
 
 cardano:
   rosetta:

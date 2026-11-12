@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.api.block.model.domain;
 
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.Map;
 
@@ -20,7 +21,8 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class ProtocolParams {
+@tools.jackson.databind.annotation.JsonNaming(tools.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy.class)
+public class ProtocolParams implements Serializable {
 
   private Integer minFeeA; //0
   private Integer minFeeB; //1

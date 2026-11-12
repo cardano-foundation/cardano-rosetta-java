@@ -12,6 +12,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.openapitools.client.model.AccountBalanceRequest;
 import org.openapitools.client.model.AccountBalanceResponse;
 import org.openapitools.client.model.AccountCoinsRequest;
@@ -20,6 +23,7 @@ import org.openapitools.client.model.AccountIdentifier;
 import org.openapitools.client.model.NetworkIdentifier;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.cardanofoundation.rosetta.api.BaseSpringMvcSetup;
 import org.cardanofoundation.rosetta.api.account.service.AccountService;
@@ -36,6 +40,8 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class AccountApiImplementationTest extends BaseSpringMvcSetup {
 
   @Mock

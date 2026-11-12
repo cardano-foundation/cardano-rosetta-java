@@ -7,6 +7,12 @@ server:
 
 spring:
   jackson:
+    use-jackson2-defaults: true
+    default-property-inclusion: NON_NULL
+    datatype:
+      datetime:
+        write-dates-as-timestamps: false
+  jackson2:
     default-property-inclusion: NON_NULL
     serialization:
       write-dates-as-timestamps: false
@@ -28,6 +34,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: false
+      hypersistence.utils.json.serializer: org.cardanofoundation.rosetta.config.CloningJsonSerializer
     hibernate:
       ddl-auto: none
     show-sql: true

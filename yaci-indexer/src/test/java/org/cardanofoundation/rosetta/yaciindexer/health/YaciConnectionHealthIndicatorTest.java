@@ -1,7 +1,7 @@
 package org.cardanofoundation.rosetta.yaciindexer.health;
 
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.Status;
+import org.springframework.boot.health.contributor.Health;
+import org.springframework.boot.health.contributor.Status;
 import com.bloxbean.cardano.yaci.store.common.domain.HealthStatus;
 import com.bloxbean.cardano.yaci.store.core.service.HealthService;
 import org.mockito.InjectMocks;

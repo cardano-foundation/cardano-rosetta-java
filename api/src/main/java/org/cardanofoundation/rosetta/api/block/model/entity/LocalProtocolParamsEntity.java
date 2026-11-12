@@ -28,6 +28,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.ProtocolParams;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@tools.jackson.databind.annotation.JsonNaming(tools.jackson.databind.PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class LocalProtocolParamsEntity {
     @Id
     private Long epoch;
