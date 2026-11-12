@@ -89,12 +89,11 @@ The following metadata is also returned, when querying for block information:
 }
 ```
 
-For transaction fields for the `size` and `scriptSize` are added to Transaction metadata.
+For transactions, `size` is added to Transaction metadata. It is the ledger size of the transaction in bytes (the same value as db-sync `tx.size`).
 
 ```json
 {
-  "size": { "type": "integer", "format": "int64" },
-  "scriptSize": { "type": "integer", "format": "int64" }
+  "size": { "type": "integer", "format": "int64" }
 }
 ```
 
