@@ -1,4 +1,4 @@
-FROM ubuntu:24.04 AS cardano-builder
+FROM ubuntu:26.04 AS cardano-builder
 
 SHELL ["/bin/bash", "-c"]
 
@@ -34,7 +34,7 @@ RUN git clone https://github.com/input-output-hk/mithril.git \
     && mkdir -p /root/.local/bin \
     && cp mithril-client /root/.local/bin/
 
-FROM ubuntu:24.04 AS mithril-runner
+FROM ubuntu:26.04 AS mithril-runner
 
 COPY --from=cardano-builder /root/.local/bin/mithril-client /usr/local/bin
 RUN printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https::Timeout "30";\nAcquire::http::No-Cache "true";\n' \

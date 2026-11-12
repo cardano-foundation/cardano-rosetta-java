@@ -1,4 +1,4 @@
-FROM ubuntu:24.04 AS build-common
+FROM ubuntu:26.04 AS build-common
 WORKDIR /build
 
 # Harden apt against transient Ubuntu-mirror hiccups (mirror sync in progress,

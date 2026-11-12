@@ -1,4 +1,4 @@
-FROM ubuntu:24.04 AS cardano-builder
+FROM ubuntu:26.04 AS cardano-builder
 
 WORKDIR /root/src
 
@@ -8,11 +8,11 @@ WORKDIR /root/src
 RUN printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https::Timeout "30";\nAcquire::http::No-Cache "true";\n' \
         > /etc/apt/apt.conf.d/99-retries
 
-# Install dependencies
+# Install dependencies.
 RUN apt update --fix-missing \
     && apt install -y --no-install-recommends \
-        automake build-essential pkg-config libffi-dev libgmp-dev libssl-dev libncurses-dev libsystemd-dev zlib1g-dev make \
-        g++ tmux git jq wget libncursesw5-dev libtool autoconf liblmdb-dev curl ca-certificates \
+        automake build-essential pkg-config libffi-dev libgmp-dev libssl-dev libsystemd-dev zlib1g-dev make \
+        g++ tmux git jq wget libncurses-dev libtool autoconf liblmdb-dev curl ca-certificates \
         liburing-dev libsnappy-dev protobuf-compiler \
     && apt-get clean
 
@@ -132,7 +132,7 @@ RUN mkdir -p /root/.local/bin \
     && cp -p "$(./scripts/bin-path.sh cardano-submit-api)" /root/.local/bin/
 
 
-FROM ubuntu:24.04 AS node-runner
+FROM ubuntu:26.04 AS node-runner
 
 RUN printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https::Timeout "30";\nAcquire::http::No-Cache "true";\n' \
         > /etc/apt/apt.conf.d/99-retries \
