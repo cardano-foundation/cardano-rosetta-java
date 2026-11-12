@@ -173,8 +173,6 @@ The database image is PostgreSQL 18.7.
 
 **From PostgreSQL 16 or 17:** PostgreSQL 18 cannot start that data directory, and the container stops with an error without changing it. Resync the indexer and keep the Cardano node data, or migrate the cluster with `pg_upgrade` or dump/restore.
 
-`pg_upgrade` requires the same data-checksum setting on both clusters. `initdb` in PostgreSQL 18 enables data checksums by default, and this image keeps that default. A source cluster created without checksums must have checksums enabled first (`pg_checksums --enable` while that server is stopped), or the new cluster must be initialized with `POSTGRES_INITDB_ARGS=--no-data-checksums`.
-
 ## Running Integration Tests
 
 <Tabs>

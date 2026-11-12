@@ -32,23 +32,7 @@ database_initialization() {
     chown postgres:postgres /home/postgres/.pgpass
 
     if [ -z "$(ls -A "$PG_DATA")" ]; then
-        local -a initdb_args=(
-            --pgdata="$PG_DATA"
-            --auth=md5
-            --auth-local=md5
-            --auth-host=md5
-            --username=postgres
-            --pwfile=/tmp/password
-        )
-        # PostgreSQL 18 initdb enables data checksums by default. Pass
-        # POSTGRES_INITDB_ARGS=--no-data-checksums only when pg_upgrade must
-        # match a source cluster that was created without checksums.
-        if [ -n "${POSTGRES_INITDB_ARGS:-}" ]; then
-            # shellcheck disable=SC2206
-            local -a extra=( ${POSTGRES_INITDB_ARGS} )
-            initdb_args+=("${extra[@]}")
-        fi
-        sudo -u postgres "$PG_BIN/initdb" "${initdb_args[@]}"
+        sudo -u postgres "$PG_BIN/initdb" --pgdata="$PG_DATA" --auth=md5 --auth-local=md5 --auth-host=md5 --username=postgres --pwfile=/tmp/password
     else
         echo "Database already initialized, skipping initdb."
     fi
