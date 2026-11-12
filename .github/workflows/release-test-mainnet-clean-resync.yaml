@@ -46,10 +46,6 @@ on:
         description: Existing non-draft 2.x GitHub release tag
         required: true
         type: string
-      confirmation:
-        description: Type clean-resync to confirm destructive data reset
-        required: true
-        type: string
 
 permissions:
   contents: read
@@ -79,7 +75,6 @@ jobs:
       - name: Validate invocation
         env:
           BASELINE_TAG: ${{ inputs.baseline_tag }}
-          CONFIRMATION: ${{ inputs.confirmation }}
           DEPLOYMENT: ${{ inputs.deployment }}
           RELEASE_TAG: ${{ inputs.release_tag }}
           TARGET_SOURCE_SHA: ${{ inputs.target_source_sha }}
@@ -93,10 +88,6 @@ jobs:
           # complete immutable target (validated below) takes precedence.
           if [[ -z "$TARGET_SOURCE_SHA" && -z "$BASELINE_TAG" && -z "$RELEASE_TAG" ]]; then
             echo "Provide a baseline_tag, a manual release_tag or the immutable workflow_call target." >&2
-            exit 1
-          fi
-          if [[ -z "$TARGET_SOURCE_SHA" && -z "$BASELINE_TAG" && "$CONFIRMATION" != clean-resync ]]; then
-            echo "Manual dispatch requires the exact confirmation: clean-resync" >&2
             exit 1
           fi
 
