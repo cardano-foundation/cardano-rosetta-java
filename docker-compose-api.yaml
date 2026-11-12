@@ -48,6 +48,12 @@ services:
       # DB tuning debugging
       API_DB_SHOW_SQL: ${API_DB_SHOW_SQL}
 
+      # Logging
+      LOG: ${LOG}
+      LOG_FILE_NAME: ${LOG_FILE_NAME}
+      LOG_FILE_MAX_SIZE: ${LOG_FILE_MAX_SIZE}
+      LOG_FILE_MAX_HISTORY: ${LOG_FILE_MAX_HISTORY}
+
       # Token Registry configuration
       TOKEN_REGISTRY_ENABLED: ${TOKEN_REGISTRY_ENABLED}
       TOKEN_REGISTRY_BASE_URL: ${TOKEN_REGISTRY_BASE_URL}

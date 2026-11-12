@@ -16,6 +16,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.*;
 import org.cardanofoundation.rosetta.api.block.model.repository.*;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.util.StructuredTaskScopeUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
@@ -238,7 +239,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
       StructuredTaskScope.Subtask<List<VotingProcedureEntity>> spoVotes = scope.fork(() -> votingProcedureRepository.findByTxHashInAndVoterType(txHashes, VoterType.STAKING_POOL_KEY_HASH));
       StructuredTaskScope.Subtask<List<InvalidTransactionEntity>> invalidTxs = scope.fork(() -> invalidTransactionRepository.findByTxHashIn(txHashes));
 
-      scope.join();
+      StructuredTaskScopeUtil.join(scope, "transaction data");
 
       return new TransactionInfo(
               utxos.get(),
@@ -251,15 +252,6 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
               withdrawals.get(),
               invalidTxs.get()
       );
-    } catch (StructuredTaskScope.FailedException e) {
-      log.error("Error fetching transaction data", e);
-
-      throw ExceptionFactory.unspecifiedError("Error fetching transaction data, msg:%s".formatted(e.getMessage()));
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      log.error("Error fetching transaction data", e);
-
-      throw ExceptionFactory.unspecifiedError("Error fetching transaction data, msg:%s".formatted(e.getMessage()));
     }
   }
 

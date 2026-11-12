@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 
 import lombok.val;
 
@@ -29,7 +30,9 @@ import org.cardanofoundation.rosetta.common.services.ProtocolParamService;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType.OLDEST_BLOCK_NOT_FOUND;
+import static org.cardanofoundation.rosetta.common.util.RosettaConstants.RosettaErrorType.TIMEOUT;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -59,6 +62,9 @@ class LedgerBlockServiceImplTest {
 
   @Mock
   private DrepVoteDelegationRepository drepVoteDelegationRepository;
+
+  @Mock
+  private VotingProcedureRepository votingProcedureRepository;
 
   @Mock
   private PoolRegistrationRepository poolRegistrationRepository;
@@ -406,6 +412,23 @@ class LedgerBlockServiceImplTest {
 
     // Verify the exception is the correct type
     assertThat(exception.getError().getCode()).isEqualTo(OLDEST_BLOCK_NOT_FOUND.getCode());
+  }
+
+  @Test
+  void mapTxnEntitiesToBlockTxList_throwsTimeoutError_whenDbQueriesExceedTimeout() {
+    // Given
+    ledgerBlockService.setBlockTransactionApiTimeoutSecs(1);
+    when(addressUtxoRepository.findByTxHashIn(anyList())).thenAnswer(invocation -> {
+      new CountDownLatch(1).await(); // blocks until the scope times out and interrupts it
+      return List.of();
+    });
+
+    // When & Then
+    ApiException exception = assertThrows(ApiException.class, () ->
+        ledgerBlockService.mapTxnEntitiesToBlockTxList(List.<TxnEntity>of()));
+
+    assertThat(exception.getError().getCode()).isEqualTo(TIMEOUT.getCode());
+    assertThat(exception.getError().isRetriable()).isTrue();
   }
 
 }

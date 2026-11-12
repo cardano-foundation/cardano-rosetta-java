@@ -79,6 +79,26 @@ jobs:
             -f docker-compose.yaml \
             up --build -d --wait
 
+      # Diagnostics: when the deployment fails, print the container state and logs before the
+      # "Stop PR Preprod deployment" step removes the containers. Without this, a failed deployment
+      # only reports "container ... is unhealthy" and the cause is lost.
+      - name: Print container logs on deployment failure
+        if: failure() && steps.deployment.outcome == 'failure'
+        run: |
+          cd /home/integration/git/cardano-rosetta-java
+          C="docker compose --env-file .env.docker-compose-preprod --env-file .env.docker-compose-profile-mid-level -f docker-compose.yaml"
+          $C ps -a || true
+          for service in yaci-indexer api db; do
+            echo "::group::${service} logs (last 300 lines)"
+            $C logs --no-color --timestamps --tail=300 "${service}" || true
+            echo "::endgroup::"
+          done
+          for service in yaci-indexer api; do
+            echo "::group::${service} container state (incl. healthcheck history)"
+            for id in $($C ps -aq "${service}"); do docker inspect --format '{{json .State}}' "${id}" || true; done
+            echo "::endgroup::"
+          done
+
       - name: Wait for API to sync
         timeout-minutes: 10
         run: |

@@ -18,12 +18,26 @@
 
     <properties>
         <java.version>25</java.version>
-        <yaci-store.version>2.0.2.1</yaci-store.version>
+        <!-- TEMPORARY: yaci-store 2.0.8 snapshot (release/2.0.x @ b893a6a) until 2.0.8 is released;
+             rosetta 3.0.0 will be based on the released yaci-store 2.0.8. -->
+        <yaci-store.version>2.0.8-b893a6a-SNAPSHOT</yaci-store.version>
         <sonar.exclusions>src/main/java/org/cardanofoundation/rosetta/yaciindexer/stores/txsize/model/*</sonar.exclusions>
 <!--        <version.spotless-maven-plugin>2.43.0</version.spotless-maven-plugin>-->
     </properties>
 
     <repositories>
+        <!-- TEMPORARY: BloxBean Maven repository for the yaci-store 2.0.8 snapshot.
+             Remove once rosetta moves to the released yaci-store 2.0.8 (Maven Central). -->
+        <repository>
+            <id>bloxbean-snapshots</id>
+            <url>https://repo.bloxbean.org/maven/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
         <repository>
             <id>snapshots-repo</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
@@ -142,6 +156,11 @@
                     </execution>
                 </executions>
 
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${version.maven-surefire-plugin}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
