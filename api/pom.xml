@@ -71,7 +71,7 @@
         </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-ui</artifactId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
         </dependency>
         <dependency>
             <groupId>io.swagger.core.v3</groupId>
@@ -285,6 +285,10 @@
                                 <useJakartaEe>true</useJakartaEe>
                                 <skipValidateSpec>true</skipValidateSpec>
                                 <useEnumCaseInsensitive>true</useEnumCaseInsensitive>
+                                <!-- Newer generators emit required-args constructors that clash with the Lombok constructors. -->
+                                <generatedConstructorWithRequiredArgs>false</generatedConstructorWithRequiredArgs>
+                                <!-- Keep historical enum constant names (coin_spent -> SPENT) used by the API module. -->
+                                <removeEnumValuePrefix>true</removeEnumValuePrefix>
                                 <interfaceOnly>true</interfaceOnly>
                                 <!--suppress UnresolvedMavenProperty -->
                                 <additionalModelTypeAnnotations>@lombok.Builder @lombok.NoArgsConstructor
