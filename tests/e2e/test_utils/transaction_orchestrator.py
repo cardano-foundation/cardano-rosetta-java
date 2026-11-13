@@ -256,7 +256,8 @@ class TransactionOrchestrator:
         signing_function,
         wait_for_confirmation: bool = True,
         confirmation_timeout: int = 180,
-        expected_operations: List[str] = None
+        expected_operations: List[str] = None,
+        absent_operations: List[str] = None
     ) -> Tuple[str, Optional[Dict]]:
         """
         Sign and submit a transaction, optionally waiting for confirmation.
@@ -268,6 +269,7 @@ class TransactionOrchestrator:
             wait_for_confirmation: Whether to wait for confirmation
             confirmation_timeout: Timeout in seconds for confirmation
             expected_operations: List of operation types that should be present in the transaction
+            absent_operations: List of operation types that must not be present in the transaction
             
         Returns:
             Tuple containing:
@@ -394,23 +396,33 @@ class TransactionOrchestrator:
         if wait_for_confirmation:
             transaction_details = self.wait_for_confirmation(transaction_hash, confirmation_timeout)
             
-            # Step 7: Validate the expected operations if specified
-            if expected_operations and transaction_details:
-                self.validate_operations(transaction_details, expected_operations)
+            # Step 7: Validate the expected and absent operations if specified
+            if transaction_details and (expected_operations or absent_operations):
+                self.validate_operations(
+                    transaction_details,
+                    expected_operations,
+                    absent_operations
+                )
                 
         return transaction_hash, transaction_details
         
-    def validate_operations(self, transaction_details: Dict, expected_operations: List[str]) -> bool:
+    def validate_operations(
+        self,
+        transaction_details: Dict,
+        expected_operations: List[str] = None,
+        absent_operations: List[str] = None
+    ) -> bool:
         """
-        Validate that a transaction contains the expected operations.
-        
+        Validate the operations a transaction reports.
+
         Args:
             transaction_details: Transaction details from block/transaction
             expected_operations: List of operation types that should be present
-            
+            absent_operations: List of operation types that must not be present
+
         Returns:
             True if validation succeeds
-            
+
         Raises:
             ValidationError: If validation fails
         """
@@ -439,8 +451,9 @@ class TransactionOrchestrator:
             "drepVoteDelegation": "dRepVoteDelegation"
         }
         
-        # Translate expected operations
-        expected_op_types = [operation_type_map.get(op, op) for op in expected_operations]
+        # Translate expected and absent operations
+        expected_op_types = [operation_type_map.get(op, op) for op in expected_operations or []]
+        absent_op_types = [operation_type_map.get(op, op) for op in absent_operations or []]
         
         # Check if all expected operations are present
         missing_ops = []
@@ -456,7 +469,15 @@ class TransactionOrchestrator:
             )
             # Let the exception handler in the test function handle the error logging
             raise ValidationError(error_msg)
-            
+
+        # Check that no absent operation is present
+        unexpected_ops = [op for op in absent_op_types if op in stake_op_types]
+        if unexpected_ops:
+            raise ValidationError(
+                f"Expected no {', '.join(unexpected_ops)} operation, "
+                f"got {', '.join(stake_op_types)}"
+            )
+
         logger.debug("Transaction operations validated successfully")
         return True
         

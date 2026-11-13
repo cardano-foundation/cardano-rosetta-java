@@ -92,11 +92,22 @@ verify_compose_database_access() (
 )
 
 prepare_compose_images() {
-  local image
-  for image in "$API_IMAGE" "$INDEXER_IMAGE" "$CARDANO_NODE_IMAGE" "$POSTGRES_IMAGE" "$MITHRIL_IMAGE"; do
-    docker pull "$image"
-  done
+  local config image
+  local -a images=()
+
   write_compose_override || return
+
+  # Pull every referenced image, not just the release candidates.
+  config=$(release_compose config --format json) || return
+  mapfile -t images < <(jq -r '.services[].image // empty' <<< "$config" | sort -u)
+  if [[ ${#images[@]} -eq 0 ]]; then
+    echo "Compose configuration references no images." >&2
+    return 1
+  fi
+
+  for image in "${images[@]}"; do
+    docker pull "$image" || return
+  done
 }
 
 compose_candidate_services() {
