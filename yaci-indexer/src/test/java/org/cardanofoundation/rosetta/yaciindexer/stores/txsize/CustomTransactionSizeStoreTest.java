@@ -3,7 +3,6 @@ package org.cardanofoundation.rosetta.yaciindexer.stores.txsize;
 import java.util.List;
 
 import com.bloxbean.cardano.yaci.store.events.TransactionEvent;
-import org.assertj.core.api.Assertions;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -12,11 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.cardanofoundation.rosetta.yaciindexer.TestDataGenerator;
-import org.cardanofoundation.rosetta.yaciindexer.service.TransactionScriptSizeCalculator;
-import org.cardanofoundation.rosetta.yaciindexer.service.TransactionScriptSizeCalculatorImpl;
-import org.cardanofoundation.rosetta.yaciindexer.service.TransactionSizeCalculatorImpl;
 import org.cardanofoundation.rosetta.yaciindexer.stores.txsize.model.TransactionSizeEntity;
 import org.cardanofoundation.rosetta.yaciindexer.stores.txsize.model.TransactionSizeRepository;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 class CustomTransactionSizeStoreTest {
@@ -26,36 +24,41 @@ class CustomTransactionSizeStoreTest {
   @Mock
   private TransactionSizeRepository transactionSizeRepository;
 
-  @Spy
-  private TransactionSizeCalculatorImpl transactionSizeCalculator = new TransactionSizeCalculatorImpl();
-
-  @Spy
-  private TransactionScriptSizeCalculator transactionScriptSizeCalculator = new TransactionScriptSizeCalculatorImpl();
-
   @Captor
   private ArgumentCaptor<List<TransactionSizeEntity>> captor;
 
   @BeforeEach
   void setup() {
-    customTransactionSizeStore = new CustomTransactionSizeStore(
-            transactionSizeRepository, transactionSizeCalculator, transactionScriptSizeCalculator);
+    customTransactionSizeStore = new CustomTransactionSizeStore(transactionSizeRepository);
   }
 
   @Test
-  void handleTransactionEventTest() {
+  void givenFullTxCbor_shouldStoreLedgerSize() {
     TransactionEvent transactionEvent = TestDataGenerator.newTransactionEvent();
+
     customTransactionSizeStore.handleTransactionEvent(transactionEvent);
 
     Mockito.verify(transactionSizeRepository).saveAll(captor.capture());
-
-    List<TransactionSizeEntity> actual = captor.getValue();
-
-    Assertions.assertThat(actual)
+    // size: 19-byte Alonzo+ tx CBOR minus the is_valid byte
+    assertThat(captor.getValue())
             .containsExactlyInAnyOrder(
-                    new TransactionSizeEntity("txHash1", 70001L, 36, 144),
-                    new TransactionSizeEntity("txHash2", 70002L, 36, 192),
-                    new TransactionSizeEntity("txHash3", 70003L, 36, 240)
+                    new TransactionSizeEntity("txHash1", 70001L, 18),
+                    new TransactionSizeEntity("txHash2", 70002L, 18),
+                    new TransactionSizeEntity("txHash3", 70003L, 18)
             );
+  }
+
+  @Test
+  void givenNoFullTxCbor_shouldSkipThatTransaction() {
+    TransactionEvent transactionEvent = TestDataGenerator.newTransactionEvent();
+    transactionEvent.getTransactions().get(1).setTxCbor(null);
+
+    customTransactionSizeStore.handleTransactionEvent(transactionEvent);
+
+    Mockito.verify(transactionSizeRepository).saveAll(captor.capture());
+    assertThat(captor.getValue())
+            .extracting(TransactionSizeEntity::getTxHash)
+            .containsExactlyInAnyOrder("txHash1", "txHash3");
   }
 
 }

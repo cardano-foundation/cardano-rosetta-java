@@ -86,6 +86,7 @@ public class TestDataGenerator {
         .blockNumber(70000L + i)
         .slot(200L + i)
         .txHash("txHash" + i)
+        .txCbor(newTxCbor(i))
         .body(newTransactionBody(i))
         .utxos(List.of(newUtxo(i), newUtxo(i), newUtxo(i)))
         .collateralReturnUtxo(newUtxo(i))
@@ -93,6 +94,11 @@ public class TestDataGenerator {
         .auxData(newAuxData(i))
         .invalid(true)
         .build();
+  }
+
+  // Alonzo+ full tx: [body {}, witnesses {}, is_valid, aux "unicodeString<i>"]
+  private static String newTxCbor(int i) {
+    return "84a0a0f5" + newCbor(i);
   }
 
   private AuxData newAuxData(int i) {

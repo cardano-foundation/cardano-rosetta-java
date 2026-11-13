@@ -53,7 +53,6 @@ class BlockToEntityTest extends BaseMapperSetup {
     assertThat(to(into).getBlockHash()).isEqualTo(got(from).getBlock().getHash());
     assertThat(to(into).getBlockNo()).isEqualTo(got(from).getBlock().getNumber());
     assertThat(to(into).getSize()).isZero();
-    assertThat(to(into).getScriptSize()).isZero();
     assertThat(to(into).getInputs()).hasSameSizeAs(got(from).getInputKeys());
     assertThat(to(into).getOutputs()).hasSameSizeAs(got(from).getOutputKeys());
     assertThat(to(into).getFee()).isEqualTo(got(from).getFee().toString());
@@ -89,7 +88,7 @@ class BlockToEntityTest extends BaseMapperSetup {
         .block(BlockEntity.builder().hash("blockHash1").number(22L).build())
         .fee(BigInteger.TEN)
         .inputKeys(List.of())
-            .sizeEntity(new TransactionSizeEntity("txHash", 0L, 0, 0))
+            .sizeEntity(new TransactionSizeEntity("txHash", 0L, 0))
         .outputKeys(List.of())
         .build());
   }

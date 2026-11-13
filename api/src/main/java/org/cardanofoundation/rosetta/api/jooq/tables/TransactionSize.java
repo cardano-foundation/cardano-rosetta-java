@@ -63,11 +63,6 @@ public class TransactionSize extends TableImpl<TransactionSizeRecord> {
      */
     public final TableField<TransactionSizeRecord, Integer> SIZE = createField(DSL.name("size"), SQLDataType.INTEGER.nullable(false), this, "");
 
-    /**
-     * The column <code>public.transaction_size.script_size</code>.
-     */
-    public final TableField<TransactionSizeRecord, Integer> SCRIPT_SIZE = createField(DSL.name("script_size"), SQLDataType.INTEGER.nullable(false), this, "");
-
     private TransactionSize(Name alias, Table<TransactionSizeRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

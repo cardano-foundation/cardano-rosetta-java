@@ -129,8 +129,7 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
                         BLOCK.HASH.as("joined_block_hash"),
                         BLOCK.NUMBER.as("joined_block_number"),
                         BLOCK.SLOT.as("joined_block_slot"),
-                        TRANSACTION_SIZE.SIZE.as("joined_tx_size"),
-                        TRANSACTION_SIZE.SCRIPT_SIZE.as("joined_tx_script_size")
+                        TRANSACTION_SIZE.SIZE.as("joined_tx_size")
                 )
                 .from(TRANSACTION)
                 .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))

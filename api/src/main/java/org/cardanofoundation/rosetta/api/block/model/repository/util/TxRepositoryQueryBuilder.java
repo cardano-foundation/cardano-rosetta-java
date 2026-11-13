@@ -36,7 +36,7 @@ public class TxRepositoryQueryBuilder {
         Condition buildCurrencyCondition(Currency currency);
     }
 
-    public SelectJoinStep<Record12<String, String, JSONB, JSONB, Long, Long, Integer, String, Long, Long, Integer, Integer>> buildTransactionSelectQuery(DSLContext dsl) {
+    public SelectJoinStep<Record11<String, String, JSONB, JSONB, Long, Long, Integer, String, Long, Long, Integer>> buildTransactionSelectQuery(DSLContext dsl) {
         return dsl.select(
                 TRANSACTION.TX_HASH,
                 TRANSACTION.BLOCK_HASH,
@@ -48,8 +48,7 @@ public class TxRepositoryQueryBuilder {
                 BLOCK.HASH.as("joined_block_hash"),
                 BLOCK.NUMBER.as("joined_block_number"),
                 BLOCK.SLOT.as("joined_block_slot"),
-                TRANSACTION_SIZE.SIZE.as("joined_tx_size"),
-                TRANSACTION_SIZE.SCRIPT_SIZE.as("joined_tx_script_size")
+                TRANSACTION_SIZE.SIZE.as("joined_tx_size")
         ).from(TRANSACTION);
     }
 
@@ -189,20 +188,12 @@ public class TxRepositoryQueryBuilder {
     private static TransactionSizeEntity getTransactionSizeEntity(org.jooq.Record record,
                                                                  String txHash,
                                                                  BlockEntity blockEntity) {
-        TransactionSizeEntity sizeEntity = null;
         Integer size = record.get("joined_tx_size", Integer.class);
-        Integer scriptSize = record.get("joined_tx_script_size", Integer.class);
-
-        if (size != null || scriptSize != null) {
-            sizeEntity = new TransactionSizeEntity(
-                    txHash,
-                    blockEntity != null ? blockEntity.getNumber() : 0L,
-                    size != null ? size : 0,
-                    scriptSize != null ? scriptSize : 0
-            );
+        if (size == null) {
+            return null;
         }
 
-        return sizeEntity;
+        return new TransactionSizeEntity(txHash, blockEntity != null ? blockEntity.getNumber() : 0L, size);
     }
 
     private List<UtxoKey> readUtxoKeys(@Nullable JSONB jsonB,
