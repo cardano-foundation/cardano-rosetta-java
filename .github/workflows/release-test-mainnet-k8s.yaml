@@ -51,7 +51,6 @@ env:
   INDEXER_IMAGE: ${{ inputs.candidate_indexer_image }}
   MITHRIL_IMAGE: ${{ inputs.candidate_mithril_image }}
   POSTGRES_IMAGE: ${{ inputs.candidate_postgres_image }}
-  TOKEN_REGISTRY_BASE_URL: http://zur2-s-d-100.colo2.cf-systems.internal:8080/api
   TOKEN_REGISTRY_ENABLED: "true"
   K8S_MIN_FREE_GIB: "1100"
   K8S_STORAGE_ROOT: /var/lib/rancher/k3s/storage

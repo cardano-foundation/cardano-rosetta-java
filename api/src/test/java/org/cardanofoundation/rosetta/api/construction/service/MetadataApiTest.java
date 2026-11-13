@@ -43,7 +43,8 @@ class MetadataApiTest extends IntegrationTest {
         assertEquals(ADA, constructionMetadataResponse.getSuggestedFee().getFirst().getCurrency().getSymbol());
         assertEquals(ADA_DECIMALS, constructionMetadataResponse.getSuggestedFee().getFirst().getCurrency().getDecimals());
 
-        assertEquals(BigDecimal.valueOf(735), constructionMetadataResponse.getMetadata().getTtl());
+        // TTL = devkit fixture tip slot (1950) + TTL offset (10); changes whenever testData/devkit.db is regenerated.
+        assertEquals(BigDecimal.valueOf(1960), constructionMetadataResponse.getMetadata().getTtl());
         assertEquals("4310", constructionMetadataResponse.getMetadata().getProtocolParameters().getCoinsPerUtxoSize());
         assertEquals("2000000", constructionMetadataResponse.getMetadata().getProtocolParameters().getKeyDeposit());
         assertEquals("500000000", constructionMetadataResponse.getMetadata().getProtocolParameters().getPoolDeposit());

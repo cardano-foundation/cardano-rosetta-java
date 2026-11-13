@@ -22,7 +22,6 @@ import org.openapitools.client.model.*;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Nullable;
-import javax.validation.constraints.NotNull;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
@@ -232,8 +231,15 @@ public class TransactionMapperUtils {
     );
   }
 
-  private static int getDecimalsWithFallback(@NotNull TokenRegistryCurrencyData metadata) {
-    return Optional.ofNullable(metadata.getDecimals())
+  /**
+   * Sanity fallback: {@code decimals} is 0 when the token is missing from the pre-fetched
+   * metadata map or has no decimals. {@code TokenQueryService} already resolves 0 for tokens
+   * without CIP-26/CIP-68 metadata; this keeps Currency.decimals defined even if a token was
+   * not part of the batch lookup.
+   */
+  private static int getDecimalsWithFallback(@Nullable TokenRegistryCurrencyData metadata) {
+    return Optional.ofNullable(metadata)
+            .map(TokenRegistryCurrencyData::getDecimals)
             .orElse(0);
   }
 
