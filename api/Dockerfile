@@ -42,6 +42,8 @@ WORKDIR /app
 RUN cp /build/api/target/*.jar /app/api.jar
 RUN rm -rf /build
 
-ENTRYPOINT ["java", "--enable-preview", "-jar",  "/app/api.jar"]
+# -XX:-UseBASE64Intrinsics: run java.util.Base64 decoding as plain Java instead of the JIT intrinsic
+# (reported CVE-2026-114938 in the AVX-512 decoder) until a fixed JDK 25 build is available
+ENTRYPOINT ["java", "-XX:-UseBASE64Intrinsics", "--enable-preview", "-jar",  "/app/api.jar"]
 
 CMD ["/bin/sh", "-c", "bash"]

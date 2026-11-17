@@ -1,5 +1,6 @@
 package org.cardanofoundation.rosetta.api.common.service;
 
+import com.google.common.io.BaseEncoding;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -332,8 +333,12 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
      * <p>Hex is checked first because a hex string can also be well-formed base64 (e.g. {@code "deadbeef"}),
      * whereas a base64-encoded PNG (which starts with {@code "iVBORw0KGgo"}) is never pure hex.</p>
      *
-     * <p>CIP-26 base64 is padded. {@link Base64.Decoder} (and Guava's {@code BaseEncoding.canDecode})
-     * also accept unpadded input, so the length is required to be a multiple of 4 as well.</p>
+     * <p>CIP-26 base64 is padded. Guava's {@code BaseEncoding.canDecode} also accepts unpadded input,
+     * so the length is required to be a multiple of 4 as well.</p>
+     *
+     * <p>Validation deliberately uses Guava's pure-Java codec instead of {@link Base64.Decoder}, so that
+     * registry-supplied data never reaches the JDK's hardware-accelerated Base64 decoder intrinsic
+     * (reported CVE-2026-114938).</p>
      *
      * @param value the non-empty logo value as served by the registry
      * @return the logo as base64, or null if the value is neither hex nor base64
@@ -343,13 +348,8 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
         if (value.length() % 2 == 0 && value.chars().allMatch(HexFormat::isHexDigit)) {
             return Base64.getEncoder().encodeToString(HexFormat.of().parseHex(value));
         }
-        if (value.length() % 4 == 0) {
-            try {
-                Base64.getDecoder().decode(value);
-                return value;
-            } catch (IllegalArgumentException e) {
-                log.debug("CIP-26 logo value is not valid base64: {}", e.getMessage());
-            }
+        if (value.length() % 4 == 0 && BaseEncoding.base64().canDecode(value)) {
+            return value;
         }
         log.warn("CIP-26 logo value is neither hex nor base64 (length={}), skipping logo", value.length());
 
