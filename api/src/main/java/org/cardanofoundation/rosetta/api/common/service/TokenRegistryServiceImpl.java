@@ -1,6 +1,5 @@
 package org.cardanofoundation.rosetta.api.common.service;
 
-import com.google.common.io.BaseEncoding;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.cardanofoundation.rosetta.api.account.model.domain.AddressBalance;
@@ -14,6 +13,7 @@ import org.cardanofoundation.rosetta.client.model.domain.TokenMetadata;
 import org.cardanofoundation.rosetta.client.model.domain.TokenProperty;
 import org.cardanofoundation.rosetta.client.model.domain.TokenPropertyNumber;
 import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
+import org.cardanofoundation.rosetta.common.util.Base64Utils;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.openapitools.client.model.*;
 import org.springframework.stereotype.Service;
@@ -331,10 +331,6 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
      * <p>Hex is checked first because a hex string can also be well-formed base64 (e.g. {@code "deadbeef"}),
      * whereas a base64-encoded PNG (which starts with {@code "iVBORw0KGgo"}) is never pure hex. CIP-26
      * base64 is padded, so a base64 value's length must be a multiple of 4.</p>
-     *
-     * <p>Decoding deliberately uses Guava's pure-Java codec instead of {@link Base64.Decoder}, so that
-     * registry-supplied data never reaches the JDK's hardware-accelerated Base64 decoder intrinsic
-     * (reported CVE-2026-114938).</p>
      */
     @Nullable
     private static String toHexLogo(@Nullable String value) {
@@ -342,11 +338,9 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
                 || (value.length() % 2 == 0 && value.chars().allMatch(HexFormat::isHexDigit))) {
             return value;
         }
-        try {
-            return HexFormat.of().formatHex(BaseEncoding.base64().decode(value));
-        } catch (IllegalArgumentException e) {
-            return value;
-        }
+        return Base64Utils.decode(value)
+                .map(HexFormat.of()::formatHex)
+                .orElse(value);
     }
 
     @Nullable

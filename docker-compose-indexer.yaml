@@ -31,6 +31,8 @@ services:
       CONTINUE_PARSING_ON_ERROR: ${CONTINUE_PARSING_ON_ERROR}
       PEER_DISCOVERY: ${PEER_DISCOVERY}
       LOG: ${LOG}
+      # read by the java launcher itself (see JDK_JAVA_OPTIONS in .env.docker-compose)
+      JDK_JAVA_OPTIONS: ${JDK_JAVA_OPTIONS:-}
     volumes:
       - ${CARDANO_CONFIG}:/config
       - ${CARDANO_NODE_DIR}:${CARDANO_NODE_DIR}

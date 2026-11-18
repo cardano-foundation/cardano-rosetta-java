@@ -293,14 +293,12 @@ else
   create_database_and_user
 
   echo "Starting Yaci indexer..."
-  # -XX:-UseBASE64Intrinsics: avoid the JIT Base64 decoder intrinsic (reported CVE-2026-114938) until a fixed JDK 25 build is available
-  exec java -XX:-UseBASE64Intrinsics --enable-preview -jar /yaci-indexer/app.jar > /logs/indexer.log &
+  exec java --enable-preview -jar /yaci-indexer/app.jar > /logs/indexer.log &
   YACI_STORE_PID=$!
 
 fi
 echo "Starting Rosetta API..."
-# -XX:-UseBASE64Intrinsics: avoid the JIT Base64 decoder intrinsic (reported CVE-2026-114938) until a fixed JDK 25 build is available
-exec java -XX:-UseBASE64Intrinsics --enable-preview -jar /api/app.jar > /logs/api.log &
+exec java --enable-preview -jar /api/app.jar > /logs/api.log &
 API_PID=$!
 
 if [ "$API_SPRING_PROFILES_ACTIVE" == "online" ]; then
