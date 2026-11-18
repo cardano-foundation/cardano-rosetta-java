@@ -9,6 +9,9 @@ global:
   pgVersionTag: "REL_18_0"
   mithrilVersion: "2630.1-hotfix"
   profile: mid
+  # JDK_JAVA_OPTIONS for the api and yaci-indexer containers. Workaround for the reported CVE-2026-114938
+  # (JDK AVX-512 Base64 decoder intrinsic): decode base64 in plain Java. Set to "" once the JDK ships the fix.
+  jdkJavaOptions: "-XX:-UseBASE64Intrinsics"
 
   db:
     name: "rosetta-java"

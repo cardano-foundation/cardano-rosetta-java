@@ -78,6 +78,10 @@ spec:
           image: {{ .Values.global.apiImage | default (printf "cardanofoundation/cardano-rosetta-java-api:%s" .Values.global.releaseVersion) | quote }}
           imagePullPolicy: {{ if .Values.global.apiImage }}Always{{ else }}IfNotPresent{{ end }}
           env:
+            {{- with .Values.global.jdkJavaOptions }}
+            - name: JDK_JAVA_OPTIONS
+              value: {{ . | quote }}
+            {{- end }}
             - name: NETWORK
               value: {{ .Values.global.network | quote }}
             - name: API_SPRING_PROFILES_ACTIVE
