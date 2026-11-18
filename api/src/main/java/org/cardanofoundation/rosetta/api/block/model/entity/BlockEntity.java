@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.block.model.entity;
 
 import java.util.List;
+import javax.annotation.Nullable;
 import jakarta.persistence.*;
 
 import lombok.AllArgsConstructor;
@@ -42,6 +43,8 @@ public class BlockEntity {
   @Column(name = "body_size")
   private Long blockBodySize;
 
+  // NULL for Byron blocks: yaci-store sets it only for Shelley and later
+  @Nullable
   @Column(name = "no_of_txs")
   private Long noOfTxs;
 
