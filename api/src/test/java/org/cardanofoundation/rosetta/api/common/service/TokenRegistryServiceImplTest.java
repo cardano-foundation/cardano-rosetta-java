@@ -412,6 +412,13 @@ class TokenRegistryServiceImplTest {
         }
 
         @Test
+        @DisplayName("Should pass through CIP_26 logo with a base64-aligned length but invalid characters unchanged")
+        void shouldPassThroughInvalidBase64WithAlignedLength() {
+            // length is a multiple of 4, so it reaches base64 decoding; '=' in the middle is invalid
+            assertThat(fetchWithLogo("CIP_26", "iVBO=w0K").getLogo().getValue()).isEqualTo("iVBO=w0K");
+        }
+
+        @Test
         @DisplayName("Should not convert CIP_68 URL logo")
         void shouldNotConvertCip68UrlLogo() {
             TokenRegistryCurrencyData metadata = fetchWithLogo("CIP_68", "https://example.com/logo.png");

@@ -13,6 +13,7 @@ import org.cardanofoundation.rosetta.client.model.domain.TokenMetadata;
 import org.cardanofoundation.rosetta.client.model.domain.TokenProperty;
 import org.cardanofoundation.rosetta.client.model.domain.TokenPropertyNumber;
 import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
+import org.cardanofoundation.rosetta.common.util.Base64Utils;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.openapitools.client.model.*;
 import org.springframework.stereotype.Service;
@@ -337,11 +338,9 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
                 || (value.length() % 2 == 0 && value.chars().allMatch(HexFormat::isHexDigit))) {
             return value;
         }
-        try {
-            return HexFormat.of().formatHex(Base64.getDecoder().decode(value));
-        } catch (IllegalArgumentException e) {
-            return value;
-        }
+        return Base64Utils.decode(value)
+                .map(HexFormat.of()::formatHex)
+                .orElse(value);
     }
 
     @Nullable
