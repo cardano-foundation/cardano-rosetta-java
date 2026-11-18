@@ -1,3 +1,0 @@
-    assert response.status_code == 200
-    assert len(transactions) == 100, "Must respect default limit"
-    assert data["total_count"] > 100, "`total_count` must be > #returned"
