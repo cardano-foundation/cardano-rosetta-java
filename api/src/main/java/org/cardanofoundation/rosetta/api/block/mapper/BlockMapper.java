@@ -76,7 +76,7 @@ public interface BlockMapper {
   @Mapping(target = "hash", source = "txHash")
   @Mapping(target = "blockHash", source = "block.hash")
   @Mapping(target = "blockNo", source = "block.number")
-  @Mapping(target = "size", source = "sizeEntity.size")
+  @Mapping(target = "size", source = "sizeEntity.size", defaultValue = "0L")
   @Mapping(target = "inputs", source = "inputKeys")
   @Mapping(target = "outputs", source = "outputKeys")
   BlockTx mapToBlockTx(TxnEntity model);

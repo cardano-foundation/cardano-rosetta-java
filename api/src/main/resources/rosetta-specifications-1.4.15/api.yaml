@@ -1785,7 +1785,7 @@ components:
       type: object
       properties:
         size:
-          description: Size is the size of the transaction in bytes.
+          description: Size is the size of the transaction in bytes. It is 0 when the size is not available.
           type: integer
           format: int64
       example:
