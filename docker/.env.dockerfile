@@ -81,7 +81,3 @@ API_DB_LEAK_CONNECTIONS_WARNING_MS=60000
 API_DB_MONITOR_PERFORMANCE=false
 
 SYNC_GRACE_SLOTS_COUNT=100
-
-# Workaround for the reported CVE-2026-114938 (JDK AVX-512 Base64 decoder intrinsic): decode base64 in plain Java.
-# Read by the java launcher in the single image (api and indexer). Remove once TEMURIN_VERSION ships the fix.
-JDK_JAVA_OPTIONS=-XX:-UseBASE64Intrinsics
