@@ -92,10 +92,6 @@ spec:
           image: {{ .Values.global.indexerImage | default (printf "cardanofoundation/cardano-rosetta-java-indexer:%s" .Values.global.releaseVersion) | quote }}
           imagePullPolicy: {{ if .Values.global.indexerImage }}Always{{ else }}IfNotPresent{{ end }}
           env:
-            {{- with .Values.global.jdkJavaOptions }}
-            - name: JDK_JAVA_OPTIONS
-              value: {{ . | quote }}
-            {{- end }}
             - name: NETWORK
               value: {{ .Values.global.network | quote }}
             # Use n2c-socat profile for TCP socket bridge (K8s compatible)

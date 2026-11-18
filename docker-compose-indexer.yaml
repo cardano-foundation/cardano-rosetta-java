@@ -49,9 +49,6 @@ services:
 
       # DB tuning debugging
       INDEXER_DB_SHOW_SQL: ${INDEXER_DB_SHOW_SQL}
-
-      # read by the java launcher itself (see JDK_JAVA_OPTIONS in .env.docker-compose)
-      JDK_JAVA_OPTIONS: ${JDK_JAVA_OPTIONS:-}
     volumes:
       - ${CARDANO_CONFIG}:/config
       - ${CARDANO_NODE_DIR}:${CARDANO_NODE_DIR}
