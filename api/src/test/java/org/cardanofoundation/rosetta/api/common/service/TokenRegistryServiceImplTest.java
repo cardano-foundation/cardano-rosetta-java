@@ -362,6 +362,25 @@ class TokenRegistryServiceImplTest {
         }
 
         @Test
+        @DisplayName("Should return null logo when CIP_26 value has a base64-aligned length but invalid characters")
+        void shouldReturnNullLogoForInvalidBase64WithAlignedLength() {
+            // given
+            AssetFingerprint assetFingerprint = createAsset(POLICY_ID, ASSET_SYMBOL_HEX);
+            Set<AssetFingerprint> assetFingerprints = Set.of(assetFingerprint);
+
+            // length is a multiple of 4, so it reaches base64 validation; '=' in the middle is invalid
+            TokenSubject tokenSubject = createTokenSubjectWithLogo("CIP_26", "iVBO=w0K");
+            when(tokenRegistryHttpGateway.getTokenMetadataBatch(anySet()))
+                .thenReturn(Map.of(SUBJECT, Optional.of(tokenSubject)));
+
+            // when
+            Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenRegistryService.getTokenMetadataBatch(assetFingerprints);
+
+            // then
+            assertThat(result.get(assetFingerprint).getLogo()).isNull();
+        }
+
+        @Test
         @DisplayName("Should return null logo when CIP_26 base64 value is missing padding")
         void shouldReturnNullLogoForUnpaddedBase64() {
             // given
