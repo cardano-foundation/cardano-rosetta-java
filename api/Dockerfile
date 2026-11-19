@@ -13,12 +13,14 @@ RUN apt update --fix-missing \
     && apt clean
 
 # Download and setup JDK 25 LTS (Eclipse Temurin, GPLv2 + Classpath Exception).
-# 25.0.5+8 ships the Mozilla NSS 3.131.1 trust store, which removes the roots that signed
+# 25.0.5.1+2 fixes CVE-2026-114938 (Base64 decoder intrinsic):
+# https://adoptium.net/news/2026/11/temurin-november-2026-cspu-java4shell
+# It builds on 25.0.5+8, whose Mozilla NSS 3.131.1 trust store removes the roots that signed
 # the compromised eMudhra intermediates: https://adoptium.net/news/2026/10/temurin-october-2026-emudhra/
-# Checksum from https://api.adoptium.net/v3/assets/release_name/eclipse/jdk-25.0.5%2B8
-ARG TEMURIN_VERSION=25.0.5
-ARG TEMURIN_BUILD=8
-ARG TEMURIN_SHA256=68982529869257d0ee6b824ec5aa270ff8b118bb438670da0b97ebdab178d7fb
+# Checksum from https://api.adoptium.net/v3/assets/release_name/eclipse/jdk-25.0.5.1%2B2
+ARG TEMURIN_VERSION=25.0.5.1
+ARG TEMURIN_BUILD=2
+ARG TEMURIN_SHA256=760f91b22c3efc9bd1b64ff950598231be82928cc807e30691a0e7a2995a62c0
 RUN mkdir -p /opt/java \
     && curl -fsSL https://github.com/adoptium/temurin25-binaries/releases/download/jdk-${TEMURIN_VERSION}%2B${TEMURIN_BUILD}/OpenJDK25U-jdk_x64_linux_hotspot_${TEMURIN_VERSION}_${TEMURIN_BUILD}.tar.gz -o /opt/jdk.tar.gz \
     && echo "${TEMURIN_SHA256}  /opt/jdk.tar.gz" | sha256sum -c - \
@@ -42,10 +44,6 @@ WORKDIR /app
 RUN cp /build/api/target/*.jar /app/api.jar
 RUN rm -rf /build
 
-# Workaround for the reported CVE-2026-114938 (JDK AVX-512 Base64 decoder intrinsic): decode base64 in plain Java.
-# Baked into the image so every deployment gets it. JDK_JAVA_OPTIONS is read by the java launcher whatever the
-# ENTRYPOINT form; if you set your own JDK_JAVA_OPTIONS, keep this flag in it. Remove once TEMURIN_VERSION ships the fix.
-ENV JDK_JAVA_OPTIONS="-XX:-UseBASE64Intrinsics"
 ENTRYPOINT ["java", "--enable-preview", "-jar",  "/app/api.jar"]
 
 CMD ["/bin/sh", "-c", "bash"]
