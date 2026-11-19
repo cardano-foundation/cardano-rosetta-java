@@ -17,7 +17,7 @@ These values are shared across all subcharts via `global.*`.
 |-------|---------|--------------------------|-------------|
 | `global.network` | `mainnet` | `NETWORK` | Blockchain network: `mainnet`, `preprod`, `preview` |
 | `global.protocolMagic` | `"764824073"` | `PROTOCOL_MAGIC` | Cardano protocol magic number (always a quoted string to prevent scientific notation) |
-| `global.releaseVersion` | `"2.4.1"` | `RELEASE_VERSION` | Docker image tag for API and indexer |
+| `global.releaseVersion` | `"2.4.2"` | `RELEASE_VERSION` | Docker image tag for API and indexer |
 | `global.cardanoNodeVersion` | `"11.1.3"` | `CARDANO_NODE_VERSION` | Cardano node image tag |
 | `global.pgVersionTag` | `REL_18_7` | `PG_VERSION_TAG` | PostgreSQL image tag |
 | `global.mithrilVersion` | `2642.0` | `MITHRIL_VERSION` | Mithril client image tag |
@@ -111,6 +111,7 @@ Set `global.profile` to one of: `entry`, `mid`, `advanced`.
 | `rosetta-api.env.removeSpentUtxos` | `true` | `REMOVE_SPENT_UTXOS` | Must match yaci-indexer setting |
 | `rosetta-api.env.removeSpentUtxosLastBlocksGraceCount` | `129600` | `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT` | Must match yaci-indexer setting |
 | `rosetta-api.env.blockTransactionApiTimeoutSecs` | `120` | `BLOCK_TRANSACTION_API_TIMEOUT_SECS` | Timeout for block queries |
+| `rosetta-api.env.blockTransactionsThreshold` | `450` | `BLOCK_TRANSACTIONS_THRESHOLD` | Max txs inlined in `/block`, else hashes in `other_transactions` |
 | `rosetta-api.env.devkitEnabled` | `false` | `DEVKIT_ENABLED` | Enable DevKit integration |
 | `rosetta-api.env.tokenRegistryEnabled` | `true` | `TOKEN_REGISTRY_ENABLED` | Expose CIP-26/CIP-68 enrichment in `currency.metadata`. Does NOT affect `currency.decimals` — decimals is always resolved regardless. |
 | `rosetta-api.env.tokenRegistryLogoFetch` | `false` | `TOKEN_REGISTRY_LOGO_FETCH` | Include logos in enrichment (bandwidth-intensive). Requires `tokenRegistryEnabled=true`. |
