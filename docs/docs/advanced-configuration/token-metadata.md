@@ -174,7 +174,7 @@ Edit your environment file (e.g. `.env.docker-compose`, `.env.docker-compose-pre
 
 ```bash
 # Expose CIP-26/CIP-68 enrichment fields (subject, name, description, ticker,
-# url, logo, version) in currency.metadata. Default: false.
+# url, logo, version) in currency.metadata. Default: true.
 # Note: this does NOT affect currency.decimals — decimals is always resolved
 # correctly regardless of this flag.
 TOKEN_REGISTRY_ENABLED=true
