@@ -758,4 +758,52 @@ class TokenQueryServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("Off-chain data disabled (OFFCHAIN_DATA_ENABLED=false)")
+    class OffchainDataDisabledTests {
+
+        @BeforeEach
+        void disableOffchainData() {
+            ReflectionTestUtils.setField(tokenQueryService, "offchainDataEnabled", false);
+        }
+
+        @Test
+        @DisplayName("Should not read CIP-26 metadata at all")
+        void shouldNotQueryCip26() {
+            querySingle(POLICY_ID, ASSET_HEX);
+
+            verifyNoInteractions(cip26MetadataRepository);
+        }
+
+        @Test
+        @DisplayName("Should serve neither CIP-26 enrichment nor CIP-26 decimals for a CIP-26-only token")
+        void shouldIgnoreCip26OnlyToken() {
+            TokenRegistryCurrencyData result = querySingle(POLICY_ID, ASSET_HEX);
+
+            assertThat(result.getPolicyId()).isEqualTo(POLICY_ID);
+            assertThat(result.getSubject()).isEqualTo(SUBJECT);
+            assertThat(result.getName()).isNull();
+            assertThat(result.getTicker()).isNull();
+            assertThat(result.getLogo()).isNull();
+            assertThat(result.getDecimals()).isZero();
+        }
+
+        @Test
+        @DisplayName("Should still serve CIP-68 metadata, which is on-chain")
+        void shouldStillServeCip68() {
+            Cip68Metadata cip68 = Cip68Metadata.builder()
+                    .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
+                    .name("iUSD").ticker("iUSD").decimals(6L).version(1L).build();
+            when(cip68MetadataRepository.findLatestByConcatenatedKeys(anyCollection()))
+                    .thenReturn(List.of(cip68));
+
+            TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
+
+            assertThat(result.getName()).isEqualTo("iUSD");
+            assertThat(result.getTicker()).isEqualTo("iUSD");
+            assertThat(result.getDecimals()).isEqualTo(6);
+            verifyNoInteractions(cip26MetadataRepository);
+        }
+    }
+
 }

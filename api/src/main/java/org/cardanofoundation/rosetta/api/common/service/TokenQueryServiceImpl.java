@@ -66,6 +66,17 @@ public class TokenQueryServiceImpl implements TokenQueryService {
     private boolean logoEnabled;
 
     /**
+     * Whether data from off-chain sources may be served. CIP-26 metadata is off-chain: the indexer syncs
+     * it from a GitHub token registry. CIP-68 metadata is read from the chain and is not affected.
+     * <p>
+     * When {@code false}, {@code cip26_metadata} is not read at all. The indexer stops syncing it with the
+     * same switch, but rows synced earlier stay in the table, and CIP-26 also supplies {@code decimals}, so
+     * the API must ignore the table too.
+     */
+    @Value("${cardano.rosetta.OFFCHAIN_DATA_ENABLED:true}")
+    private boolean offchainDataEnabled = true;
+
+    /**
      * Batch query merged token metadata for multiple asset fingerprints.
      * <p>
      * Runs unconditionally — this service is <em>not</em> gated by {@code TOKEN_REGISTRY_ENABLED}.
@@ -76,7 +87,8 @@ public class TokenQueryServiceImpl implements TokenQueryService {
      * <p>
      * Issues a constant number of DB queries regardless of batch size:
      * <ul>
-     *   <li>1 for CIP-26 metadata (with logo embedded on the same row)</li>
+     *   <li>1 for CIP-26 metadata (with logo embedded on the same row), skipped when
+     *       {@code OFFCHAIN_DATA_ENABLED=false}</li>
      *   <li>1 for CIP-68 reference NFTs (only if the batch contains CIP-68 333 / 444 fungible tokens)</li>
      * </ul>
      *
@@ -94,8 +106,10 @@ public class TokenQueryServiceImpl implements TokenQueryService {
                 .map(AssetFingerprint::toSubject)
                 .toList();
 
-        Map<String, Cip26Metadata> cip26 = cip26MetadataRepository.findAllById(subjects).stream()
-                .collect(Collectors.toMap(Cip26Metadata::getSubject, Function.identity()));
+        Map<String, Cip26Metadata> cip26 = offchainDataEnabled
+                ? cip26MetadataRepository.findAllById(subjects).stream()
+                        .collect(Collectors.toMap(Cip26Metadata::getSubject, Function.identity()))
+                : Map.of();
         Cip68Batch cip68 = fetchCip68(fingerprints);
 
         Map<AssetFingerprint, TokenRegistryCurrencyData> result = new HashMap<>();

@@ -41,6 +41,7 @@ description: This runbook covers deploying and operating **Cardano Rosetta Java*
 ### Network
 - Outbound TCP 3001 — cardano-node peer-to-peer (N2N)
 - Outbound HTTPS — Mithril snapshot download + genesis key fetch from GitHub
+- Outbound HTTPS — CIP-26 token registry sync from GitHub (`yaci-indexer`, every 60 minutes). Not needed with `global.offchainDataEnabled: false`, see [On-chain only mode](../../advanced-configuration/token-metadata#on-chain-only-mode)
 - Inbound TCP 8082 — Rosetta API (if exposing externally)
 
 ---
@@ -296,6 +297,7 @@ kubectl delete pvc --all -n cardano
 - [ ] **Secrets management** — use Sealed Secrets or Vault instead of `--set global.db.password`.
 - [ ] **Network Policy** — restrict pod-to-pod traffic.
 - [ ] **Token Registry** — review `rosetta-api.env.tokenRegistryEnabled`. Metadata enrichment is served from the indexer's DB (no API-side outbound needed); the indexer itself does periodic outbound CIP-26 sync from the GitHub registry.
+- [ ] **Off-chain data policy** — if your policy forbids serving data that does not come from the Cardano chain, set `global.offchainDataEnabled: false`: no CIP-26 sync or CIP-26 metadata (including decimals), no third-party calls from the indexer. CIP-68 metadata (on-chain) is still served. See [On-chain only mode](../../advanced-configuration/token-metadata#on-chain-only-mode).
 
 ---
 
@@ -349,6 +351,7 @@ global:
   profile: mid
   network: mainnet
   protocolMagic: "764824073"
+  offchainDataEnabled: true   # false = on-chain data only (no CIP-26 token metadata)
 
 rosetta-api:
   env:

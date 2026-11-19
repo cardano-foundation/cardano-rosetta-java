@@ -54,6 +54,9 @@ services:
       LOG_FILE_MAX_SIZE: ${LOG_FILE_MAX_SIZE}
       LOG_FILE_MAX_HISTORY: ${LOG_FILE_MAX_HISTORY}
 
+      # default true, never empty when unset
+      OFFCHAIN_DATA_ENABLED: ${OFFCHAIN_DATA_ENABLED:-true}
+
       # Token Registry configuration
       TOKEN_REGISTRY_ENABLED: ${TOKEN_REGISTRY_ENABLED}
       TOKEN_REGISTRY_LOGO_FETCH: ${TOKEN_REGISTRY_LOGO_FETCH}

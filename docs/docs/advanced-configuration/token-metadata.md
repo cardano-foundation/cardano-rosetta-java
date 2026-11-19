@@ -154,7 +154,7 @@ Metadata enrichment is fully database-backed — there is no runtime HTTP call t
 ```
 
 **Key properties:**
-- The `yaci-store-assets-ext` module runs inside the `yaci-indexer` and populates the two tables above. It is **always enabled** in the bundled `yaci-indexer` — you do not need to install or configure a separate token registry service.
+- The `yaci-store-assets-ext` module runs inside the `yaci-indexer` and populates the two tables above. It is enabled in the bundled `yaci-indexer` — you do not need to install or configure a separate token registry service. Its CIP-26 part, the only off-chain source, can be turned off with `OFFCHAIN_DATA_ENABLED=false` (see [On-chain only mode](#on-chain-only-mode)).
 - Initial CIP-26 sync from GitHub typically takes a few minutes after the indexer starts. CIP-68 data is indexed continuously as blocks are processed.
 - The Rosetta API reads these tables in a constant number of batched queries per request (one CIP-26 metadata query — logo is on the same row — and one CIP-68 query only if the request contains CIP-68 fungible tokens).
 - The flag only controls serialization; it does not skip DB reads. Decimals must be resolved correctly even when the flag is off.
@@ -163,6 +163,23 @@ Metadata enrichment is fully database-backed — there is no runtime HTTP call t
 
 - **Outbound access to GitHub from the `yaci-indexer`.** CIP-26 metadata is synced by cloning the registry repository over HTTPS (into the indexer's `/tmp`) and refreshing it every 60 minutes. The repository is chosen from the network: mainnet uses `cardano-foundation/cardano-token-registry`, preprod and preview use `input-output-hk/metadata-registry-testnet`; on other networks (e.g. a local devnet) the CIP-26 sync is skipped. Without GitHub access, CIP-26 tokens get `decimals: 0` and no CIP-26 enrichment; CIP-68 metadata (read from the chain) is unaffected.
 - **Indexing from genesis.** CIP-68 metadata is built from on-chain reference NFT datums as blocks are indexed, so an indexer database created by an older release without assets-ext must be resynced to have complete CIP-68 data.
+
+## On-chain only mode
+
+Starting from v3.0.0, Rosetta can run without any off-chain data. Some operators' policies forbid serving data that does not come from the Cardano chain. CIP-26 metadata is such data: the indexer syncs it from a GitHub token registry. CIP-68 metadata is read from reference NFT datums on the chain.
+
+Set `OFFCHAIN_DATA_ENABLED=false` (Helm: `global.offchainDataEnabled: false`) on **both** the `api` and the `yaci-indexer`:
+
+| | `OFFCHAIN_DATA_ENABLED=true` (default) | `OFFCHAIN_DATA_ENABLED=false` |
+|---|---|---|
+| CIP-26 sync from GitHub | every 60 minutes | off, no outbound GitHub access |
+| CIP-26 metadata in responses (name, ticker, logo, **decimals**, …) | served | not served, also not rows synced before the switch |
+| CIP-68 metadata | served | served |
+| Koios calls from the indexer's Admin UI verification view | on | off |
+
+With `false`, a token that has only CIP-26 metadata gets `decimals: 0` and no enrichment fields. `TOKEN_REGISTRY_ENABLED` still controls whether enrichment fields are included for the remaining (CIP-68) metadata.
+
+The switch can be flipped at any time and takes effect on restart. No resync is needed: rows synced while it was `true` stay in the database but are not served while it is `false`.
 
 ## Enabling Token Metadata
 

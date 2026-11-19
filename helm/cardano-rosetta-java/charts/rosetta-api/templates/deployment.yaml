@@ -137,6 +137,8 @@ spec:
               value: {{ .Values.env.devkitUrl | quote }}
             - name: DEVKIT_PORT
               value: {{ .Values.env.devkitPort | toString | quote }}
+            - name: OFFCHAIN_DATA_ENABLED
+              value: {{ .Values.global.offchainDataEnabled | toString | quote }}
             - name: TOKEN_REGISTRY_ENABLED
               value: {{ .Values.env.tokenRegistryEnabled | toString | quote }}
             - name: TOKEN_REGISTRY_LOGO_FETCH

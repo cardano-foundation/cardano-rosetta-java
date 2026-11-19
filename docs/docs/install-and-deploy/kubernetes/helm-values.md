@@ -23,6 +23,7 @@ These values are shared across all subcharts via `global.*`.
 | `global.mithrilVersion` | `2642.0` | `MITHRIL_VERSION` | Mithril client image tag |
 | `global.profile` | `mid` | — | Hardware profile: `entry`, `mid`, `advanced` |
 | `global.sync` | `true` | `SYNC` | Set `false` for offline (API-only) mode |
+| `global.offchainDataEnabled` | `true` | `OFFCHAIN_DATA_ENABLED` | Set `false` for on-chain data only: no CIP-26 sync or CIP-26 metadata, no Koios calls. Applied to both `rosetta-api` and `yaci-indexer` |
 
 ### Database (`global.db`)
 

@@ -9,6 +9,8 @@ global:
   pgVersionTag: "REL_18_7"
   mithrilVersion: "2642.0"
   profile: mid
+  # false = on-chain data only: no CIP-26 token metadata (GitHub registry), no Koios calls; CIP-68 still served
+  offchainDataEnabled: true
 
   db:
     name: "rosetta-java"
