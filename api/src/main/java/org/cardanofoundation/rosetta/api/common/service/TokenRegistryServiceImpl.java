@@ -14,6 +14,7 @@ import org.cardanofoundation.rosetta.client.model.domain.TokenMetadata;
 import org.cardanofoundation.rosetta.client.model.domain.TokenProperty;
 import org.cardanofoundation.rosetta.client.model.domain.TokenPropertyNumber;
 import org.cardanofoundation.rosetta.client.model.domain.TokenSubject;
+import org.cardanofoundation.rosetta.common.util.Base64Utils;
 import org.cardanofoundation.rosetta.common.util.Constants;
 import org.openapitools.client.model.*;
 import org.springframework.stereotype.Service;
@@ -332,8 +333,8 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
      * <p>Hex is checked first because a hex string can also be well-formed base64 (e.g. {@code "deadbeef"}),
      * whereas a base64-encoded PNG (which starts with {@code "iVBORw0KGgo"}) is never pure hex.</p>
      *
-     * <p>CIP-26 base64 is padded. {@link Base64.Decoder} (and Guava's {@code BaseEncoding.canDecode})
-     * also accept unpadded input, so the length is required to be a multiple of 4 as well.</p>
+     * <p>CIP-26 base64 is padded. {@link Base64.Decoder} also accepts unpadded input, so the length is
+     * required to be a multiple of 4 as well.</p>
      *
      * @param value the non-empty logo value as served by the registry
      * @return the logo as base64, or null if the value is neither hex nor base64
@@ -343,13 +344,8 @@ public class TokenRegistryServiceImpl implements TokenRegistryService {
         if (value.length() % 2 == 0 && value.chars().allMatch(HexFormat::isHexDigit)) {
             return Base64.getEncoder().encodeToString(HexFormat.of().parseHex(value));
         }
-        if (value.length() % 4 == 0) {
-            try {
-                Base64.getDecoder().decode(value);
-                return value;
-            } catch (IllegalArgumentException e) {
-                log.debug("CIP-26 logo value is not valid base64: {}", e.getMessage());
-            }
+        if (value.length() % 4 == 0 && Base64Utils.decode(value).isPresent()) {
+            return value;
         }
         log.warn("CIP-26 logo value is neither hex nor base64 (length={}), skipping logo", value.length());
 
