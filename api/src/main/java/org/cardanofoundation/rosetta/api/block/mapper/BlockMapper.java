@@ -70,15 +70,13 @@ public interface BlockMapper {
   @Named("mapToRosettaTransactionWithMetadata")
   @Mapping(target = "transactionIdentifier", source = "source.hash")
   @Mapping(target = "metadata.size", source = "source.size")
-  @Mapping(target = "metadata.scriptSize", source = "source.scriptSize")
   @Mapping(target = "operations", source = "source", qualifiedByName = "mapTransactionsToOperationsWithMetadata")
   Transaction mapToRosettaTransactionWithMetadata(BlockTx source, @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap);
 
   @Mapping(target = "hash", source = "txHash")
   @Mapping(target = "blockHash", source = "block.hash")
   @Mapping(target = "blockNo", source = "block.number")
-  @Mapping(target = "size", source = "sizeEntity.size")
-  @Mapping(target = "scriptSize", source = "sizeEntity.scriptSize")
+  @Mapping(target = "size", source = "sizeEntity.size", defaultValue = "0L")
   @Mapping(target = "inputs", source = "inputKeys")
   @Mapping(target = "outputs", source = "outputKeys")
   BlockTx mapToBlockTx(TxnEntity model);
@@ -107,7 +105,6 @@ public interface BlockMapper {
 
   @Mapping(target = "transactionIdentifier", source = "hash")
   @Mapping(target = "metadata.size", source = "size")
-  @Mapping(target = "metadata.scriptSize", source = "scriptSize")
   @Mapping(target = "operations", ignore = true)
   Transaction mapToRosettaTransactionBasic(BlockTx source);
 

@@ -27,7 +27,6 @@ class BlockTransactionsToSearchTransactionsResponseTest extends BaseMapperSetup 
             .transaction(Transaction.builder()
                 .metadata(TransactionMetadata.builder()
                     .size(10L)
-                    .scriptSize(11L)
                     .build())
           .build())
         .build());
