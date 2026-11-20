@@ -17,6 +17,12 @@ Before you begin, ensure you have the following installed:
 - Java 24
 - For integration tests: Node 14+
 
+:::note
+
+To build Docker images from source instead of pulling the pre-built ones, see [Building from Source](./build-from-source).
+
+:::
+
 ## Deployment
 
 ### Using Docker Compose
