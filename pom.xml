@@ -32,6 +32,7 @@
         <version.spring-boot>3.5.16</version.spring-boot>
         <version.openapi-generator-maven-plugin>6.6.0</version.openapi-generator-maven-plugin>
         <version.maven-compiler-plugin>3.16.0</version.maven-compiler-plugin>
+        <version.git-build-hook-maven-plugin>3.6.0</version.git-build-hook-maven-plugin>
         <version.maven-surefire-plugin>3.6.1</version.maven-surefire-plugin>
         <version.hibernate-types>3.15.0</version.hibernate-types>
         <version.jacoco-maven-plugin>0.8.16</version.jacoco-maven-plugin>
@@ -279,4 +280,41 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <!-- Enables the repo's git hooks (.githooks: Conventional Commits) on the first local build.
+             Inactive in CI and in source trees without a .git (e.g. release tarballs). -->
+        <profile>
+            <id>git-hooks</id>
+            <activation>
+                <property>
+                    <name>!env.CI</name>
+                </property>
+                <file>
+                    <exists>${maven.multiModuleProjectDirectory}/.git</exists>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.rudikershaw.gitbuildhook</groupId>
+                        <artifactId>git-build-hook-maven-plugin</artifactId>
+                        <version>${version.git-build-hook-maven-plugin}</version>
+                        <configuration>
+                            <gitConfig>
+                                <core.hooksPath>.githooks</core.hooksPath>
+                            </gitConfig>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>configure</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
