@@ -8,7 +8,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Service
-@Profile({"h2", "test-integration"})
+@Profile({"h2", "h2-testdata", "test-integration"})
 public class NoOpIndexService implements IndexService {
 
     @Override

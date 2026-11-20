@@ -27,6 +27,7 @@ git clone https://github.com/cardano-foundation/cardano-rosetta-java.git
 ```
 2. Use the provided environment files or modify them if necessary:
    - The default configuration is in `.env.docker-compose`
+   - If your policy forbids data that does not come from the Cardano chain, set `OFFCHAIN_DATA_ENABLED=false` there (see [On-chain only mode](../advanced-configuration/token-metadata#on-chain-only-mode))
    - Choose a hardware profile from the available options (see [Hardware Profiles](./hardware-profiles) for details):
 
 ```bash

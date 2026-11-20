@@ -52,6 +52,9 @@ services:
 
       # DB tuning debugging
       INDEXER_DB_SHOW_SQL: ${INDEXER_DB_SHOW_SQL}
+
+      # default true, never empty when unset
+      OFFCHAIN_DATA_ENABLED: ${OFFCHAIN_DATA_ENABLED:-true}
     volumes:
       - ${CARDANO_CONFIG}:/config
       - ${CARDANO_NODE_DIR}:${CARDANO_NODE_DIR}

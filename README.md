@@ -57,6 +57,7 @@ graph LR
 - **Spent UTXO pruning support** reducing storage by ~40%
 - **Offline mode** for secure transaction construction
 - **Native asset support** including NFTs and custom tokens
+- **Token metadata** from CIP-68 (on-chain) and CIP-26 (off-chain), with an [on-chain only mode](https://cardano-foundation.github.io/cardano-rosetta-java/docs/advanced-configuration/token-metadata#on-chain-only-mode) (`OFFCHAIN_DATA_ENABLED=false`)
 - **Governance operations** for Conway era features (DRep vote delegation, Pool governance vote)
 - **SPO operations** for stake pool features (registration, deregistration, retirement, update, etc.)
 

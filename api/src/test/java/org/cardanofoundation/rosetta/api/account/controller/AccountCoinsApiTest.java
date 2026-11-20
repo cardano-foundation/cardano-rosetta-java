@@ -178,8 +178,10 @@ class AccountCoinsApiTest extends BaseSpringMvcSetup {
     assertEquals(1, coinsMetadata.size());
     assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT, coinsMetadata.getFirst()
         .getTokens().getFirst().getValue());
-    // With TokenRegistry integration, decimals come from metadata instead of default
-    assertEquals(6,
+    // MyAsset has no CIP-26 entry in the devkit fixture, so TokenRegistry returns the
+    // default decimals=0. TokenRegistry decimals resolution is covered separately in
+    // TokenQueryServiceTest, where CIP-26/CIP-68 rows are mocked.
+    assertEquals(0,
         coinsMetadata.getFirst().getTokens().getFirst().getCurrency().getDecimals());
   }
 

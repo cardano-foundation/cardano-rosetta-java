@@ -87,7 +87,7 @@ See [Helm Values Reference](./helm-values) for per-component breakdown.
 
 ### Access
 - A `DB_PASSWORD` for PostgreSQL (min 16 characters recommended for production)
-- Outbound internet access (Mithril snapshot download, ~20 GB for mainnet)
+- Outbound internet access (Mithril snapshot download, ~20 GB for mainnet; CIP-26 token registry sync from GitHub unless `global.offchainDataEnabled: false`)
 
 ### Hardware (minimum for preprod / `entry` profile)
 - 8 vCPU
