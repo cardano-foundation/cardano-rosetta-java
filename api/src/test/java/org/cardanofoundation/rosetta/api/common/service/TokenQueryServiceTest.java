@@ -678,7 +678,8 @@ class TokenQueryServiceTest {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = {"not a logo!", "iVBO=w0K", "data:image/png;base64,not base64!", "data:image/png,raw"})
+        @ValueSource(strings = {"not a logo!", "iVBO=w0K", "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG",
+                "data:image/png;base64,not base64!", "data:image/png,raw"})
         @DisplayName("Should not serve a CIP-68 logo that is neither a URL nor valid base64")
         void shouldNotServeInvalidCip68Logo(String invalidLogo) {
             ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);

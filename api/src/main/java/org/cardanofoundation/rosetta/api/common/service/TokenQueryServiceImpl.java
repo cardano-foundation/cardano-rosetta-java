@@ -232,17 +232,11 @@ public class TokenQueryServiceImpl implements TokenQueryService {
 
         Optional.ofNullable(validDecimals(cip26.getDecimals(), cip26.getSubject())).ifPresent(builder::decimals);
         String logo = defaultIfBlank(cip26.getLogo(), null);
-        if (logoEnabled && logo != null) {
-            // yaci-store keeps CIP-26 entries that break the CIP (with validation_errors), so a logo is
-            // only served as base64 when it really is base64.
-            if (Base64Utils.decode(logo).isPresent()) {
-                builder.logo(TokenRegistryCurrencyData.LogoData.builder()
-                        .format(TokenRegistryCurrencyData.LogoFormat.BASE64)
-                        .value(logo)
-                        .build());
-            } else {
-                log.debug("Not serving the CIP-26 logo of {}: not valid base64", cip26.getSubject());
-            }
+        if (logoEnabled && logo != null && isBase64(logo)) {
+            builder.logo(TokenRegistryCurrencyData.LogoData.builder()
+                    .format(TokenRegistryCurrencyData.LogoFormat.BASE64)
+                    .value(logo)
+                    .build());
         }
     }
 
@@ -267,17 +261,12 @@ public class TokenQueryServiceImpl implements TokenQueryService {
                 .ifPresent(builder::decimals);
 
         String logo = defaultIfBlank(richFungibleToken ? cip68.getImage() : cip68.getLogo(), null);
-        if (logoEnabled && logo != null) {
-            TokenRegistryCurrencyData.LogoFormat format = detectLogoFormat(logo);
-            if (format != null) {
-                builder.logo(TokenRegistryCurrencyData.LogoData.builder()
-                        .format(format)
-                        .value(logo)
-                        .build());
-            } else {
-                log.debug("Not serving the CIP-68 logo of {}{}: neither a URL nor base64",
-                        cip68.getPolicyId(), cip68.getAssetName());
-            }
+        TokenRegistryCurrencyData.LogoFormat format = logoEnabled && logo != null ? detectLogoFormat(logo) : null;
+        if (format != null) {
+            builder.logo(TokenRegistryCurrencyData.LogoData.builder()
+                    .format(format)
+                    .value(logo)
+                    .build());
         }
     }
 
@@ -299,9 +288,8 @@ public class TokenQueryServiceImpl implements TokenQueryService {
     }
 
     /**
-     * Detects whether a CIP-68 logo string is a URL or a base64-encoded image, or {@code null} if it is neither.
-     * URLs are identified by known schemes. {@code data:} URIs count as base64, since consumers decode them rather
-     * than fetch them, as long as their {@code ;base64,} payload is valid base64. Anything else must be valid base64.
+     * Detects whether a CIP-68 logo is a URL (known schemes) or base64, or {@code null} if it is neither.
+     * A {@code data:} URI counts as base64 (consumers decode it rather than fetch it) if its payload is base64.
      */
     @Nullable
     private static TokenRegistryCurrencyData.LogoFormat detectLogoFormat(String logo) {
@@ -312,9 +300,16 @@ public class TokenQueryServiceImpl implements TokenQueryService {
         }
         String base64 = lower.startsWith("data:") ? substringAfter(logo, ";base64,") : logo;
 
-        return !base64.isEmpty() && Base64Utils.decode(base64).isPresent()
-                ? TokenRegistryCurrencyData.LogoFormat.BASE64
-                : null;
+        return isBase64(base64) ? TokenRegistryCurrencyData.LogoFormat.BASE64 : null;
+    }
+
+    /**
+     * Logos are written by token issuers, and yaci-store keeps broken ones as written (only flagging them in
+     * {@code validation_errors}), so a logo is only served as base64 when it really is base64. The length check
+     * is there because the JDK decoder also accepts unpadded input, such as a bare IPFS CID.
+     */
+    private static boolean isBase64(String value) {
+        return !value.isEmpty() && value.length() % 4 == 0 && Base64Utils.decode(value).isPresent();
     }
 
     /**
