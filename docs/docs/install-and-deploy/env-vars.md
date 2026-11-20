@@ -40,7 +40,7 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `NETWORK`                                     | Network                                                               | mainnet                                | added in release 1.0.0  |
 | `MITHRIL_SYNC`                                | Sync from Mithril snapshot                                            | true                                   | added in release 1.0.0  |
 | `PROTOCOL_MAGIC`                              | Cardano protocol magic                                                | 764824073                              | added in release 1.0.0  |
-| `PG_VERSION_TAG`                              | Postgres version tag for building from source                         | REL_18_0                               | added in release 1.2.9  |
+| `PG_VERSION_TAG`                              | Postgres version tag for building from source                         | REL_18_7                               | added in release 1.2.9  |
 | `DB_NAME`                                     | Postgres database                                                     | rosetta-java                           | added in release 1.0.0  |
 | `DB_USER`                                     | Postgres admin user                                                   | rosetta_db_admin                       | added in release 1.0.0  |
 | `DB_SECRET`                                   | Postgres admin secret                                                 | weakpwd#123_d                          | added in release 1.0.0  |
@@ -58,7 +58,7 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `CARDANO_NODE_DB`                             | Cardano node db path                                                  | /node/db                               | added in release 1.0.0  |
 | `CARDANO_CONFIG`                              | Cardano node config path (host side)                                  | ./config/node/mainnet                  | added in release 1.0.0  |
 | `CARDANO_CONFIG_CONTAINER_PATH`               | Cardano node config path inside container                             | /config                                | added in release 2.0.0  |
-| `MITHRIL_VERSION`                             | Mithril client version                                                | 2630.1-hotfix                                 | added in release 1.2.9  |
+| `MITHRIL_VERSION`                             | Mithril client version                                                | 2642.0                                        | added in release 1.2.9  |
 | `SNAPSHOT_DIGEST`                             | Mithril snapshot digest                                               | latest                                 | added in release 1.0.0  |
 | `AGGREGATOR_ENDPOINT`                         | Mithril aggregator endpoint (uses default if not set)                 | (empty)                                | added in release 1.0.0  |
 | `GENESIS_VERIFICATION_KEY`                    | Mithril genesis verification key (uses default if not set)            | (empty)                                | added in release 1.0.0  |
@@ -77,6 +77,7 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT`  | Number of safe blocks to keep in the store (~30 days)                 | 129600                                 | added in release 1.2.4  |
 | `REMOVE_SPENT_UTXOS_BATCH_SIZE`               | Batch size for UTXO removal operations                                | 3000                                   | added in release 1.4.0  |
 | `BLOCK_TRANSACTION_API_TIMEOUT_SECS`          | Timeout for fetching blocks in seconds                                | 5                                      | added in release 1.2.11 |
+| `BLOCK_TRANSACTIONS_THRESHOLD`                | Max txs inlined in `/block`, else hashes in `other_transactions`      | 450                                    | added in release 3.0.0  |
 | `INDEX_STALL_TIMEOUT_MINUTES`                 | Liveness stall timeout while an index build is `APPLYING`             | 360                                    | added in release 2.3.0  |
 | `INDEX_FAILED_RETRY_MAX_ATTEMPTS`             | Maximum retry attempts after an index build enters `FAILED`           | 3                                      | added in release 2.3.0  |
 | `INDEX_FAILED_RETRY_DELAY_MINUTES`            | Delay before retrying `FAILED -> APPLYING`                            | 5                                      | added in release 2.3.0  |
@@ -86,8 +87,7 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `DEVKIT_ENABLED`                              | Devkit enabled                                                        | false                                  | added in release 1.0.0  |
 | `DEVKIT_URL`                                  | Devkit URL                                                            | yaci-cli                               | added in release 1.0.0  |
 | `DEVKIT_PORT`                                 | Devkit port                                                           | 3333                                   | added in release 1.0.0  |
-| `LOG_FILE_PATH`                               | Log file directory path                                               | /var/log/rosetta-java                  | added in release 1.0.0  |
-| `LOG_FILE_NAME`                               | Log file name with path                                               | /var/log/rosetta-java/rosetta-java.log | added in release 1.0.0  |
+| `LOG_FILE_NAME`                               | Log file name with path                                               | /var/log/rosetta-java/rosetta-api.log  | added in release 1.0.0  |
 | `LOG_FILE_MAX_SIZE`                           | Maximum size per log file                                             | 10MB                                   | added in release 1.0.0  |
 | `LOG_FILE_MAX_HISTORY`                        | Number of log files to retain                                         | 10                                     | added in release 1.0.0  |
 | `SYNC`                                        | Enable online mode (DB/indexer start after node reaches tip)          | true                                   | added in release 1.2.0  |
@@ -107,11 +107,9 @@ Hardware profile files should be used **in combination** with a base `.env.docke
 | `GRAFANA_PORT`                                | Grafana dashboard port                                                | 3000                                   | added in release 1.3.0  |
 | `POSTGRESQL_EXPORTER_PORT`                    | PostgreSQL exporter port for Prometheus                               | 9187                                   | added in release 1.3.0  |
 | `PEER_DISCOVERY`                              | Enable peer discovery job for automatic peer refreshing               | false                                  | added in release 1.3.2  |
-| `TOKEN_REGISTRY_ENABLED`                      | Enable token registry integration for native token metadata           | false                                  | added in release 1.4.0  |
-| `TOKEN_REGISTRY_BASE_URL`                     | Base URL for the token registry API                                   | (empty)                                | added in release 1.4.0  |
-| `TOKEN_REGISTRY_CACHE_TTL_HOURS`              | Cache TTL for token metadata in hours                                 | 12                                     | added in release 1.4.0  |
-| `TOKEN_REGISTRY_LOGO_FETCH`                   | Enable fetching token logos from registry (increases response size)   | false                                  | added in release 1.4.0  |
-| `TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS`      | Token registry request timeout in seconds                             | 2                                      | added in release 1.4.0  |
+| `OFFCHAIN_DATA_ENABLED`                       | Allow data that does not come from the Cardano chain. `false` = on-chain data only: no CIP-26 sync from GitHub, CIP-26 metadata (including `decimals`) is not served, and the indexer's Admin UI makes no Koios calls. CIP-68 metadata is on-chain and still served. Set on both `api` and `yaci-indexer`. See [Token Metadata](../advanced-configuration/token-metadata#on-chain-only-mode). | true                                   | added in release 3.0.0  |
+| `TOKEN_REGISTRY_ENABLED`                      | Expose CIP-26/CIP-68 enrichment fields (subject, name, ticker, url, description, logo, version) in `currency.metadata`. Does NOT affect `currency.decimals`, which is always resolved from the database regardless (0 when a token has no metadata). | true                                   | added in release 1.4.0, meaning changed in 3.0.0 |
+| `TOKEN_REGISTRY_LOGO_FETCH`                   | Include logos in enrichment output (significantly increases response size). Only takes effect when `TOKEN_REGISTRY_ENABLED=true`. | false                                  | added in release 1.4.0  |
 | `CIP113_BASE_SCRIPT_HASH`                     | CIP-113 programmable logic base script hash used for address derivation; must be a 28-byte hexadecimal string when configured | (empty)                                | added in release 2.4.0  |
 
 </div>

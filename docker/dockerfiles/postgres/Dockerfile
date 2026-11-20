@@ -1,4 +1,4 @@
-FROM ubuntu:24.04
+FROM ubuntu:26.04
 
 # Harden apt against transient Ubuntu-mirror hiccups (mirror sync in progress,
 # flaky DNS, stale CDN edges). Retry a few times, bump the read timeout, and
@@ -25,7 +25,9 @@ RUN apt update && apt install -y \
   && update-locale LANG=en_US.UTF-8 \
   && apt clean
 
-ENV PG_VERSION_TAG=REL_18_0
+# Source tag for the PostgreSQL git checkout (PostgreSQL 18.7). The data directory stays at
+# /var/lib/postgresql/data, so an existing PostgreSQL 18 data directory starts unchanged.
+ENV PG_VERSION_TAG=REL_18_7
 ENV PG_DATA="/var/lib/postgresql/data"
 ENV PG_BIN="/usr/local/pgsql/bin"
 ENV PATH="$PG_BIN:$PATH"
@@ -40,7 +42,7 @@ RUN git clone --branch $PG_VERSION_TAG https://github.com/postgres/postgres.git 
 
 RUN useradd -m -U -s /bin/bash postgres
 
-RUN mkdir -p $PG_DATA 
+RUN mkdir -p "$PG_DATA"
 
 VOLUME ["$PG_DATA"]
 

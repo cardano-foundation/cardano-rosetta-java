@@ -20,7 +20,7 @@ spec:
 
       initContainers:
         - name: wait-for-postgres
-          image: postgres:16-alpine
+          image: postgres:18-alpine
           command:
             - sh
             - -c
@@ -94,6 +94,8 @@ spec:
           env:
             - name: NETWORK
               value: {{ .Values.global.network | quote }}
+            - name: OFFCHAIN_DATA_ENABLED
+              value: {{ .Values.global.offchainDataEnabled | toString | quote }}
             # Use n2c-socat profile for TCP socket bridge (K8s compatible)
             - name: YACI_SPRING_PROFILES
               value: "postgres,n2c-socat"

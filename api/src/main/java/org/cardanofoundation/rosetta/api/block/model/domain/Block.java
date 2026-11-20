@@ -1,6 +1,7 @@
 package org.cardanofoundation.rosetta.api.block.model.domain;
 
 import java.util.List;
+import javax.annotation.Nullable;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,5 +26,7 @@ public class Block {
   private Long slotNo;
   private List<BlockTx> transactions;
   private String poolDeposit;
+  @Nullable
+  private List<String> otherTransactions;
 
 }

@@ -26,14 +26,12 @@ env:
   removeSpentUtxos: true
   removeSpentUtxosLastBlocksGraceCount: 129600  # 30 days @ ~20s/block; matches Docker Compose default
   blockTransactionApiTimeoutSecs: 120      # intentionally higher than Docker (5s) for K8s network latency
+  blockTransactionsThreshold: 450
   devkitEnabled: false
   devkitUrl: ""
   devkitPort: 0
-  tokenRegistryEnabled: false
-  tokenRegistryBaseUrl: ""                 # matches Docker Compose default (disabled by default)
-  tokenRegistryCacheTtlHours: 12           # matches Docker Compose default
+  tokenRegistryEnabled: true
   tokenRegistryLogoFetch: false
-  tokenRegistryRequestTimeoutSeconds: 2    # matches Docker Compose default
   cip113BaseScriptHash: ""
 
 ## Resource and DB pool profiles (inherited from parent, can be overridden)

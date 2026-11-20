@@ -51,7 +51,6 @@ class TxRepositoryQueryBuilderTest {
             Long fee = 170000L;
             Integer txIndex = 5;
             Integer txSize = 300;
-            Integer scriptSize = 50;
 
             List<UtxoKey> inputKeys = List.of(
                     new UtxoKey("prevtx1", 0)
@@ -72,7 +71,6 @@ class TxRepositoryQueryBuilderTest {
             when(mockRecord.get("joined_block_number", Long.class)).thenReturn(blockNumber);
             when(mockRecord.get("joined_block_slot", Long.class)).thenReturn(blockSlot);
             when(mockRecord.get("joined_tx_size", Integer.class)).thenReturn(txSize);
-            when(mockRecord.get("joined_tx_script_size", Integer.class)).thenReturn(scriptSize);
 
             // when
             TxnEntity result = queryBuilder.mapRecordToTxnEntity(mockRecord);
@@ -93,7 +91,6 @@ class TxRepositoryQueryBuilderTest {
             assertThat(result.getSizeEntity()).isNotNull();
             assertThat(result.getSizeEntity().getTxHash()).isEqualTo(txHash);
             assertThat(result.getSizeEntity().getSize()).isEqualTo(txSize);
-            assertThat(result.getSizeEntity().getScriptSize()).isEqualTo(scriptSize);
         }
 
         @Test
@@ -199,7 +196,7 @@ class TxRepositoryQueryBuilderTest {
             when(mockRecord.get(TRANSACTION.FEE)).thenReturn(null);
             when(mockRecord.get(TRANSACTION.TX_INDEX)).thenReturn(txIndex);
             when(mockRecord.get("joined_block_hash", String.class)).thenReturn(null);
-            // No need to mock block_number, block_slot, tx_size, script_size when block_hash is null
+            // No need to mock block_number, block_slot, tx_size when block_hash is null
 
             // when
             TxnEntity result = queryBuilder.mapRecordToTxnEntity(mockRecord);
@@ -303,7 +300,6 @@ class TxRepositoryQueryBuilderTest {
             when(mockRecord.get("joined_block_number", Long.class)).thenReturn(blockNumber);
             when(mockRecord.get("joined_block_slot", Long.class)).thenReturn(blockSlot);
             when(mockRecord.get("joined_tx_size", Integer.class)).thenReturn(null);
-            when(mockRecord.get("joined_tx_script_size", Integer.class)).thenReturn(null);
 
             // when
             TxnEntity result = queryBuilder.mapRecordToTxnEntity(mockRecord);
@@ -321,11 +317,10 @@ class TxRepositoryQueryBuilderTest {
     class EdgeCaseTests {
 
         @Test
-        void shouldHandleTransactionSizeWithoutScriptSize() throws JsonProcessingException {
+        void shouldNotReportMissingTxSizeAsZero() throws JsonProcessingException {
             // given
-            String txHash = "tx_no_script";
+            String txHash = "tx_no_size";
             Integer txIndex = 1;
-            Integer txSize = 250;
 
             List<UtxoKey> inputKeys = List.of();
             List<UtxoKey> outputKeys = List.of();
@@ -341,8 +336,7 @@ class TxRepositoryQueryBuilderTest {
             when(mockRecord.get("joined_block_hash", String.class)).thenReturn("block1");
             when(mockRecord.get("joined_block_number", Long.class)).thenReturn(10L);
             when(mockRecord.get("joined_block_slot", Long.class)).thenReturn(100L);
-            when(mockRecord.get("joined_tx_size", Integer.class)).thenReturn(txSize);
-            when(mockRecord.get("joined_tx_script_size", Integer.class)).thenReturn(null);
+            when(mockRecord.get("joined_tx_size", Integer.class)).thenReturn(null);
 
             // when
             TxnEntity result = queryBuilder.mapRecordToTxnEntity(mockRecord);
@@ -350,9 +344,7 @@ class TxRepositoryQueryBuilderTest {
             // then
             assertThat(result).isNotNull();
             assertThat(result.getTxIndex()).isEqualTo(txIndex);
-            assertThat(result.getSizeEntity()).isNotNull();
-            assertThat(result.getSizeEntity().getSize()).isEqualTo(txSize);
-            assertThat(result.getSizeEntity().getScriptSize()).isEqualTo(0); // Default value
+            assertThat(result.getSizeEntity()).isNull();
         }
 
         @Test

@@ -70,7 +70,7 @@ class CardanoAddressUtilTest {
     SingleHostAddr singleHostAddr = (SingleHostAddr) generateSpecificRelay(
         relay);
     assertEquals("2001:db8:3c4d:15:0:0:1a2f:1a2b", singleHostAddr.getIpv6().getHostAddress());
-    assertEquals(3001, singleHostAddr.getPort());
+    assertEquals(Integer.valueOf(3001), singleHostAddr.getPort());
 
     relay.setType(Constants.SINGLE_HOST_NAME);
     SingleHostName singleHostName = (SingleHostName) generateSpecificRelay(

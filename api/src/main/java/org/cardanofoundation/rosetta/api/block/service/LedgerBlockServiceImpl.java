@@ -16,6 +16,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.*;
 import org.cardanofoundation.rosetta.api.block.model.repository.*;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
+import org.cardanofoundation.rosetta.common.util.StructuredTaskScopeUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
@@ -57,6 +58,9 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   @Value("${cardano.rosetta.BLOCK_TRANSACTION_API_TIMEOUT_SECS:5}")
   private int blockTransactionApiTimeoutSecs;
+
+  @Value("${cardano.rosetta.BLOCK_TRANSACTIONS_THRESHOLD:450}")
+  private long blockTransactionsThreshold;
 
   @Value("${cardano.rosetta.REMOVE_SPENT_UTXOS:true}")
   private boolean isRemovalOfSpentUTxOsEnabled;
@@ -110,6 +114,14 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
 
   @NotNull
   private Block toModelFrom(BlockEntity blockEntity) {
+    if (blockEntity.getNoOfTxs() != null && blockEntity.getNoOfTxs() > blockTransactionsThreshold) {
+      Block model = blockMapper.mapToBlockWithoutTransactions(blockEntity);
+      model.setTransactions(List.of());
+      model.setOtherTransactions(txRepository.findTransactionHashesByBlockHash(blockEntity.getHash()));
+
+      return model;
+    }
+
     Block model = blockMapper.mapToBlock(blockEntity);
     List<BlockTx> transactions = model.getTransactions();
     TransactionInfo fetched = findByTxHash(transactions);
@@ -134,6 +146,14 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
     log.debug("Found {} transactions", txList.size());
 
     return mapTxnEntitiesToBlockTxList(txList);
+  }
+
+  @Override
+  public Optional<BlockTx> findTransactionByBlock(Long blk, String blkHash, String txHash) {
+    log.debug("query blockNumber: {} blockHash: {} txHash: {}", blk, blkHash, txHash);
+
+    return txRepository.findTransactionByBlockAndTxHash(blk, blkHash, txHash)
+            .map(tx -> mapTxnEntitiesToBlockTxList(List.of(tx)).getFirst());
   }
 
   @Override
@@ -238,7 +258,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
       StructuredTaskScope.Subtask<List<VotingProcedureEntity>> spoVotes = scope.fork(() -> votingProcedureRepository.findByTxHashInAndVoterType(txHashes, VoterType.STAKING_POOL_KEY_HASH));
       StructuredTaskScope.Subtask<List<InvalidTransactionEntity>> invalidTxs = scope.fork(() -> invalidTransactionRepository.findByTxHashIn(txHashes));
 
-      scope.join();
+      StructuredTaskScopeUtil.join(scope, "transaction data");
 
       return new TransactionInfo(
               utxos.get(),
@@ -251,15 +271,6 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
               withdrawals.get(),
               invalidTxs.get()
       );
-    } catch (StructuredTaskScope.FailedException e) {
-      log.error("Error fetching transaction data", e);
-
-      throw ExceptionFactory.unspecifiedError("Error fetching transaction data, msg:%s".formatted(e.getMessage()));
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      log.error("Error fetching transaction data", e);
-
-      throw ExceptionFactory.unspecifiedError("Error fetching transaction data, msg:%s".formatted(e.getMessage()));
     }
   }
 

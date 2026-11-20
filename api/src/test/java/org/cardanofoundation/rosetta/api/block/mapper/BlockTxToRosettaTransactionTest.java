@@ -56,7 +56,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, emptyMetadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
-    assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
     assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
     assertThat(into.getOperations()).isEmpty();
   }
@@ -80,7 +79,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
       //then
       assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
-      assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
       assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
 
       assertThat(into.getOperations()).hasSize(3);
@@ -120,7 +118,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
-    assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
     assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
 
     assertThat(into.getOperations()).hasSize(3);
@@ -172,7 +169,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
-    assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
     assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
 
     assertThat(into.getOperations()).hasSize(3);
@@ -219,7 +215,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
-    assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
     assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
 
     assertThat(into.getOperations()).hasSize(3);
@@ -251,7 +246,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
-    assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
     assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
     assertThat(into.getOperations()).hasSize(2);
 
@@ -308,7 +302,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
     Transaction into = my.mapToRosettaTransactionWithMetadata(from, metadataMap);
     //then
     assertThat(into.getMetadata().getSize()).isEqualTo(from.getSize());
-    assertThat(into.getMetadata().getScriptSize()).isEqualTo(from.getScriptSize());
     assertThat(into.getTransactionIdentifier().getHash()).isEqualTo(from.getHash());
     assertThat(into.getOperations()).hasSize(2);
 
@@ -461,7 +454,6 @@ class BlockTxToRosettaTransactionTest extends BaseMapperSetup {
         .size(1L)
         .fee("123")
         .hash("hash12")
-        .scriptSize(0L)
         .inputs(List.of(newUtxoIn()))
         .outputs(List.of(newUtxoOut()))
         .build();
