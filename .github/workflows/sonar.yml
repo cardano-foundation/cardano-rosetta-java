@@ -1,0 +1,70 @@
+name: SonarCloud
+
+# CI-based SonarCloud analysis (adds test coverage, which SonarCloud's Automatic Analysis cannot import).
+#
+# OPT-IN: the job only runs when the repository variable SONAR_CI_ANALYSIS is 'true'. Until then it is
+# skipped and SonarCloud's Automatic Analysis keeps analysing PRs as it does today. SonarCloud refuses
+# CI-based analysis while Automatic Analysis is on, so before setting the variable a SonarCloud
+# organization admin must turn Automatic Analysis off and provide a valid SONAR_TOKEN (see PR #802).
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: sonar-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sonar:
+    name: SonarCloud Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # Opt-in (see the top of this file), and skipped on PRs from forks and Dependabot: repository secrets
+    # (SONAR_TOKEN, GH_PACKAGES_*) are not exposed there, so the analysis would fail instead of being skipped.
+    if: >-
+      vars.SONAR_CI_ANALYSIS == 'true' &&
+      (github.event_name != 'pull_request' ||
+       (github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'))
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # full history for accurate blame / new-code detection
+
+      - name: Set up Eclipse Temurin 25
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+          cache: maven
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Build, test and analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GH_PACKAGES_USER_NAME: ${{ secrets.GH_PACKAGES_USER_NAME }}
+          GH_PACKAGES_ACCESS_TOKEN: ${{ secrets.GH_PACKAGES_ACCESS_TOKEN }}
+        run: >
+          mvn -s $GITHUB_WORKSPACE/.github/workflows/maven-settings.xml
+          --batch-mode clean verify
+          org.sonarsource.scanner.maven:sonar-maven-plugin:5.8.0.7211:sonar
+          -Dsonar.host.url=https://sonarcloud.io
+          -Dsonar.organization=cardano-foundation
+          -Dsonar.projectKey=cardano-foundation_cardano-rosetta-java
+          -Dsonar.projectName=cardano-rosetta-java
+          --file ./pom.xml
