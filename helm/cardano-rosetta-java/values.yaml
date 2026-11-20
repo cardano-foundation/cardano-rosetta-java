@@ -4,11 +4,13 @@
 global:
   network: mainnet
   protocolMagic: "764824073"
-  releaseVersion: "2.4.1"
+  releaseVersion: "2.4.2"
   cardanoNodeVersion: "11.1.3"
   pgVersionTag: "REL_18_7"
   mithrilVersion: "2642.0"
   profile: mid
+  # false = on-chain data only: no CIP-26 token metadata (GitHub registry), no Koios calls; CIP-68 still served
+  offchainDataEnabled: true
 
   db:
     name: "rosetta-java"

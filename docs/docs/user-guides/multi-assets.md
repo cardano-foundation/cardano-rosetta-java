@@ -170,6 +170,10 @@ When queried with a stake address (reward address), the response includes availa
 }
 ```
 
+:::info Token metadata
+`decimals` and the optional `currency.metadata` fields (name, ticker, logo, ...) come from CIP-68 metadata on the chain and CIP-26 metadata from a GitHub token registry (off-chain). Deployments running in [on-chain only mode](../advanced-configuration/token-metadata#on-chain-only-mode) (`OFFCHAIN_DATA_ENABLED=false`) serve CIP-68 metadata only. See [Token Metadata](../advanced-configuration/token-metadata).
+:::
+
   </TabItem>
   <TabItem value="coins" label="/account/coins">
 

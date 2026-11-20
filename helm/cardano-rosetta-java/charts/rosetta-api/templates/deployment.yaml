@@ -131,22 +131,20 @@ spec:
               value: {{ .Values.env.removeSpentUtxosLastBlocksGraceCount | toString | quote }}
             - name: BLOCK_TRANSACTION_API_TIMEOUT_SECS
               value: {{ .Values.env.blockTransactionApiTimeoutSecs | toString | quote }}
+            - name: BLOCK_TRANSACTIONS_THRESHOLD
+              value: {{ .Values.env.blockTransactionsThreshold | toString | quote }}
             - name: DEVKIT_ENABLED
               value: {{ .Values.env.devkitEnabled | toString | quote }}
             - name: DEVKIT_URL
               value: {{ .Values.env.devkitUrl | quote }}
             - name: DEVKIT_PORT
               value: {{ .Values.env.devkitPort | toString | quote }}
+            - name: OFFCHAIN_DATA_ENABLED
+              value: {{ .Values.global.offchainDataEnabled | toString | quote }}
             - name: TOKEN_REGISTRY_ENABLED
               value: {{ .Values.env.tokenRegistryEnabled | toString | quote }}
-            - name: TOKEN_REGISTRY_BASE_URL
-              value: {{ .Values.env.tokenRegistryBaseUrl | quote }}
-            - name: TOKEN_REGISTRY_CACHE_TTL_HOURS
-              value: {{ .Values.env.tokenRegistryCacheTtlHours | toString | quote }}
             - name: TOKEN_REGISTRY_LOGO_FETCH
               value: {{ .Values.env.tokenRegistryLogoFetch | toString | quote }}
-            - name: TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS
-              value: {{ .Values.env.tokenRegistryRequestTimeoutSeconds | toString | quote }}
             - name: CIP113_BASE_SCRIPT_HASH
               value: {{ .Values.env.cip113BaseScriptHash | quote }}
             {{- $profile := (include "rosetta-api.profile" .) }}

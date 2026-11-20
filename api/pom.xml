@@ -70,10 +70,6 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-ui</artifactId>
-        </dependency>
-        <dependency>
             <groupId>io.swagger.core.v3</groupId>
             <artifactId>swagger-annotations</artifactId>
         </dependency>
@@ -125,7 +121,7 @@
         <dependency>
             <groupId>org.openapitools</groupId>
             <artifactId>jackson-databind-nullable</artifactId>
-            <version>0.2.10</version>
+            <version>0.2.13</version>
         </dependency>
 
         <dependency>
@@ -145,6 +141,22 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
+        <!-- yaci-store assets-ext as a library: its JPA entities and repositories for cip26_metadata /
+             cip68_metadata (tables written by yaci-indexer), instead of copying them. Only those packages
+             are scanned (RosettaApiApplication), so no yaci-store service, job or migration runs here.
+             Transitive dependencies (yaci-store core, node client, JGit, cf-tokens-cip26, ...) are not
+             needed by the entities and repositories and are excluded. -->
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>yaci-store-assets-ext</artifactId>
+            <version>${yaci-store.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
 
         <dependency>
             <artifactId>hibernate-jpamodelgen</artifactId>
@@ -162,13 +174,13 @@
         <dependency>
             <groupId>commons-validator</groupId>
             <artifactId>commons-validator</artifactId>
-            <version>1.10.1</version>
+            <version>1.11.0</version>
         </dependency>
 
         <dependency>
             <groupId>io.swagger.parser.v3</groupId>
             <artifactId>swagger-parser</artifactId>
-            <version>2.1.39</version>
+            <version>2.1.48</version>
         </dependency>
         <dependency>
             <groupId>com.bloxbean.cardano</groupId>
@@ -200,7 +212,7 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20251224</version>
+            <version>20260814</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -284,7 +296,37 @@
                                 <sourceFolder>src/gen/java/main</sourceFolder>
                                 <useJakartaEe>true</useJakartaEe>
                                 <skipValidateSpec>true</skipValidateSpec>
+                                <!--
+                                  Enum values in requests are matched ignoring case, e.g. "COIN_SPENT" is read as
+                                  CoinAction.SPENT. Generator 6.4.0 ignored this option; 6.6.0 applies it.
+                                  Responses still use the lowercase values from api.yaml.
+                                -->
                                 <useEnumCaseInsensitive>true</useEnumCaseInsensitive>
+                                <!--
+                                  The two options below were added with the upgrade from OpenAPI Generator 6.4.0 to
+                                  6.6.0. The newer generator is not backwards compatible with our setup: it changes
+                                  its defaults, and without these options the generated Java code changes and the
+                                  api module no longer compiles. They only restore the code 6.4.0 generated; with
+                                  6.4.0 they change nothing. The JSON the API reads and writes is not affected.
+                                -->
+                                <!--
+                                  Unlike 6.4.0, 6.6.0 adds by default a constructor taking the required
+                                  fields and a deprecated no-args constructor to every model with required fields.
+                                  Those clash with the constructors Lombok adds through additionalModelTypeAnnotations
+                                  below (@NoArgsConstructor, and @AllArgsConstructor when all fields are required),
+                                  which fails compilation with "constructor is already defined" in 64 models.
+                                  false: the generator adds no constructors and Lombok provides them, as with 6.4.0.
+                                -->
+                                <generatedConstructorWithRequiredArgs>false</generatedConstructorWithRequiredArgs>
+                                <!--
+                                  The default for this option differs between 6.4.0 and 6.6.0: 6.6.0 no longer strips the prefix the values
+                                  of an enum share from the Java constant names. CoinAction ("coin_spent",
+                                  "coin_created") would become COIN_SPENT / COIN_CREATED instead of SPENT / CREATED,
+                                  and the code using CoinAction.SPENT would no longer compile.
+                                  true: keeps the constant names generated by 6.4.0. Only Java names are affected;
+                                  the JSON values stay "coin_spent" / "coin_created".
+                                -->
+                                <removeEnumValuePrefix>true</removeEnumValuePrefix>
                                 <interfaceOnly>true</interfaceOnly>
                                 <!--suppress UnresolvedMavenProperty -->
                                 <additionalModelTypeAnnotations>@lombok.Builder @lombok.NoArgsConstructor

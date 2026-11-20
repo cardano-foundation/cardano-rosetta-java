@@ -1,0 +1,43 @@
+name: Preprod E2E
+
+run-name: Preprod E2E - ${{ inputs.release_tag }}
+
+# Standalone entry point for the Preprod E2E step of release testing, so a
+# failed or interrupted step can be repeated without repeating the Mainnet
+# evidence generation. The combined flow stays in release-test.yaml.
+#
+# No workflow-level concurrency: the called workflow holds the
+# preprod-host-deployment lock, shared with the combined flow and the PR
+# Preprod Tests, so a standalone run queues on the host it needs.
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: GitHub release tag, for example 2.4.0
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  resolve:
+    uses: ./.github/workflows/release-test-resolve.yaml
+    with:
+      release_tag: ${{ inputs.release_tag }}
+
+  preprod:
+    needs: resolve
+    uses: ./.github/workflows/release-test-preprod.yaml
+    secrets:
+      BLOCKFROST_PROJECT_ID: ${{ secrets.BLOCKFROST_PROJECT_ID }}
+      TEST_WALLET_MNEMONIC: ${{ secrets.TEST_WALLET_MNEMONIC }}
+    with:
+      candidate_api_image: ${{ needs.resolve.outputs.api_image }}
+      candidate_cardano_node_image: ${{ needs.resolve.outputs.cardano_node_image }}
+      candidate_indexer_image: ${{ needs.resolve.outputs.indexer_image }}
+      candidate_mithril_image: ${{ needs.resolve.outputs.mithril_image }}
+      candidate_postgres_image: ${{ needs.resolve.outputs.postgres_image }}
+      prerelease_tag: ${{ needs.resolve.outputs.prerelease_tag }}
+      source_sha: ${{ needs.resolve.outputs.source_sha }}

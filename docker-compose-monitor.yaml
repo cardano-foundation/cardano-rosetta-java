@@ -30,7 +30,7 @@ services:
 
 
   postgresql-exporter:
-    image: prometheuscommunity/postgres-exporter
+    image: prometheuscommunity/postgres-exporter:v0.20.1
     environment:
       - DATA_SOURCE_URI=${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable
       - DATA_SOURCE_USER=${DB_USER}

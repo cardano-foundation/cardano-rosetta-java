@@ -182,14 +182,15 @@ def test_reward_withdrawal_zero(
         )
         logger.debug(f"Transaction built with fee: {fee:,} lovelace")
 
-        # 5. Sign and submit transaction
+        # 5. Sign and submit transaction. Since v2.4.0 the zero-value withdrawal
+        # is not a balance change, so it must not appear in the operations.
         signing_function = signing_handler.create_combined_signing_function(payloads)
 
         tx_hash, tx_details = transaction_orchestrator.sign_and_submit(
             unsigned_transaction=unsigned_tx,
             payloads=payloads,
             signing_function=signing_function,
-            expected_operations=["withdrawal"]
+            absent_operations=["withdrawal"]
         )
 
         # 6. Verify balance (no deposit or refund)

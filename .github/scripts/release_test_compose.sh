@@ -13,10 +13,9 @@ compose_override_path() {
 }
 
 write_compose_override() {
-  local network_name override_file registry_hostname
+  local network_name override_file
   network_name=${COMPOSE_NETWORK_NAME:-cardano-rosetta-java-${NETWORK}}
   override_file=$(compose_override_path) || return
-  registry_hostname=${TOKEN_REGISTRY_HOSTNAME:-}
 
   jq -n \
     --arg api "$API_IMAGE" \
@@ -24,8 +23,7 @@ write_compose_override() {
     --arg node "$CARDANO_NODE_IMAGE" \
     --arg postgres "$POSTGRES_IMAGE" \
     --arg mithril "$MITHRIL_IMAGE" \
-    --arg network "$network_name" \
-    --arg registry_hostname "$registry_hostname" '
+    --arg network "$network_name" '
       {
         services: {
           api: {image: $api},
@@ -38,9 +36,6 @@ write_compose_override() {
         },
         networks: {default: {name: $network}}
       }
-      | if $registry_hostname == "" then .
-        else .services.api.extra_hosts = [($registry_hostname + ":host-gateway")]
-        end
     ' > "$override_file" || return
   echo "Wrote explicit Compose image and network configuration to $override_file."
 }
@@ -97,11 +92,22 @@ verify_compose_database_access() (
 )
 
 prepare_compose_images() {
-  local image
-  for image in "$API_IMAGE" "$INDEXER_IMAGE" "$CARDANO_NODE_IMAGE" "$POSTGRES_IMAGE" "$MITHRIL_IMAGE"; do
-    docker pull "$image"
-  done
+  local config image
+  local -a images=()
+
   write_compose_override || return
+
+  # Pull every referenced image, not just the release candidates.
+  config=$(release_compose config --format json) || return
+  mapfile -t images < <(jq -r '.services[].image // empty' <<< "$config" | sort -u)
+  if [[ ${#images[@]} -eq 0 ]]; then
+    echo "Compose configuration references no images." >&2
+    return 1
+  fi
+
+  for image in "${images[@]}"; do
+    docker pull "$image" || return
+  done
 }
 
 compose_candidate_services() {

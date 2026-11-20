@@ -88,6 +88,8 @@ The YACI (Yet Another Cardano Indexer) Indexer processes blockchain data from th
 
 The indexer features modular components that support different aspects of the Cardano blockchain, including blocks, transactions, UTXOs, staking, and epoch data. It handles efficient data processing with configurable pruning options to manage database size.
 
+It also collects [token metadata](../advanced-configuration/token-metadata): CIP-68 metadata from the chain, and CIP-26 metadata, which is off-chain, from a GitHub token registry. This is the only data Rosetta takes from outside the chain. `OFFCHAIN_DATA_ENABLED=false` turns it off for deployments that must serve on-chain data only.
+
 ### Database
 
 PostgreSQL database stores indexed blockchain data in a structured format optimized for API queries. While YACI store supports multiple database options, PostgreSQL is the default and recommended choice for this implementation.

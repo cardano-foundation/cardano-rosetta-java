@@ -59,20 +59,6 @@ public class TransactionSizeRecord extends UpdatableRecordImpl<TransactionSizeRe
         return (Integer) get(2);
     }
 
-    /**
-     * Setter for <code>public.transaction_size.script_size</code>.
-     */
-    public void setScriptSize(Integer value) {
-        set(3, value);
-    }
-
-    /**
-     * Getter for <code>public.transaction_size.script_size</code>.
-     */
-    public Integer getScriptSize() {
-        return (Integer) get(3);
-    }
-
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -96,13 +82,12 @@ public class TransactionSizeRecord extends UpdatableRecordImpl<TransactionSizeRe
     /**
      * Create a detached, initialised TransactionSizeRecord
      */
-    public TransactionSizeRecord(String txHash, Long blockNumber, Integer size, Integer scriptSize) {
+    public TransactionSizeRecord(String txHash, Long blockNumber, Integer size) {
         super(TransactionSize.TRANSACTION_SIZE);
 
         setTxHash(txHash);
         setBlockNumber(blockNumber);
         setSize(size);
-        setScriptSize(scriptSize);
         resetChangedOnNotNull();
     }
 }

@@ -34,6 +34,7 @@ public class YaciIndexerApplication {
   public static void main(String[] args) {
     YaciConfig.INSTANCE.setReturnBlockCbor(true);
     YaciConfig.INSTANCE.setReturnTxBodyCbor(true);
+    YaciConfig.INSTANCE.setReturnFullTxCbor(true);
     SpringApplication.run(YaciIndexerApplication.class, args);
   }
 

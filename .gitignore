@@ -62,3 +62,9 @@ settings.xml
 helm/**/charts/*.tgz
 helm/**/Chart.lock
 __pycache__/
+
+# regenerate-testdata-db skill writes logs here
+/build/
+
+# yaci-cli leaves a shell history file when driven via stdin
+yaci-cli.history

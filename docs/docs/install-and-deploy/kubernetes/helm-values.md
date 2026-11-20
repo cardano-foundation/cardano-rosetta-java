@@ -17,12 +17,13 @@ These values are shared across all subcharts via `global.*`.
 |-------|---------|--------------------------|-------------|
 | `global.network` | `mainnet` | `NETWORK` | Blockchain network: `mainnet`, `preprod`, `preview` |
 | `global.protocolMagic` | `"764824073"` | `PROTOCOL_MAGIC` | Cardano protocol magic number (always a quoted string to prevent scientific notation) |
-| `global.releaseVersion` | `"2.4.1"` | `RELEASE_VERSION` | Docker image tag for API and indexer |
+| `global.releaseVersion` | `"2.4.2"` | `RELEASE_VERSION` | Docker image tag for API and indexer |
 | `global.cardanoNodeVersion` | `"11.1.3"` | `CARDANO_NODE_VERSION` | Cardano node image tag |
 | `global.pgVersionTag` | `REL_18_7` | `PG_VERSION_TAG` | PostgreSQL image tag |
 | `global.mithrilVersion` | `2642.0` | `MITHRIL_VERSION` | Mithril client image tag |
 | `global.profile` | `mid` | — | Hardware profile: `entry`, `mid`, `advanced` |
 | `global.sync` | `true` | `SYNC` | Set `false` for offline (API-only) mode |
+| `global.offchainDataEnabled` | `true` | `OFFCHAIN_DATA_ENABLED` | Set `false` for on-chain data only: no CIP-26 sync or CIP-26 metadata, no Koios calls. Applied to both `rosetta-api` and `yaci-indexer` |
 
 ### Database (`global.db`)
 
@@ -110,12 +111,10 @@ Set `global.profile` to one of: `entry`, `mid`, `advanced`.
 | `rosetta-api.env.removeSpentUtxos` | `true` | `REMOVE_SPENT_UTXOS` | Must match yaci-indexer setting |
 | `rosetta-api.env.removeSpentUtxosLastBlocksGraceCount` | `129600` | `REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT` | Must match yaci-indexer setting |
 | `rosetta-api.env.blockTransactionApiTimeoutSecs` | `120` | `BLOCK_TRANSACTION_API_TIMEOUT_SECS` | Timeout for block queries |
+| `rosetta-api.env.blockTransactionsThreshold` | `450` | `BLOCK_TRANSACTIONS_THRESHOLD` | Max txs inlined in `/block`, else hashes in `other_transactions` |
 | `rosetta-api.env.devkitEnabled` | `false` | `DEVKIT_ENABLED` | Enable DevKit integration |
-| `rosetta-api.env.tokenRegistryEnabled` | `false` | `TOKEN_REGISTRY_ENABLED` | Enable Cardano token registry |
-| `rosetta-api.env.tokenRegistryBaseUrl` | `""` | `TOKEN_REGISTRY_BASE_URL` | Token registry URL (leave empty = disabled) |
-| `rosetta-api.env.tokenRegistryCacheTtlHours` | `12` | `TOKEN_REGISTRY_CACHE_TTL_HOURS` | Token metadata cache TTL |
-| `rosetta-api.env.tokenRegistryLogoFetch` | `false` | `TOKEN_REGISTRY_LOGO_FETCH` | Fetch token logos (bandwidth-intensive) |
-| `rosetta-api.env.tokenRegistryRequestTimeoutSeconds` | `2` | `TOKEN_REGISTRY_REQUEST_TIMEOUT_SECONDS` | Token registry request timeout |
+| `rosetta-api.env.tokenRegistryEnabled` | `true` | `TOKEN_REGISTRY_ENABLED` | Expose CIP-26/CIP-68 enrichment in `currency.metadata`. Does NOT affect `currency.decimals` — decimals is always resolved regardless. |
+| `rosetta-api.env.tokenRegistryLogoFetch` | `false` | `TOKEN_REGISTRY_LOGO_FETCH` | Include logos in enrichment (bandwidth-intensive). Requires `tokenRegistryEnabled=true`. |
 | `rosetta-api.env.cip113BaseScriptHash` | `""` (chart default); `d91d08e381f8ef95ffbb3f8048f020d7361ded8f3abfdf66c25fa838` in `values.yaml` (mainnet); `be59f7750a5d947bb649e70d574d066791ec34a1dfee2a087c8511e3` in `values-preprod.yaml` | `CIP113_BASE_SCRIPT_HASH` | CIP-113 programmable logic base script hash (28-byte hex). Network-specific |
 
 ### Ingress
