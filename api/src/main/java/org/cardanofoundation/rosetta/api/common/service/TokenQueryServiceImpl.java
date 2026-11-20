@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
+import org.cardanofoundation.rosetta.common.util.Base64Utils;
 import com.bloxbean.cardano.yaci.store.extensions.assetstore.cip68.storage.impl.model.Cip68Metadata;
 import com.bloxbean.cardano.yaci.store.extensions.assetstore.cip26.storage.impl.model.Cip26Metadata;
 import com.bloxbean.cardano.yaci.store.extensions.assetstore.cip68.storage.impl.repository.Cip68MetadataRepository;
@@ -26,6 +27,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.substringAfter;
 
 /**
  * Read-only service for querying token metadata from CIP-26 and CIP-68 tables
@@ -231,10 +233,16 @@ public class TokenQueryServiceImpl implements TokenQueryService {
         Optional.ofNullable(validDecimals(cip26.getDecimals(), cip26.getSubject())).ifPresent(builder::decimals);
         String logo = defaultIfBlank(cip26.getLogo(), null);
         if (logoEnabled && logo != null) {
-            builder.logo(TokenRegistryCurrencyData.LogoData.builder()
-                    .format(TokenRegistryCurrencyData.LogoFormat.BASE64)
-                    .value(logo)
-                    .build());
+            // yaci-store keeps CIP-26 entries that break the CIP (with validation_errors), so a logo is
+            // only served as base64 when it really is base64.
+            if (Base64Utils.decode(logo).isPresent()) {
+                builder.logo(TokenRegistryCurrencyData.LogoData.builder()
+                        .format(TokenRegistryCurrencyData.LogoFormat.BASE64)
+                        .value(logo)
+                        .build());
+            } else {
+                log.debug("Not serving the CIP-26 logo of {}: not valid base64", cip26.getSubject());
+            }
         }
     }
 
@@ -260,10 +268,16 @@ public class TokenQueryServiceImpl implements TokenQueryService {
 
         String logo = defaultIfBlank(richFungibleToken ? cip68.getImage() : cip68.getLogo(), null);
         if (logoEnabled && logo != null) {
-            builder.logo(TokenRegistryCurrencyData.LogoData.builder()
-                    .format(detectLogoFormat(logo))
-                    .value(logo)
-                    .build());
+            TokenRegistryCurrencyData.LogoFormat format = detectLogoFormat(logo);
+            if (format != null) {
+                builder.logo(TokenRegistryCurrencyData.LogoData.builder()
+                        .format(format)
+                        .value(logo)
+                        .build());
+            } else {
+                log.debug("Not serving the CIP-68 logo of {}{}: neither a URL nor base64",
+                        cip68.getPolicyId(), cip68.getAssetName());
+            }
         }
     }
 
@@ -285,18 +299,22 @@ public class TokenQueryServiceImpl implements TokenQueryService {
     }
 
     /**
-     * Detects whether a CIP-68 logo string is a URL or base64-encoded image.
-     * URLs are identified by known schemes; everything else is treated as base64.
-     * Note: {@code data:} URIs are treated as base64 since consumers decode them, not fetch them.
+     * Detects whether a CIP-68 logo string is a URL or a base64-encoded image, or {@code null} if it is neither.
+     * URLs are identified by known schemes. {@code data:} URIs count as base64, since consumers decode them rather
+     * than fetch them, as long as their {@code ;base64,} payload is valid base64. Anything else must be valid base64.
      */
+    @Nullable
     private static TokenRegistryCurrencyData.LogoFormat detectLogoFormat(String logo) {
         String lower = logo.toLowerCase();
         if (lower.startsWith("http://") || lower.startsWith("https://")
                 || lower.startsWith("ipfs://") || lower.startsWith("ar://")) {
             return TokenRegistryCurrencyData.LogoFormat.URL;
         }
+        String base64 = lower.startsWith("data:") ? substringAfter(logo, ";base64,") : logo;
 
-        return TokenRegistryCurrencyData.LogoFormat.BASE64;
+        return !base64.isEmpty() && Base64Utils.decode(base64).isPresent()
+                ? TokenRegistryCurrencyData.LogoFormat.BASE64
+                : null;
     }
 
     /**
