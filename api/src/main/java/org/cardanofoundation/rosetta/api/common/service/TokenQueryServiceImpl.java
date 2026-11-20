@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
+import org.cardanofoundation.rosetta.common.util.Base64Utils;
 import com.bloxbean.cardano.yaci.store.extensions.assetstore.cip68.storage.impl.model.Cip68Metadata;
 import com.bloxbean.cardano.yaci.store.extensions.assetstore.cip26.storage.impl.model.Cip26Metadata;
 import com.bloxbean.cardano.yaci.store.extensions.assetstore.cip68.storage.impl.repository.Cip68MetadataRepository;
@@ -26,6 +27,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.substringAfter;
 
 /**
  * Read-only service for querying token metadata from CIP-26 and CIP-68 tables
@@ -230,7 +232,7 @@ public class TokenQueryServiceImpl implements TokenQueryService {
 
         Optional.ofNullable(validDecimals(cip26.getDecimals(), cip26.getSubject())).ifPresent(builder::decimals);
         String logo = defaultIfBlank(cip26.getLogo(), null);
-        if (logoEnabled && logo != null) {
+        if (logoEnabled && logo != null && isBase64(logo)) {
             builder.logo(TokenRegistryCurrencyData.LogoData.builder()
                     .format(TokenRegistryCurrencyData.LogoFormat.BASE64)
                     .value(logo)
@@ -259,9 +261,10 @@ public class TokenQueryServiceImpl implements TokenQueryService {
                 .ifPresent(builder::decimals);
 
         String logo = defaultIfBlank(richFungibleToken ? cip68.getImage() : cip68.getLogo(), null);
-        if (logoEnabled && logo != null) {
+        TokenRegistryCurrencyData.LogoFormat format = logoEnabled && logo != null ? detectLogoFormat(logo) : null;
+        if (format != null) {
             builder.logo(TokenRegistryCurrencyData.LogoData.builder()
-                    .format(detectLogoFormat(logo))
+                    .format(format)
                     .value(logo)
                     .build());
         }
@@ -285,18 +288,28 @@ public class TokenQueryServiceImpl implements TokenQueryService {
     }
 
     /**
-     * Detects whether a CIP-68 logo string is a URL or base64-encoded image.
-     * URLs are identified by known schemes; everything else is treated as base64.
-     * Note: {@code data:} URIs are treated as base64 since consumers decode them, not fetch them.
+     * Detects whether a CIP-68 logo is a URL (known schemes) or base64, or {@code null} if it is neither.
+     * A {@code data:} URI counts as base64 (consumers decode it rather than fetch it) if its payload is base64.
      */
+    @Nullable
     private static TokenRegistryCurrencyData.LogoFormat detectLogoFormat(String logo) {
         String lower = logo.toLowerCase();
         if (lower.startsWith("http://") || lower.startsWith("https://")
                 || lower.startsWith("ipfs://") || lower.startsWith("ar://")) {
             return TokenRegistryCurrencyData.LogoFormat.URL;
         }
+        String base64 = lower.startsWith("data:") ? substringAfter(logo, ";base64,") : logo;
 
-        return TokenRegistryCurrencyData.LogoFormat.BASE64;
+        return isBase64(base64) ? TokenRegistryCurrencyData.LogoFormat.BASE64 : null;
+    }
+
+    /**
+     * Logos are written by token issuers, and yaci-store keeps broken ones as written (only flagging them in
+     * {@code validation_errors}), so a logo is only served as base64 when it really is base64. The length check
+     * is there because the JDK decoder also accepts unpadded input, such as a bare IPFS CID.
+     */
+    private static boolean isBase64(String value) {
+        return !value.isEmpty() && value.length() % 4 == 0 && Base64Utils.decode(value).isPresent();
     }
 
     /**

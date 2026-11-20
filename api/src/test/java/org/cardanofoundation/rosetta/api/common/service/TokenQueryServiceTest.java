@@ -660,6 +660,61 @@ class TokenQueryServiceTest {
 
             assertThat(result.getLogo()).isNull();
         }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"not a logo!", "iVBO=w0K", "base64img"})
+        @DisplayName("Should not serve a CIP-26 logo that is not valid base64, but keep the other metadata")
+        void shouldNotServeInvalidBase64Cip26Logo(String invalidLogo) {
+            ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);
+
+            Cip26Metadata cip26 = cip26Metadata()
+                    .subject(SUBJECT).name("Token").description("Desc").logo(invalidLogo).build();
+            when(cip26MetadataRepository.findAllById(anyList())).thenReturn(List.of(cip26));
+
+            TokenRegistryCurrencyData result = querySingle(POLICY_ID, ASSET_HEX);
+
+            assertThat(result.getLogo()).isNull();
+            assertThat(result.getName()).isEqualTo("Token");
+        }
+
+        @ParameterizedTest
+        @ValueSource(strings = {"not a logo!", "iVBO=w0K", "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG",
+                "data:image/png;base64,not base64!", "data:image/png,raw"})
+        @DisplayName("Should not serve a CIP-68 logo that is neither a URL nor valid base64")
+        void shouldNotServeInvalidCip68Logo(String invalidLogo) {
+            ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);
+
+            when(cip26MetadataRepository.findAllById(anyList())).thenReturn(List.of());
+            Cip68Metadata cip68 = Cip68Metadata.builder()
+                    .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
+                    .name("Token").description("Desc").logo(invalidLogo).build();
+            when(cip68MetadataRepository.findLatestByConcatenatedKeys(anyCollection()))
+                    .thenReturn(List.of(cip68));
+
+            TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
+
+            assertThat(result.getLogo()).isNull();
+            assertThat(result.getName()).isEqualTo("Token");
+        }
+
+        @Test
+        @DisplayName("Should serve a valid base64 CIP-68 logo as BASE64")
+        void shouldServeValidBase64Cip68Logo() {
+            ReflectionTestUtils.setField(tokenQueryService, "logoEnabled", true);
+
+            when(cip26MetadataRepository.findAllById(anyList())).thenReturn(List.of());
+            Cip68Metadata cip68 = Cip68Metadata.builder()
+                    .policyId(POLICY_ID).assetName(CIP68_REF_NFT_ASSET).slot(500L).label(333)
+                    .name("Token").description("Desc").logo("iVBORw0KGgo=").build();
+            when(cip68MetadataRepository.findLatestByConcatenatedKeys(anyCollection()))
+                    .thenReturn(List.of(cip68));
+
+            TokenRegistryCurrencyData result = querySingle(POLICY_ID, CIP68_FT_ASSET);
+
+            assertThat(result.getLogo()).isNotNull();
+            assertThat(result.getLogo().getFormat()).isEqualTo(TokenRegistryCurrencyData.LogoFormat.BASE64);
+            assertThat(result.getLogo().getValue()).isEqualTo("iVBORw0KGgo=");
+        }
     }
 
     @Nested
@@ -712,13 +767,13 @@ class TokenQueryServiceTest {
 
             AssetFingerprint fp = AssetFingerprint.of(POLICY_ID, ASSET_HEX);
             Cip26Metadata e1 = cip26Metadata()
-                    .subject(SUBJECT).name("T").description("D").logo("base64img").build();
+                    .subject(SUBJECT).name("T").description("D").logo("iVBORw0KGgo=").build();
             when(cip26MetadataRepository.findAllById(anyList())).thenReturn(List.of(e1));
 
             Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenQueryService.queryMetadataBatch(List.of(fp));
 
             assertThat(result.get(fp).getLogo()).isNotNull();
-            assertThat(result.get(fp).getLogo().getValue()).isEqualTo("base64img");
+            assertThat(result.get(fp).getLogo().getValue()).isEqualTo("iVBORw0KGgo=");
         }
 
         @Test
@@ -728,7 +783,7 @@ class TokenQueryServiceTest {
 
             AssetFingerprint fp = AssetFingerprint.of(POLICY_ID, ASSET_HEX);
             Cip26Metadata e1 = cip26Metadata()
-                    .subject(SUBJECT).name("T").description("D").logo("base64img").build();
+                    .subject(SUBJECT).name("T").description("D").logo("iVBORw0KGgo=").build();
             when(cip26MetadataRepository.findAllById(anyList())).thenReturn(List.of(e1));
 
             Map<AssetFingerprint, TokenRegistryCurrencyData> result = tokenQueryService.queryMetadataBatch(List.of(fp));
