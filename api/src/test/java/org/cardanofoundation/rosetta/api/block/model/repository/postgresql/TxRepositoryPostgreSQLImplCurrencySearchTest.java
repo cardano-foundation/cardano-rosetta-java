@@ -129,6 +129,69 @@ class TxRepositoryPostgreSQLImplCurrencySearchTest {
     }
 
     @Nested
+    @DisplayName("AND search with a currency filter that has a policy ID only")
+    class PolicyIdOnlyFilter {
+
+        @Test
+        @DisplayName("uses the index-first query")
+        void usesIndexFirstQuery() {
+            Currency policyOnly = Currency.builder().policyId(POLICY_ID).decimals(0).build();
+
+            repository.searchTxnEntitiesAND(Set.of(), Set.of(), null, null, null, null, policyOnly,
+                    new SimpleOffsetBasedPageRequest(0, 5));
+
+            assertThat(resultsQuery())
+                    .startsWith("with matching_tx(tx_hash, slot, tx_index) as materialized (")
+                    .contains("jsonb_build_object('policy_id', ?)");
+        }
+    }
+
+    @Nested
+    @DisplayName("AND search with a currency filter that the GIN index doesn't serve")
+    class CurrencyFilterWithoutPolicyId {
+
+        private void assertGenericQuery() {
+            assertThat(resultsQuery())
+                    .doesNotContain("matching_tx")
+                    .startsWith("select transaction.tx_hash")
+                    .contains("order by transaction.slot desc, transaction.tx_index desc");
+        }
+
+        @Test
+        @DisplayName("ADA keeps the generic query")
+        void adaKeepsGenericQuery() {
+            Currency ada = Currency.builder().symbol("ada").decimals(6).build();
+
+            repository.searchTxnEntitiesAND(Set.of(), Set.of(), null, null, null, null, ada,
+                    new SimpleOffsetBasedPageRequest(0, 5));
+
+            assertGenericQuery();
+        }
+
+        @Test
+        @DisplayName("a symbol-only filter keeps the generic query")
+        void symbolOnlyKeepsGenericQuery() {
+            Currency symbolOnly = Currency.builder().symbol(SYMBOL).decimals(0).build();
+
+            repository.searchTxnEntitiesAND(Set.of(), Set.of(), null, null, null, null, symbolOnly,
+                    new SimpleOffsetBasedPageRequest(0, 5));
+
+            assertGenericQuery();
+        }
+
+        @Test
+        @DisplayName("a blank policy ID keeps the generic query")
+        void blankPolicyIdKeepsGenericQuery() {
+            Currency blankPolicy = Currency.builder().policyId("  ").symbol(SYMBOL).decimals(0).build();
+
+            repository.searchTxnEntitiesAND(Set.of(), Set.of(), null, null, null, null, blankPolicy,
+                    new SimpleOffsetBasedPageRequest(0, 5));
+
+            assertGenericQuery();
+        }
+    }
+
+    @Nested
     @DisplayName("AND search without a currency filter")
     class NoCurrencyFilter {
 

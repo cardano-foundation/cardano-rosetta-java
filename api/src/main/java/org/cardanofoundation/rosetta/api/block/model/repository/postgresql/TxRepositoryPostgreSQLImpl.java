@@ -74,11 +74,25 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
         
         // Execute separate count and results queries for optimal performance
         int totalCount = executeCountQuery(baseConditions, isSuccess);
-        List<? extends org.jooq.Record> results = currency != null
+        List<? extends org.jooq.Record> results = hasPolicyIdFilter(currency)
                 ? executeIndexFirstResultsQuery(baseConditions, isSuccess, offsetBasedPageRequest)
                 : executeResultsQuery(baseConditions, isSuccess, offsetBasedPageRequest);
 
         return createPageFromSeparateQueries(totalCount, results, offsetBasedPageRequest);
+    }
+
+    /**
+     * Whether the currency filter is served by the GIN index on {@code address_utxo.amounts}, i.e. it has a
+     * policy ID (policy + symbol, or policy only). Only then is the index-first query used.
+     *
+     * <p>The other currency filters keep the generic query: ADA ({@code lovelace}) matches almost every
+     * transaction, so the index-first query would materialise and sort the whole table (preprod: more than
+     * 300 s, vs. under 1 ms with the generic query, which stops after one page). A symbol-only filter can't
+     * use the GIN index, so the index-first query scans all of {@code address_utxo} instead of stopping
+     * early (preprod: 60 s vs. 4 s).</p>
+     */
+    private static boolean hasPolicyIdFilter(@Nullable Currency currency) {
+        return currency != null && currency.getPolicyId() != null && !currency.getPolicyId().trim().isEmpty();
     }
 
     /**
@@ -94,8 +108,8 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
      * it is driven by the GIN index (preprod tGENS: 28,223 transactions, page in ~430 ms), the page is a
      * top-N sort over the matches, and the joins only touch the rows of the page.</p>
      *
-     * <p>Only used when a currency filter is present: without one, the matching set can be the whole
-     * table, and the generic query's index walk is the right plan.</p>
+     * <p>Only used for currency filters with a policy ID (see {@link #hasPolicyIdFilter}): without one, the
+     * matching set can be the whole table, and the generic query's index walk is the right plan.</p>
      */
     private List<? extends org.jooq.Record> executeIndexFirstResultsQuery(Condition conditions,
                                                                           @Nullable Boolean isSuccess,
