@@ -36,8 +36,16 @@ public class TxRepositoryQueryBuilder {
         Condition buildCurrencyCondition(Currency currency);
     }
 
-    public SelectJoinStep<Record11<String, String, JSONB, JSONB, Long, Long, Integer, String, Long, Long, Integer>> buildTransactionSelectQuery(DSLContext dsl) {
-        return dsl.select(
+    public SelectJoinStep<org.jooq.Record> buildTransactionSelectQuery(DSLContext dsl) {
+        return dsl.select(transactionSelectFields()).from(TRANSACTION);
+    }
+
+    /**
+     * The columns of a transaction search result, as read by {@link #mapRecordToTxnEntity(org.jooq.Record)}.
+     * Requires {@code TRANSACTION}, {@code BLOCK} and {@code TRANSACTION_SIZE} in the query.
+     */
+    public List<SelectField<?>> transactionSelectFields() {
+        return List.of(
                 TRANSACTION.TX_HASH,
                 TRANSACTION.BLOCK_HASH,
                 TRANSACTION.INPUTS,
@@ -48,8 +56,7 @@ public class TxRepositoryQueryBuilder {
                 BLOCK.HASH.as("joined_block_hash"),
                 BLOCK.NUMBER.as("joined_block_number"),
                 BLOCK.SLOT.as("joined_block_slot"),
-                TRANSACTION_SIZE.SIZE.as("joined_tx_size")
-        ).from(TRANSACTION);
+                TRANSACTION_SIZE.SIZE.as("joined_tx_size"));
     }
 
     public Condition buildAndConditions(@Nullable Set<String> txHashes,
