@@ -33,6 +33,11 @@ cd api && mvn spring-boot:run
 mvn clean package
 ```
 
+### Git hooks
+```bash
+git config core.hooksPath .githooks   # set automatically by the first local mvn build (git-hooks profile, off when CI is set): commit-msg enforces Conventional Commits
+```
+
 ### Docker Compose Commands
 ```bash
 # Start all services (full stack)

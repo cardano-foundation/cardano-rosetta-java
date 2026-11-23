@@ -70,6 +70,16 @@ Make sure to follow the [Google style guide for Java](https://google.github.io/s
 
 In general regarding code style, just take a look at the existing sources and make your code look like them.
 
+#### Git hooks
+
+The repository ships git hooks in `.githooks/`. Your first Maven build (any phase, e.g. `mvn validate`) enables them by setting `core.hooksPath` in the clone's git config. The step is skipped when the `CI` environment variable is set. To enable them without building:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+- `commit-msg` blocks commit messages that don't follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) (`type(scope): description`, with `!` for breaking changes). Messages git generates, such as `Merge ...` and `Revert "..."`, are allowed.
+
 ### Creating a pull request
 
 Thank you for contributing your changes by opening a pull requests! To get something merged we usually require:
