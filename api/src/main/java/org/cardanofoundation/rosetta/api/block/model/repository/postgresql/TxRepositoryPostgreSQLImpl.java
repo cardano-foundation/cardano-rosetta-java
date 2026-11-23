@@ -27,6 +27,13 @@ import static org.cardanofoundation.rosetta.api.jooq.Tables.*;
 @Profile({"!h2 & !test-integration"})
 public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implements TxRepository {
 
+    // Names of the CTEs and their columns in the index-first currency search query
+    private static final String MATCHING_TX_CTE = "matching_tx";
+    private static final String PAGE_TX_CTE = "page_tx";
+    private static final String CTE_TX_HASH = "tx_hash";
+    private static final String CTE_SLOT = "slot";
+    private static final String CTE_TX_INDEX = "tx_index";
+
     private final PostgreSQLCurrencyConditionBuilder currencyConditionBuilder;
 
     public TxRepositoryPostgreSQLImpl(DSLContext dsl,
@@ -74,9 +81,77 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
         
         // Execute separate count and results queries for optimal performance
         int totalCount = executeCountQuery(baseConditions, isSuccess);
-        List<? extends org.jooq.Record> results = executeResultsQuery(baseConditions, isSuccess, offsetBasedPageRequest);
+        List<? extends org.jooq.Record> results = hasPolicyIdFilter(currency)
+                ? executeIndexFirstResultsQuery(baseConditions, isSuccess, offsetBasedPageRequest)
+                : executeResultsQuery(baseConditions, isSuccess, offsetBasedPageRequest);
 
         return createPageFromSeparateQueries(totalCount, results, offsetBasedPageRequest);
+    }
+
+    /**
+     * Whether the currency filter is served by the GIN index on {@code address_utxo.amounts}, i.e. it has a
+     * policy ID (policy + symbol, or policy only). Only then is the index-first query used.
+     *
+     * <p>The other currency filters keep the generic query: ADA ({@code lovelace}) matches almost every
+     * transaction, so the index-first query would materialise and sort the whole table (preprod: more than
+     * 300 s, vs. under 1 ms with the generic query, which stops after one page). A symbol-only filter can't
+     * use the GIN index, so the index-first query scans all of {@code address_utxo} instead of stopping
+     * early (preprod: 60 s vs. 4 s).</p>
+     */
+    private static boolean hasPolicyIdFilter(@Nullable Currency currency) {
+        return currency != null && currency.getPolicyId() != null && !currency.getPolicyId().trim().isEmpty();
+    }
+
+    /**
+     * Results query for an AND search with a currency filter: first finds the matching transactions
+     * through the token index, then sorts and pages them, and only then joins {@code block} and
+     * {@code transaction_size} for the page.
+     *
+     * <p>With the generic query ({@link #executeResultsQuery}), the {@code ORDER BY slot DESC ... LIMIT}
+     * leads PostgreSQL to walk {@code transaction} newest-first and evaluate the currency {@code EXISTS}
+     * (a GIN bitmap scan on {@code address_utxo.amounts}) for every row until the page is full. For a
+     * token whose transactions are not among the newest ones this takes minutes (preprod tGENS: no
+     * result within 60 s). Here the filter runs in a {@code MATERIALIZED} CTE without {@code LIMIT}, so
+     * it is driven by the GIN index (preprod tGENS: 28,223 transactions, page in ~430 ms), the page is a
+     * top-N sort over the matches, and the joins only touch the rows of the page.</p>
+     *
+     * <p>Only used for currency filters with a policy ID (see {@link #hasPolicyIdFilter}): without one, the
+     * matching set can be the whole table, and the generic query's index walk is the right plan.</p>
+     */
+    private List<? extends org.jooq.Record> executeIndexFirstResultsQuery(Condition conditions,
+                                                                          @Nullable Boolean isSuccess,
+                                                                          OffsetBasedPageRequest offsetBasedPageRequest) {
+        SelectOnConditionStep<Record3<String, Long, Integer>> filter = dsl
+                .select(TRANSACTION.TX_HASH, TRANSACTION.SLOT, TRANSACTION.TX_INDEX)
+                .from(TRANSACTION)
+                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH));
+        if (isSuccess != null) {
+            filter = filter.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
+        }
+        CommonTableExpression<Record3<String, Long, Integer>> matching = DSL.name(MATCHING_TX_CTE)
+                .fields(CTE_TX_HASH, CTE_SLOT, CTE_TX_INDEX)
+                .asMaterialized(filter.where(conditions));
+
+        Field<String> matchingTxHash = matching.field(CTE_TX_HASH, String.class);
+        Field<Long> matchingSlot = matching.field(CTE_SLOT, Long.class);
+        Field<Integer> matchingTxIndex = matching.field(CTE_TX_INDEX, Integer.class);
+        CommonTableExpression<Record3<String, Long, Integer>> page = DSL.name(PAGE_TX_CTE)
+                .fields(CTE_TX_HASH, CTE_SLOT, CTE_TX_INDEX)
+                .as(dsl.select(matchingTxHash, matchingSlot, matchingTxIndex)
+                        .from(matching)
+                        .orderBy(matchingSlot.desc(), matchingTxIndex.desc())
+                        .limit(offsetBasedPageRequest.getLimit())
+                        .offset(offsetBasedPageRequest.getOffset()));
+
+        Field<String> pageTxHash = page.field(CTE_TX_HASH, String.class);
+        return dsl.with(matching).with(page)
+                .select(queryBuilder.transactionSelectFields())
+                .from(page)
+                .join(TRANSACTION).on(TRANSACTION.TX_HASH.eq(pageTxHash))
+                .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
+                .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
+                .orderBy(page.field(CTE_SLOT, Long.class).desc(), page.field(CTE_TX_INDEX, Integer.class).desc())
+                .fetch();
     }
 
     @Override
