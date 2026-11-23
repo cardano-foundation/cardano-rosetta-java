@@ -1,0 +1,11 @@
+    assert response.status_code == 200
+    assert block["block_identifier"] == case["block_identifier"]
+        assert response.status_code == 200
+        assert transaction["transaction_identifier"] == tx_id
+    assert response.status_code == 200
+    assert successful_statuses, "Network must declare a successful operation status"
+        assert response.status_code == 200
+        assert data["block_identifier"] == block_id
+        assert len(ada) == 1, f"Expected one ADA balance {label} the block"
+    assert balance_delta != 0, "The fixture must exercise a real balance change"
+    assert operation_delta == balance_delta, (
