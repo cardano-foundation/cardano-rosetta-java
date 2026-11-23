@@ -27,6 +27,13 @@ import static org.cardanofoundation.rosetta.api.jooq.Tables.*;
 @Profile({"!h2 & !test-integration"})
 public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implements TxRepository {
 
+    // Names of the CTEs and their columns in the index-first currency search query
+    private static final String MATCHING_TX_CTE = "matching_tx";
+    private static final String PAGE_TX_CTE = "page_tx";
+    private static final String CTE_TX_HASH = "tx_hash";
+    private static final String CTE_SLOT = "slot";
+    private static final String CTE_TX_INDEX = "tx_index";
+
     private final PostgreSQLCurrencyConditionBuilder currencyConditionBuilder;
 
     public TxRepositoryPostgreSQLImpl(DSLContext dsl,
@@ -121,29 +128,29 @@ public class TxRepositoryPostgreSQLImpl extends TxRepositoryCustomBase implement
         if (isSuccess != null) {
             filter = filter.leftJoin(INVALID_TRANSACTION).on(TRANSACTION.TX_HASH.eq(INVALID_TRANSACTION.TX_HASH));
         }
-        CommonTableExpression<Record3<String, Long, Integer>> matching = DSL.name("matching_tx")
-                .fields("tx_hash", "slot", "tx_index")
+        CommonTableExpression<Record3<String, Long, Integer>> matching = DSL.name(MATCHING_TX_CTE)
+                .fields(CTE_TX_HASH, CTE_SLOT, CTE_TX_INDEX)
                 .asMaterialized(filter.where(conditions));
 
-        Field<String> matchingTxHash = matching.field("tx_hash", String.class);
-        Field<Long> matchingSlot = matching.field("slot", Long.class);
-        Field<Integer> matchingTxIndex = matching.field("tx_index", Integer.class);
-        CommonTableExpression<Record3<String, Long, Integer>> page = DSL.name("page_tx")
-                .fields("tx_hash", "slot", "tx_index")
+        Field<String> matchingTxHash = matching.field(CTE_TX_HASH, String.class);
+        Field<Long> matchingSlot = matching.field(CTE_SLOT, Long.class);
+        Field<Integer> matchingTxIndex = matching.field(CTE_TX_INDEX, Integer.class);
+        CommonTableExpression<Record3<String, Long, Integer>> page = DSL.name(PAGE_TX_CTE)
+                .fields(CTE_TX_HASH, CTE_SLOT, CTE_TX_INDEX)
                 .as(dsl.select(matchingTxHash, matchingSlot, matchingTxIndex)
                         .from(matching)
                         .orderBy(matchingSlot.desc(), matchingTxIndex.desc())
                         .limit(offsetBasedPageRequest.getLimit())
                         .offset(offsetBasedPageRequest.getOffset()));
 
-        Field<String> pageTxHash = page.field("tx_hash", String.class);
+        Field<String> pageTxHash = page.field(CTE_TX_HASH, String.class);
         return dsl.with(matching).with(page)
                 .select(queryBuilder.transactionSelectFields())
                 .from(page)
                 .join(TRANSACTION).on(TRANSACTION.TX_HASH.eq(pageTxHash))
                 .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
                 .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
-                .orderBy(page.field("slot", Long.class).desc(), page.field("tx_index", Integer.class).desc())
+                .orderBy(page.field(CTE_SLOT, Long.class).desc(), page.field(CTE_TX_INDEX, Integer.class).desc())
                 .fetch();
     }
 
