@@ -44,8 +44,8 @@
         <version.yaci>0.4.7</version.yaci>
         <!-- One yaci-store version for both modules: yaci-indexer runs yaci-store, api uses its
              assets-ext entities/repositories as a library (no indexer started), so they must match.
-             TEMPORARY: 2.0.8 snapshot (release/2.0.x @ b893a6a) until 2.0.8 is released. -->
-        <yaci-store.version>2.0.8-b893a6a-SNAPSHOT</yaci-store.version>
+             TEMPORARY: 2.0.8 snapshot (release/2.0.x @ e0e798f) until 2.0.8 is released. -->
+        <yaci-store.version>2.0.8-e0e798f-SNAPSHOT</yaci-store.version>
         <version.commons-io>2.22.0</version.commons-io>
         <version.javax-validation-api>2.0.1.Final</version.javax-validation-api>
         <version.assertj-core>3.27.7</version.assertj-core>
@@ -81,11 +81,11 @@
             <id>central</id>
             <url>https://repo1.maven.org/maven2/</url>
         </repository>
-        <!-- TEMPORARY: BloxBean Maven repository for the yaci-store 2.0.8 snapshot (api and yaci-indexer).
+        <!-- TEMPORARY: Maven Central snapshot repository for the yaci-store 2.0.8 snapshot (api and yaci-indexer).
              Remove once rosetta moves to the released yaci-store 2.0.8 (Maven Central). -->
         <repository>
-            <id>bloxbean-snapshots</id>
-            <url>https://repo.bloxbean.org/maven/snapshots</url>
+            <id>central-portal-snapshots</id>
+            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
