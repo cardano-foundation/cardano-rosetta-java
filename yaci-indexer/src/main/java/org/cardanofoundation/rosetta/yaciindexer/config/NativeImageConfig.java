@@ -21,6 +21,7 @@ import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.TypeReference;
 import org.springframework.boot.autoconfigure.flyway.FlywayConfigurationCustomizer;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportRuntimeHints;
@@ -55,6 +56,19 @@ public class NativeImageConfig {
       if (NativeDetector.inNativeImage()) {
         configuration.resourceProvider(new AllJarsResourceProvider(configuration.getClassLoader(),
             Arrays.asList(configuration.getLocations()), configuration.getEncoding()));
+      }
+    };
+  }
+
+  /**
+   * Hibernate's default ByteBuddy bytecode provider generates classes at runtime, which a native image can't do. The
+   * "none" provider uses no generated proxies or enhancement; JVM runs keep ByteBuddy.
+   */
+  @Bean
+  public HibernatePropertiesCustomizer nativeHibernateBytecodeProvider() {
+    return properties -> {
+      if (NativeDetector.inNativeImage()) {
+        properties.put("hibernate.bytecode.provider", "none");
       }
     };
   }
