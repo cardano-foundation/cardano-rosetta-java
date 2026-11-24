@@ -25,9 +25,11 @@ COPY ./pom.xml /build/pom.xml
 COPY ./api /build/api
 COPY ./yaci-indexer /build/yaci-indexer
 COPY ./test-data-generator /build/test-data-generator
-# The native-image compiler needs a lot of memory for a Spring application; cap it so the build fits next to other
-# containers.
-ENV NATIVE_IMAGE_OPTIONS="-J-Xmx10g"
+# The native-image compiler needs a lot of memory for a Spring application (the indexer needs more than 10 GB of heap
+# with the traced metadata); cap heap and threads so the build fits next to other containers.
+ARG NATIVE_XMX=13g
+ARG NATIVE_THREADS=6
+ENV NATIVE_IMAGE_OPTIONS="-J-Xmx${NATIVE_XMX} --parallelism=${NATIVE_THREADS}"
 RUN --mount=type=cache,target=/root/.m2 \
     mvn -B -Pnative -DskipTests -Dmaven.gitcommitid.skip=true -pl "${MODULE}" -am package \
     && mkdir -p /out /licenses/graalvm \
