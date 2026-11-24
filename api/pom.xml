@@ -577,6 +577,10 @@
                                 <buildArg>--initialize-at-run-time=sun.net.dns.ResolverConfigurationImpl</buildArg>
                                 <buildArg>-H:+ReportExceptionStackTraces</buildArg>
                                 <buildArg>--enable-preview</buildArg>
+                                <!-- as in yaci-indexer: no ByteBuddy bytecode provider, Hibernate falls back to "none" -->
+                                <buildArg>-H:+UnlockExperimentalVMOptions</buildArg>
+                                <buildArg>-H:ServiceLoaderFeatureExcludeServiceProviders=org.hibernate.bytecode.internal.bytebuddy.BytecodeProviderImpl</buildArg>
+                                <buildArg>-H:-UnlockExperimentalVMOptions</buildArg>
                             </buildArgs>
                         </configuration>
                         <executions>
