@@ -217,5 +217,69 @@
                 </dependency>
             </dependencies>
         </profile>
+        <!-- EXPERIMENT (exp/graalvm-native): GraalVM native image, built with Oracle GraalVM 25 (Dockerfile.native).
+             Spring AOT fixes @Profile/@Conditional bean decisions at build time, so the image is built for one
+             configuration: the AOT profiles below. -->
+        <profile>
+            <id>native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <version>${version.spring-boot}</version>
+                        <executions>
+                            <execution>
+                                <id>process-aot</id>
+                                <goals>
+                                    <goal>process-aot</goal>
+                                </goals>
+                                <configuration>
+                                    <!-- n2c-socket beans exist only when a socket path is set; AOT decides that at build
+                                         time, the real path is read at runtime -->
+                                    <systemPropertyVariables>
+                                        <CARDANO_NODE_SOCKET_PATH>/node-ipc/node.socket</CARDANO_NODE_SOCKET_PATH>
+                                    </systemPropertyVariables>
+                                    <profiles>
+                                        <profile>postgres</profile>
+                                        <profile>n2c-socket</profile>
+                                    </profiles>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>0.10.6</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <imageName>yaci-indexer</imageName>
+                            <metadataRepository>
+                                <enabled>true</enabled>
+                            </metadataRepository>
+                            <buildArgs>
+                                <!-- Oracle GraalVM options, as in cf-adahandle-resolver (ADR 0008) -->
+                                <buildArg>-march=compatibility</buildArg>
+                                <buildArg>-O3</buildArg>
+                                <buildArg>--gc=G1</buildArg>
+                                <buildArg>--initialize-at-run-time=sun.net.dns.ResolverConfigurationImpl</buildArg>
+                                <buildArg>-H:+ReportExceptionStackTraces</buildArg>
+
+                            </buildArgs>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 </project>
