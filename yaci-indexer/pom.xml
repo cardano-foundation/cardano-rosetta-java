@@ -276,6 +276,12 @@
                                 <buildArg>--gc=G1</buildArg>
                                 <buildArg>--initialize-at-run-time=sun.net.dns.ResolverConfigurationImpl</buildArg>
                                 <buildArg>-H:+ReportExceptionStackTraces</buildArg>
+                                <!-- Hibernate picks its bytecode provider through ServiceLoader and uses the no-op "none"
+                                     provider when there is none. ByteBuddy's generates classes at runtime, which a
+                                     native image can't do, so it is left out of the image. -->
+                                <buildArg>-H:+UnlockExperimentalVMOptions</buildArg>
+                                <buildArg>-H:ServiceLoaderFeatureExcludeServiceProviders=org.hibernate.bytecode.internal.bytebuddy.BytecodeProviderImpl</buildArg>
+                                <buildArg>-H:-UnlockExperimentalVMOptions</buildArg>
 
                             </buildArgs>
                         </configuration>
