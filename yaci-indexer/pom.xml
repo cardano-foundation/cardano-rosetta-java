@@ -37,6 +37,12 @@
     </repositories>
 
     <dependencies>
+        <!-- EXPERIMENT (exp/graalvm-native): NativeImageConfig implements Flyway's ResourceProvider (version from the
+             Spring Boot BOM; already on the runtime classpath through yaci-store) -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
