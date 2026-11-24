@@ -72,6 +72,7 @@ def pytest_sessionstart(session):
         "REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT": os.environ.get("REMOVE_SPENT_UTXOS_LAST_BLOCKS_GRACE_COUNT", ""),
         "TOKEN_REGISTRY_ENABLED": os.environ.get("TOKEN_REGISTRY_ENABLED", ""),
         "TOKEN_REGISTRY_LOGO_FETCH": os.environ.get("TOKEN_REGISTRY_LOGO_FETCH", ""),
+        "OFFCHAIN_DATA_ENABLED": os.environ.get("OFFCHAIN_DATA_ENABLED", ""),
         "PEER_DISCOVERY": os.environ.get("PEER_DISCOVERY", ""),
     }
 
@@ -227,8 +228,17 @@ def oldest_block_identifier(network_status, is_pruned_instance):
 
 @pytest.fixture(scope="session")
 def has_token_registry():
-    """Read TOKEN_REGISTRY_ENABLED from environment."""
-    return os.environ.get("TOKEN_REGISTRY_ENABLED", "false").lower() == "true"
+    """Read TOKEN_REGISTRY_ENABLED from environment (on by default, like the API)."""
+    return os.environ.get("TOKEN_REGISTRY_ENABLED", "true").lower() == "true"
+
+
+@pytest.fixture(scope="session")
+def has_offchain_data():
+    """Read OFFCHAIN_DATA_ENABLED from environment (on by default, like the API).
+
+    When false, the API serves no CIP-26 (off-chain registry) metadata; CIP-68 is still served.
+    """
+    return os.environ.get("OFFCHAIN_DATA_ENABLED", "true").lower() == "true"
 
 
 @pytest.fixture(scope="session")
