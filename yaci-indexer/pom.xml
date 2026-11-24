@@ -228,6 +228,11 @@
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-maven-plugin</artifactId>
                         <version>${version.spring-boot}</version>
+                        <!-- keep the plain jar as the module artifact: native-image needs its classes, not the
+                             repackaged executable jar (classes under BOOT-INF/) -->
+                        <configuration>
+                            <classifier>exec</classifier>
+                        </configuration>
                         <executions>
                             <execution>
                                 <id>process-aot</id>
