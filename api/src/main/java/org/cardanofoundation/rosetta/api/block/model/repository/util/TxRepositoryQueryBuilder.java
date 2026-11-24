@@ -36,8 +36,16 @@ public class TxRepositoryQueryBuilder {
         Condition buildCurrencyCondition(Currency currency);
     }
 
-    public SelectJoinStep<Record12<String, String, JSONB, JSONB, Long, Long, Integer, String, Long, Long, Integer, Integer>> buildTransactionSelectQuery(DSLContext dsl) {
-        return dsl.select(
+    public SelectJoinStep<org.jooq.Record> buildTransactionSelectQuery(DSLContext dsl) {
+        return dsl.select(transactionSelectFields()).from(TRANSACTION);
+    }
+
+    /**
+     * The columns of a transaction search result, as read by {@link #mapRecordToTxnEntity(org.jooq.Record)}.
+     * Requires {@code TRANSACTION}, {@code BLOCK} and {@code TRANSACTION_SIZE} in the query.
+     */
+    public List<SelectField<?>> transactionSelectFields() {
+        return List.of(
                 TRANSACTION.TX_HASH,
                 TRANSACTION.BLOCK_HASH,
                 TRANSACTION.INPUTS,
@@ -48,9 +56,7 @@ public class TxRepositoryQueryBuilder {
                 BLOCK.HASH.as("joined_block_hash"),
                 BLOCK.NUMBER.as("joined_block_number"),
                 BLOCK.SLOT.as("joined_block_slot"),
-                TRANSACTION_SIZE.SIZE.as("joined_tx_size"),
-                TRANSACTION_SIZE.SCRIPT_SIZE.as("joined_tx_script_size")
-        ).from(TRANSACTION);
+                TRANSACTION_SIZE.SIZE.as("joined_tx_size"));
     }
 
     public Condition buildAndConditions(@Nullable Set<String> txHashes,
@@ -189,20 +195,12 @@ public class TxRepositoryQueryBuilder {
     private static TransactionSizeEntity getTransactionSizeEntity(org.jooq.Record record,
                                                                  String txHash,
                                                                  BlockEntity blockEntity) {
-        TransactionSizeEntity sizeEntity = null;
         Integer size = record.get("joined_tx_size", Integer.class);
-        Integer scriptSize = record.get("joined_tx_script_size", Integer.class);
-
-        if (size != null || scriptSize != null) {
-            sizeEntity = new TransactionSizeEntity(
-                    txHash,
-                    blockEntity != null ? blockEntity.getNumber() : 0L,
-                    size != null ? size : 0,
-                    scriptSize != null ? scriptSize : 0
-            );
+        if (size == null) {
+            return null;
         }
 
-        return sizeEntity;
+        return new TransactionSizeEntity(txHash, blockEntity != null ? blockEntity.getNumber() : 0L, size);
     }
 
     private List<UtxoKey> readUtxoKeys(@Nullable JSONB jsonB,

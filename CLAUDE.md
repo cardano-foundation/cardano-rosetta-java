@@ -33,6 +33,11 @@ cd api && mvn spring-boot:run
 mvn clean package
 ```
 
+### Git hooks
+```bash
+git config core.hooksPath .githooks   # set automatically by the first local mvn build (git-hooks profile, off when CI is set): commit-msg enforces Conventional Commits
+```
+
 ### Docker Compose Commands
 ```bash
 # Start all services (full stack)
@@ -70,7 +75,7 @@ docker compose restart api
 - **Lombok** for boilerplate reduction
 - **JUnit 5** with `@Nested` test organization
 - **AssertJ** for test assertions
-- **PostgreSQL** (production) / **H2** (development/testing)
+- **PostgreSQL 18.7** (production) / **H2** (development/testing)
 
 ### Code Generation Pattern
 - All API endpoints and DTOs are generated from `api.yaml`

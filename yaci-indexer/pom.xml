@@ -18,7 +18,7 @@
 
     <properties>
         <java.version>25</java.version>
-        <yaci-store.version>2.0.2.1</yaci-store.version>
+        <!-- yaci-store.version is defined in the parent pom (shared with the api module) -->
         <sonar.exclusions>src/main/java/org/cardanofoundation/rosetta/yaciindexer/stores/txsize/model/*</sonar.exclusions>
 <!--        <version.spotless-maven-plugin>2.43.0</version.spotless-maven-plugin>-->
     </properties>
@@ -116,6 +116,17 @@
             <artifactId>yaci-store-epoch-spring-boot-starter</artifactId>
             <version>${yaci-store.version}</version>
         </dependency>
+        <!-- Assets extension (CIP-26, CIP-68): token metadata (name, ticker, decimals, logo, ...) read by the api module from the shared DB -->
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>yaci-store-assets-ext-spring-boot-starter</artifactId>
+            <version>${yaci-store.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.bloxbean.cardano</groupId>
+            <artifactId>yaci-store-assets-ext</artifactId>
+            <version>${yaci-store.version}</version>
+        </dependency>
         <dependency>
             <groupId>io.hypersistence</groupId>
             <artifactId>hypersistence-utils-hibernate-63</artifactId>
@@ -142,6 +153,11 @@
                     </execution>
                 </executions>
 
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${version.maven-surefire-plugin}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

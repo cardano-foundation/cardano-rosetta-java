@@ -1,11 +1,14 @@
 package org.cardanofoundation.rosetta.api.block.mapper;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 
 import org.cardanofoundation.rosetta.api.common.model.AssetFingerprint;
 import org.cardanofoundation.rosetta.api.common.model.TokenRegistryCurrencyData;
 import org.mapstruct.Context;
+import org.mapstruct.InheritConfiguration;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -51,6 +54,7 @@ public interface BlockMapper {
   @Mapping(target = "block.metadata.slotNo", source = "model.slotNo")
   @Mapping(target = "block.metadata.epochNo", source = "model.epochNo")
   @Mapping(target = "block.transactions", source = "model.transactions", qualifiedByName = "mapToRosettaTransactionWithMetadata")
+  @Mapping(target = "otherTransactions", source = "model.otherTransactions")
   BlockResponse mapToBlockResponseWithMetadata(Block model, @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap);
 
   @Named("mapToBlockTransactionWithMetadata")
@@ -66,15 +70,13 @@ public interface BlockMapper {
   @Named("mapToRosettaTransactionWithMetadata")
   @Mapping(target = "transactionIdentifier", source = "source.hash")
   @Mapping(target = "metadata.size", source = "source.size")
-  @Mapping(target = "metadata.scriptSize", source = "source.scriptSize")
   @Mapping(target = "operations", source = "source", qualifiedByName = "mapTransactionsToOperationsWithMetadata")
   Transaction mapToRosettaTransactionWithMetadata(BlockTx source, @Context Map<AssetFingerprint, TokenRegistryCurrencyData> metadataMap);
 
   @Mapping(target = "hash", source = "txHash")
   @Mapping(target = "blockHash", source = "block.hash")
   @Mapping(target = "blockNo", source = "block.number")
-  @Mapping(target = "size", source = "sizeEntity.size")
-  @Mapping(target = "scriptSize", source = "sizeEntity.scriptSize")
+  @Mapping(target = "size", source = "sizeEntity.size", defaultValue = "0L")
   @Mapping(target = "inputs", source = "inputKeys")
   @Mapping(target = "outputs", source = "outputKeys")
   BlockTx mapToBlockTx(TxnEntity model);
@@ -89,6 +91,11 @@ public interface BlockMapper {
   @Mapping(target = "slotNo", source = "slot")
   Block mapToBlock(BlockEntity entity);
 
+  @Named("mapToBlockWithoutTransactions")
+  @InheritConfiguration(name = "mapToBlock")
+  @Mapping(target = "transactions", ignore = true)
+  Block mapToBlockWithoutTransactions(BlockEntity entity);
+
   @Mapping(target = "transaction", source = "model")
   BlockTransactionResponse mapToBlockTransactionResponse(BlockTx model);
   
@@ -98,11 +105,16 @@ public interface BlockMapper {
 
   @Mapping(target = "transactionIdentifier", source = "hash")
   @Mapping(target = "metadata.size", source = "size")
-  @Mapping(target = "metadata.scriptSize", source = "scriptSize")
   @Mapping(target = "operations", ignore = true)
   Transaction mapToRosettaTransactionBasic(BlockTx source);
 
   TransactionIdentifier getTransactionIdentifier(String hash);
+
+  // RETURN_DEFAULT would map null to []
+  @Nullable
+  default List<TransactionIdentifier> mapToOtherTransactions(@Nullable List<String> hashes) {
+    return hashes == null ? null : hashes.stream().map(this::getTransactionIdentifier).toList();
+  }
 
   Utxo getUtxoFromUtxoKey(UtxoKey model);
 

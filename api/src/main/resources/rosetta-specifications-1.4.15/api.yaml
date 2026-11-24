@@ -1785,11 +1785,7 @@ components:
       type: object
       properties:
         size:
-          description: Size is the size of the transaction in bytes.
-          type: integer
-          format: int64
-        scriptSize:
-          description: ScriptSize is the size of the transaction script in bytes.
+          description: Size is the size of the transaction in bytes. It is 0 when the size is not available.
           type: integer
           format: int64
       example:
@@ -1820,7 +1816,6 @@ components:
           $ref: '#/components/schemas/DRepParams'
         poolGovernanceVoteParams:
           description: PoolGovernanceVoteParams contains parameters related to casting a governance vote by a pool operator.
-          type: object
           $ref: '#/components/schemas/PoolGovernanceVoteParams'
         epoch:
           description: Epoch

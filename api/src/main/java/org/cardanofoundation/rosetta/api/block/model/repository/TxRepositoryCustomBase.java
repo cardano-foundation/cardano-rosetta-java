@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.cardanofoundation.rosetta.api.jooq.Tables.*;
@@ -118,6 +119,31 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
 
     @Override
     public List<TxnEntity> findTransactionsByBlockHash(String blockHash) {
+        return selectTransactionsWithBlock()
+                .where(TRANSACTION.BLOCK_HASH.eq(blockHash))
+                .orderBy(TRANSACTION.TX_INDEX.asc())
+                .fetch(queryBuilder::mapRecordToTxnEntity);
+    }
+
+    @Override
+    public List<String> findTransactionHashesByBlockHash(String blockHash) {
+        return dsl.select(TRANSACTION.TX_HASH)
+                .from(TRANSACTION)
+                .where(TRANSACTION.BLOCK_HASH.eq(blockHash))
+                .orderBy(TRANSACTION.TX_INDEX.asc())
+                .fetch(TRANSACTION.TX_HASH);
+    }
+
+    @Override
+    public Optional<TxnEntity> findTransactionByBlockAndTxHash(Long blockNumber, String blockHash, String txHash) {
+        return selectTransactionsWithBlock()
+                .where(TRANSACTION.BLOCK_HASH.eq(blockHash))
+                .and(BLOCK.NUMBER.eq(blockNumber))
+                .and(TRANSACTION.TX_HASH.eq(txHash))
+                .fetchOptional(queryBuilder::mapRecordToTxnEntity);
+    }
+
+    private SelectJoinStep<?> selectTransactionsWithBlock() {
         return dsl.select(
                         TRANSACTION.TX_HASH,
                         TRANSACTION.BLOCK_HASH,
@@ -129,15 +155,11 @@ public abstract class TxRepositoryCustomBase implements TxRepositoryCustom {
                         BLOCK.HASH.as("joined_block_hash"),
                         BLOCK.NUMBER.as("joined_block_number"),
                         BLOCK.SLOT.as("joined_block_slot"),
-                        TRANSACTION_SIZE.SIZE.as("joined_tx_size"),
-                        TRANSACTION_SIZE.SCRIPT_SIZE.as("joined_tx_script_size")
+                        TRANSACTION_SIZE.SIZE.as("joined_tx_size")
                 )
                 .from(TRANSACTION)
                 .leftJoin(BLOCK).on(TRANSACTION.BLOCK_HASH.eq(BLOCK.HASH))
-                .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH))
-                .where(TRANSACTION.BLOCK_HASH.eq(blockHash))
-                .orderBy(TRANSACTION.TX_INDEX.asc())
-                .fetch(queryBuilder::mapRecordToTxnEntity);
+                .leftJoin(TRANSACTION_SIZE).on(TRANSACTION.TX_HASH.eq(TRANSACTION_SIZE.TX_HASH));
     }
 
     /**

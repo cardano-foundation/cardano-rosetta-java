@@ -83,13 +83,15 @@ class AccountBalanceApiTest extends BaseSpringMvcSetup {
     assertEquals(3, accountBalanceResponse.getBalances().size());
     assertAdaCurrency(accountBalanceResponse);
 
-    assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT,
-            accountBalanceResponse.getBalances().get(2).getValue());
+    // Locate the MyAsset balance by its hex symbol rather than positional index so the
+    // assertion is robust against changes in devkit minting order across fixture regens.
+    var myAssetBalance = accountBalanceResponse.getBalances().stream()
+            .filter(b -> "4d794173736574".equals(b.getCurrency().getSymbol()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("MyAsset balance not found"));
 
-    assertNotEquals(accountBalanceResponse.getBalances().getFirst().getCurrency().getSymbol(),
-            accountBalanceResponse.getBalances().get(2).getCurrency().getSymbol());
-
-    assertEquals("4d794173736574", accountBalanceResponse.getBalances().get(2).getCurrency().getSymbol());
+    assertEquals(TestConstants.ACCOUNT_BALANCE_MINTED_TOKENS_AMOUNT, myAssetBalance.getValue());
+    assertNotEquals(Constants.ADA, myAssetBalance.getCurrency().getSymbol());
   }
 
   @Test

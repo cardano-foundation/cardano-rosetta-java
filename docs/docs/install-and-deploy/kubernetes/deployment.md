@@ -41,6 +41,7 @@ description: This runbook covers deploying and operating **Cardano Rosetta Java*
 ### Network
 - Outbound TCP 3001 — cardano-node peer-to-peer (N2N)
 - Outbound HTTPS — Mithril snapshot download + genesis key fetch from GitHub
+- Outbound HTTPS — CIP-26 token registry sync from GitHub (`yaci-indexer`, every 60 minutes). Not needed with `global.offchainDataEnabled: false`, see [On-chain only mode](../../advanced-configuration/token-metadata#on-chain-only-mode)
 - Inbound TCP 8082 — Rosetta API (if exposing externally)
 
 ---
@@ -258,7 +259,7 @@ helm upgrade rosetta helm/cardano-rosetta-java \
   -f helm/cardano-rosetta-java/values.yaml \
   -f helm/cardano-rosetta-java/values-k3s.yaml \
   "--set=global.db.password=${DB_PASSWORD}" \
-  --set global.releaseVersion="2.4.2" \
+  --set global.releaseVersion="3.0.0" \
   -n cardano 2>&1 | grep -v "walk.go"
 ```
 
@@ -295,7 +296,8 @@ kubectl delete pvc --all -n cardano
 - [ ] **Disable debug endpoints** — ensure `PRINT_EXCEPTION=false` in production.
 - [ ] **Secrets management** — use Sealed Secrets or Vault instead of `--set global.db.password`.
 - [ ] **Network Policy** — restrict pod-to-pod traffic.
-- [ ] **Token Registry** — review `rosetta-api.env.tokenRegistryEnabled`; requires outbound internet.
+- [ ] **Token Registry** — review `rosetta-api.env.tokenRegistryEnabled`. Metadata enrichment is served from the indexer's DB (no API-side outbound needed); the indexer itself does periodic outbound CIP-26 sync from the GitHub registry.
+- [ ] **Off-chain data policy** — if your policy forbids serving data that does not come from the Cardano chain, set `global.offchainDataEnabled: false`: no CIP-26 sync or CIP-26 metadata (including decimals), no third-party calls from the indexer. CIP-68 metadata (on-chain) is still served. See [On-chain only mode](../../advanced-configuration/token-metadata#on-chain-only-mode).
 
 ---
 
@@ -349,12 +351,12 @@ global:
   profile: mid
   network: mainnet
   protocolMagic: "764824073"
+  offchainDataEnabled: true   # false = on-chain data only (no CIP-26 token metadata)
 
 rosetta-api:
   env:
     tokenRegistryEnabled: true
-    tokenRegistryBaseUrl: "https://tokens.cardano.org/api"
-    tokenRegistryCacheTtlHours: 12
+    tokenRegistryLogoFetch: false
     removeSpentUtxos: true
     removeSpentUtxosLastBlocksGraceCount: 129600
 
