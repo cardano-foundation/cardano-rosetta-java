@@ -32,6 +32,27 @@ import com.bloxbean.cardano.yaci.store.common.config.StoreProperties;
 import com.bloxbean.cardano.yaci.store.core.storage.impl.CursorRepository;
 import com.bloxbean.cardano.yaci.store.core.storage.impl.CursorStorageImpl;
 import com.bloxbean.cardano.yaci.store.utxo.storage.impl.AddressStorageImpl;
+import com.bloxbean.cardano.yaci.store.blocks.storage.impl.BlockCborStorageImpl;
+import com.bloxbean.cardano.yaci.store.blocks.storage.impl.BlockStorageImpl;
+import com.bloxbean.cardano.yaci.store.blocks.storage.impl.mapper.BlockMapper;
+import com.bloxbean.cardano.yaci.store.blocks.storage.impl.repository.BlockCborRepository;
+import com.bloxbean.cardano.yaci.store.blocks.storage.impl.repository.BlockRepository;
+import com.bloxbean.cardano.yaci.store.epoch.storage.impl.EpochParamStorageImpl;
+import com.bloxbean.cardano.yaci.store.epoch.storage.impl.mapper.ProtocolParamsMapper;
+import com.bloxbean.cardano.yaci.store.epoch.storage.impl.repository.CostModelRepository;
+import com.bloxbean.cardano.yaci.store.epoch.storage.impl.repository.EpochParamRepository;
+import com.bloxbean.cardano.yaci.store.transaction.storage.impl.TransactionCborStorageImpl;
+import com.bloxbean.cardano.yaci.store.transaction.storage.impl.TransactionStorageImpl;
+import com.bloxbean.cardano.yaci.store.transaction.storage.impl.TransactionWitnessStorageImpl;
+import com.bloxbean.cardano.yaci.store.transaction.storage.impl.mapper.TxnMapper;
+import com.bloxbean.cardano.yaci.store.transaction.storage.impl.repository.TxnCborRepository;
+import com.bloxbean.cardano.yaci.store.transaction.storage.impl.repository.TxnEntityRepository;
+import com.bloxbean.cardano.yaci.store.transaction.storage.impl.repository.TxnWitnessRepository;
+import com.bloxbean.cardano.yaci.store.utxo.storage.impl.UtxoCache;
+import com.bloxbean.cardano.yaci.store.utxo.storage.impl.UtxoStorageImpl;
+import com.bloxbean.cardano.yaci.store.utxo.storage.impl.repository.TxInputRepository;
+import com.bloxbean.cardano.yaci.store.utxo.storage.impl.repository.UtxoRepository;
+import org.springframework.transaction.PlatformTransactionManager;
 
 /**
  * EXPERIMENT (exp/graalvm-native): support for running yaci-indexer as a GraalVM native image (the "native" Maven
@@ -73,6 +94,49 @@ public class NativeImageConfig {
   @Bean
   public AddressStorageImpl addressStorage(DSLContext dslContext, StoreProperties storeProperties) {
     return new AddressStorageImpl(dslContext, storeProperties);
+  }
+
+  // The other @Transactional storage beans of the yaci-store modules Rosetta's indexer uses (blocks, transaction,
+  // epoch, utxo), found by scanning yaci-store's configurations for interface-typed beans with a @Transactional
+  // implementation. Same constructor arguments as yaci-store's definitions.
+
+  @Bean
+  public BlockStorageImpl blockStorage(BlockRepository blockRepository, BlockMapper blockMapper) {
+    return new BlockStorageImpl(blockRepository, blockMapper);
+  }
+
+  @Bean
+  public BlockCborStorageImpl blockCborStorage(BlockCborRepository blockCborRepository) {
+    return new BlockCborStorageImpl(blockCborRepository);
+  }
+
+  @Bean
+  public EpochParamStorageImpl epochParamStorage(EpochParamRepository epochParamRepository,
+      CostModelRepository costModelRepository, ProtocolParamsMapper protocolParamsMapper) {
+    return new EpochParamStorageImpl(epochParamRepository, costModelRepository, protocolParamsMapper);
+  }
+
+  @Bean
+  public TransactionStorageImpl transactionStorage(TxnEntityRepository txnEntityRepository, TxnMapper txnMapper,
+      DSLContext dslContext) {
+    return new TransactionStorageImpl(txnEntityRepository, txnMapper, dslContext);
+  }
+
+  @Bean
+  public TransactionCborStorageImpl transactionCborStorage(TxnCborRepository txnCborRepository) {
+    return new TransactionCborStorageImpl(txnCborRepository);
+  }
+
+  @Bean
+  public TransactionWitnessStorageImpl transactionWitnessStorage(TxnWitnessRepository txnWitnessRepository,
+      TxnMapper txnMapper, DSLContext dslContext) {
+    return new TransactionWitnessStorageImpl(txnWitnessRepository, txnMapper, dslContext);
+  }
+
+  @Bean
+  public UtxoStorageImpl utxoStorage(UtxoRepository utxoRepository, TxInputRepository spentOutputRepository,
+      DSLContext dslContext, UtxoCache utxoCache, PlatformTransactionManager transactionManager) {
+    return new UtxoStorageImpl(utxoRepository, spentOutputRepository, dslContext, utxoCache, transactionManager);
   }
 
   static class AllJarsResourceProvider implements ResourceProvider {
