@@ -16,6 +16,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.entity.*;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.model.DelegationVoteEntity;
 import org.cardanofoundation.rosetta.api.block.model.repository.TxRepository;
 import org.cardanofoundation.rosetta.testgenerator.common.TransactionBlockDetails;
 
@@ -376,8 +377,8 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     assertThat(drepDelegation.getDrep().getDrepType()).isNotNull();
 
     // Verify against database
-    List<DrepVoteDelegationEntity> drepDelegations = entityManager
-        .createQuery("FROM DrepVoteDelegationEntity d where d.txHash=:hash", DrepVoteDelegationEntity.class)
+    List<DelegationVoteEntity> drepDelegations = entityManager
+        .createQuery("FROM DelegationVoteEntity d where d.txHash=:hash", DelegationVoteEntity.class)
         .setParameter("hash", tx.txHash())
         .getResultList();
     assertThat(drepDelegations).isNotNull().isNotEmpty();
@@ -385,7 +386,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     // Verify all delegations from DB are included in the response
     assertThat(blockTx.getDRepDelegations()).hasSameSizeAs(drepDelegations);
 
-    DrepVoteDelegationEntity expected = drepDelegations.getFirst();
+    DelegationVoteEntity expected = drepDelegations.getFirst();
     DRepDelegation actual = blockTx.getDRepDelegations().getFirst();
 
     assertThat(actual.getTxHash()).isEqualTo(expected.getTxHash());
@@ -423,7 +424,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
     //given - Find any transaction with multiple DRep delegation certificates
     List<String> txHashesWithMultipleCerts = entityManager
         .createQuery(
-            "SELECT d.txHash FROM DrepVoteDelegationEntity d " +
+            "SELECT d.txHash FROM DelegationVoteEntity d " +
             "GROUP BY d.txHash " +
             "HAVING COUNT(d) > 1",
             String.class)
@@ -456,9 +457,9 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
         .orElseThrow();
 
     // Get all DRep delegations from database for this transaction
-    List<DrepVoteDelegationEntity> expectedDelegations = entityManager
-        .createQuery("FROM DrepVoteDelegationEntity d WHERE d.txHash = :hash ORDER BY d.certIndex",
-                     DrepVoteDelegationEntity.class)
+    List<DelegationVoteEntity> expectedDelegations = entityManager
+        .createQuery("FROM DelegationVoteEntity d WHERE d.txHash = :hash ORDER BY d.certIndex",
+                     DelegationVoteEntity.class)
         .setParameter("hash", txHash)
         .getResultList();
 
@@ -472,7 +473,7 @@ class LedgerBlockServiceImplIntTest extends IntegrationTest {
 
     // Verify each certificate is correctly mapped
     for (int i = 0; i < expectedDelegations.size(); i++) {
-      DrepVoteDelegationEntity expected = expectedDelegations.get(i);
+      DelegationVoteEntity expected = expectedDelegations.get(i);
       DRepDelegation actual = blockTx.getDRepDelegations().stream()
           .filter(d -> d.getCertIndex() == expected.getCertIndex())
           .findFirst()

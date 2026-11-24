@@ -14,6 +14,7 @@ import org.cardanofoundation.rosetta.api.block.model.domain.Block;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockIdentifierExtended;
 import org.cardanofoundation.rosetta.api.block.model.domain.BlockTx;
 import org.cardanofoundation.rosetta.api.block.model.entity.*;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.model.DelegationVoteEntity;
 import org.cardanofoundation.rosetta.api.block.model.repository.*;
 import org.cardanofoundation.rosetta.common.exception.ExceptionFactory;
 import org.cardanofoundation.rosetta.common.util.StructuredTaskScopeUtil;
@@ -254,7 +255,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
       StructuredTaskScope.Subtask<List<PoolRegistrationEntity>> pReg = scope.fork(() -> poolRegistrationRepository.findByTxHashIn(txHashes));
       StructuredTaskScope.Subtask<List<PoolRetirementEntity>> pRet = scope.fork(() -> poolRetirementRepository.findByTxHashIn(txHashes));
       StructuredTaskScope.Subtask<List<WithdrawalEntity>> withdrawals = scope.fork(() -> withdrawalRepository.findByTxHashIn(txHashes));
-      StructuredTaskScope.Subtask<List<DrepVoteDelegationEntity>> drepDelegations = scope.fork(() -> drepVoteDelegationRepository.findByTxHashIn(txHashes));
+      StructuredTaskScope.Subtask<List<DelegationVoteEntity>> drepDelegations = scope.fork(() -> drepVoteDelegationRepository.findByTxHashIn(txHashes));
       StructuredTaskScope.Subtask<List<VotingProcedureEntity>> spoVotes = scope.fork(() -> votingProcedureRepository.findByTxHashInAndVoterType(txHashes, VoterType.STAKING_POOL_KEY_HASH));
       StructuredTaskScope.Subtask<List<InvalidTransactionEntity>> invalidTxs = scope.fork(() -> invalidTransactionRepository.findByTxHashIn(txHashes));
 
@@ -363,7 +364,7 @@ public class LedgerBlockServiceImpl implements LedgerBlockService {
   record TransactionInfo(List<AddressUtxoEntity> utxos,
                          List<StakeRegistrationEntity> stakeRegistrations,
                          List<PoolDelegationEntity> poolDelegations,
-                         List<DrepVoteDelegationEntity> drepDelegations,
+                         List<DelegationVoteEntity> drepDelegations,
                          List<VotingProcedureEntity> spoVotes,
                          List<PoolRegistrationEntity> poolRegistrations,
                          List<PoolRetirementEntity> poolRetirements,

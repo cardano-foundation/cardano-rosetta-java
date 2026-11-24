@@ -1,6 +1,6 @@
 package org.cardanofoundation.rosetta.api.error.service;
 
-import org.cardanofoundation.rosetta.api.error.model.entity.ErrorEntity;
+import com.bloxbean.cardano.yaci.store.core.storage.impl.model.ErrorEntity;
 import org.cardanofoundation.rosetta.api.error.model.repository.ErrorRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

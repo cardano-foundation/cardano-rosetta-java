@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cardanofoundation.rosetta.api.error.model.domain.BlockParsingErrorReviewDTO;
 import org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus;
-import org.cardanofoundation.rosetta.api.error.model.entity.ErrorEntity;
+import com.bloxbean.cardano.yaci.store.core.storage.impl.model.ErrorEntity;
 import org.cardanofoundation.rosetta.api.error.model.entity.ErrorReviewEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

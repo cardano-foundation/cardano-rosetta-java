@@ -13,6 +13,7 @@ import org.openapitools.client.model.OperationStatus;
 import org.cardanofoundation.rosetta.api.account.model.domain.Utxo;
 import org.cardanofoundation.rosetta.api.block.model.domain.*;
 import org.cardanofoundation.rosetta.api.block.model.entity.*;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.model.DelegationVoteEntity;
 import org.cardanofoundation.rosetta.common.mapper.util.BaseMapper;
 import org.cardanofoundation.rosetta.common.util.Constants;
 
@@ -53,14 +54,14 @@ public interface TransactionMapper {
   @Mapping(source = "address", target = "address")
   @Mapping(source = "drepHash", target = "drep.drepId") // Map entity's drepHash (hex) to domain's drepId field (Rosetta uses hex, not human readable bech32)
   @Mapping(source = "drepType", target = "drep.drepType", qualifiedByName = "convertYaciDrepType")
-  DRepDelegation mapEntityToDRepDelegation(DrepVoteDelegationEntity entity);
+  DRepDelegation mapEntityToDRepDelegation(DelegationVoteEntity entity);
 
   @Mapping(source = "txHash", target = "txHash")
   @Mapping(source = "certIndex", target = "certIndex")
   @Mapping(source = "address", target = "address")
   @Mapping(source = "drep.drepId", target = "drepHash") // Map entity's drepHash (hex) to domain's drepId field (Rosetta uses hex, not human readable bech32 format)
   @Mapping(source = "drep.drepType", target = "drepType", qualifiedByName = "convertClientDrepType")
-  DrepVoteDelegationEntity mapDRepDelegationToEntity(DRepDelegation dRepDelegation);
+  DelegationVoteEntity mapDRepDelegationToEntity(DRepDelegation dRepDelegation);
 
   StakePoolDelegation mapPoolDelegationEntityToDelegation(PoolDelegationEntity entity);
 

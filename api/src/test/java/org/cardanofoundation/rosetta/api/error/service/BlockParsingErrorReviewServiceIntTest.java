@@ -3,7 +3,7 @@ package org.cardanofoundation.rosetta.api.error.service;
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 import org.cardanofoundation.rosetta.api.error.model.domain.BlockParsingErrorReviewDTO;
 import org.cardanofoundation.rosetta.api.error.model.domain.ReviewStatus;
-import org.cardanofoundation.rosetta.api.error.model.entity.ErrorEntity;
+import com.bloxbean.cardano.yaci.store.core.storage.impl.model.ErrorEntity;
 import org.cardanofoundation.rosetta.api.error.model.entity.ErrorReviewEntity;
 import org.cardanofoundation.rosetta.api.error.model.repository.ErrorRepository;
 import org.cardanofoundation.rosetta.api.error.model.repository.ErrorReviewRepository;
@@ -40,17 +40,17 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
         void shouldFindTop1000ErrorsWithoutFilter() {
             // given
             ErrorEntity errorEntity = new ErrorEntity(
-                100,
+                null,
                 123456L,
                 "PARSE_ERROR",
                 "Test error",
                 "Test details",
                 LocalDateTime.now()
             );
-            errorRepository.save(errorEntity);
+            int errorId100 = errorRepository.save(errorEntity).getId();
 
             ErrorReviewEntity reviewEntity = ErrorReviewEntity.builder()
-                .id(100)
+                .id(errorId100)
                 .status(ReviewStatus.REVIEWED_AFFECTS_US)
                 .comment("Test comment")
                 .checkedBy("test_reviewer")
@@ -64,11 +64,11 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
             // then
             assertFalse(results.isEmpty());
             Optional<BlockParsingErrorReviewDTO> result = results.stream()
-                .filter(r -> r.id().equals(100))
+                .filter(r -> r.id().equals(errorId100))
                 .findFirst();
             
             assertTrue(result.isPresent());
-            assertEquals(100, result.get().id());
+            assertEquals(errorId100, result.get().id());
             assertEquals(123456L, result.get().block());
             assertEquals(ReviewStatus.REVIEWED_AFFECTS_US, result.get().status());
             assertEquals("Test comment", result.get().comment());
@@ -79,7 +79,7 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
         void shouldFindTop1000ErrorsFilteredByStatus() {
             // given
             ErrorEntity errorEntity1 = new ErrorEntity(
-                101,
+                null,
                 123457L,
                 "PARSE_ERROR",
                 "Error 1",
@@ -87,25 +87,25 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
                 LocalDateTime.now()
             );
             ErrorEntity errorEntity2 = new ErrorEntity(
-                102,
+                null,
                 123458L,
                 "PARSE_ERROR",
                 "Error 2",
                 "Details 2",
                 LocalDateTime.now()
             );
-            errorRepository.save(errorEntity1);
-            errorRepository.save(errorEntity2);
+            int errorId101 = errorRepository.save(errorEntity1).getId();
+            int errorId102 = errorRepository.save(errorEntity2).getId();
 
             ErrorReviewEntity reviewEntity1 = ErrorReviewEntity.builder()
-                .id(101)
+                .id(errorId101)
                 .status(ReviewStatus.REVIEWED_AFFECTS_US)
                 .comment("Affects us")
                 .checkedBy("reviewer1")
                 .lastUpdated(LocalDateTime.now())
                 .build();
             ErrorReviewEntity reviewEntity2 = ErrorReviewEntity.builder()
-                .id(102)
+                .id(errorId102)
                 .status(ReviewStatus.REVIEWED_DOES_NOT_AFFECT_US)
                 .comment("Does not affect us")
                 .checkedBy("reviewer2")
@@ -119,8 +119,8 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
                 blockParsingErrorReviewService.findTop1000(ReviewStatus.REVIEWED_AFFECTS_US);
 
             // then
-            assertTrue(results.stream().anyMatch(r -> r.id().equals(101)));
-            assertFalse(results.stream().anyMatch(r -> r.id().equals(102)));
+            assertTrue(results.stream().anyMatch(r -> r.id().equals(errorId101)));
+            assertFalse(results.stream().anyMatch(r -> r.id().equals(errorId102)));
         }
 
         @Test
@@ -129,14 +129,14 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
             // given
             long blockNumber = 888888L;
             ErrorEntity errorEntity = new ErrorEntity(
-                103,
+                null,
                 blockNumber,
                 "PARSE_ERROR",
                 "Block specific error",
                 "Block details",
                 LocalDateTime.now()
             );
-            errorRepository.save(errorEntity);
+            int errorId103 = errorRepository.save(errorEntity).getId();
 
             // when
             List<BlockParsingErrorReviewDTO> results = 
@@ -144,7 +144,7 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
 
             // then
             Optional<BlockParsingErrorReviewDTO> result = results.stream()
-                .filter(r -> r.id().equals(103))
+                .filter(r -> r.id().equals(errorId103))
                 .findFirst();
             
             assertTrue(result.isPresent());
@@ -180,18 +180,18 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
         void shouldCreateNewReviewWhenErrorExistsButReviewDoesNot() {
             // given
             ErrorEntity errorEntity = new ErrorEntity(
-                104,
+                null,
                 123459L,
                 "PARSE_ERROR",
                 "New error",
                 "New details",
                 LocalDateTime.now()
             );
-            errorRepository.save(errorEntity);
+            int errorId104 = errorRepository.save(errorEntity).getId();
 
             // when
             Optional<ErrorReviewEntity> result = blockParsingErrorReviewService.upsert(
-                104,
+                errorId104,
                 ReviewStatus.REVIEWED_AFFECTS_US,
                 "New review comment",
                 "new_reviewer"
@@ -199,14 +199,14 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
 
             // then
             assertTrue(result.isPresent());
-            assertEquals(104, result.get().getId());
+            assertEquals(errorId104, result.get().getId());
             assertEquals(ReviewStatus.REVIEWED_AFFECTS_US, result.get().getStatus());
             assertEquals("New review comment", result.get().getComment());
             assertEquals("new_reviewer", result.get().getCheckedBy());
             assertNotNull(result.get().getLastUpdated());
 
             // Verify it's persisted
-            Optional<ErrorReviewEntity> persistedEntity = errorReviewRepository.findById(104);
+            Optional<ErrorReviewEntity> persistedEntity = errorReviewRepository.findById(errorId104);
             assertTrue(persistedEntity.isPresent());
             assertEquals(ReviewStatus.REVIEWED_AFFECTS_US, persistedEntity.get().getStatus());
         }
@@ -216,17 +216,17 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
         void shouldUpdateExistingReview() {
             // given
             ErrorEntity errorEntity = new ErrorEntity(
-                105,
+                null,
                 123460L,
                 "PARSE_ERROR",
                 "Existing error",
                 "Existing details",
                 LocalDateTime.now()
             );
-            errorRepository.save(errorEntity);
+            int errorId105 = errorRepository.save(errorEntity).getId();
 
             ErrorReviewEntity existingReview = ErrorReviewEntity.builder()
-                .id(105)
+                .id(errorId105)
                 .status(ReviewStatus.UNREVIEWED)
                 .comment("Original comment")
                 .checkedBy("original_reviewer")
@@ -236,7 +236,7 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
 
             // when
             Optional<ErrorReviewEntity> result = blockParsingErrorReviewService.upsert(
-                105,
+                errorId105,
                 ReviewStatus.REVIEWED_DOES_NOT_AFFECT_US,
                 "Updated comment",
                 "updated_reviewer"
@@ -244,13 +244,13 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
 
             // then
             assertTrue(result.isPresent());
-            assertEquals(105, result.get().getId());
+            assertEquals(errorId105, result.get().getId());
             assertEquals(ReviewStatus.REVIEWED_DOES_NOT_AFFECT_US, result.get().getStatus());
             assertEquals("Updated comment", result.get().getComment());
             assertEquals("updated_reviewer", result.get().getCheckedBy());
 
             // Verify it's updated in database
-            Optional<ErrorReviewEntity> persistedEntity = errorReviewRepository.findById(105);
+            Optional<ErrorReviewEntity> persistedEntity = errorReviewRepository.findById(errorId105);
             assertTrue(persistedEntity.isPresent());
             assertEquals(ReviewStatus.REVIEWED_DOES_NOT_AFFECT_US, persistedEntity.get().getStatus());
             assertEquals("Updated comment", persistedEntity.get().getComment());
@@ -261,18 +261,18 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
         void shouldUseAnonymousUserWhenCheckedByIsNull() {
             // given
             ErrorEntity errorEntity = new ErrorEntity(
-                106,
+                null,
                 123461L,
                 "PARSE_ERROR",
                 "Anonymous review error",
                 "Anonymous details",
                 LocalDateTime.now()
             );
-            errorRepository.save(errorEntity);
+            int errorId106 = errorRepository.save(errorEntity).getId();
 
             // when
             Optional<ErrorReviewEntity> result = blockParsingErrorReviewService.upsert(
-                106,
+                errorId106,
                 ReviewStatus.REVIEWED_AFFECTS_US,
                 "Anonymous comment",
                 null
@@ -283,7 +283,7 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
             assertEquals(BlockParsingErrorReviewService.ANONYMOUS_USER, result.get().getCheckedBy());
 
             // Verify it's persisted with anonymous user
-            Optional<ErrorReviewEntity> persistedEntity = errorReviewRepository.findById(106);
+            Optional<ErrorReviewEntity> persistedEntity = errorReviewRepository.findById(errorId106);
             assertTrue(persistedEntity.isPresent());
             assertEquals(BlockParsingErrorReviewService.ANONYMOUS_USER, persistedEntity.get().getCheckedBy());
         }
@@ -293,17 +293,17 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
         void shouldPreserveExistingCommentWhenNewCommentIsNull() {
             // given
             ErrorEntity errorEntity = new ErrorEntity(
-                107,
+                null,
                 123462L,
                 "PARSE_ERROR",
                 "Comment preservation error",
                 "Preservation details",
                 LocalDateTime.now()
             );
-            errorRepository.save(errorEntity);
+            int errorId107 = errorRepository.save(errorEntity).getId();
 
             ErrorReviewEntity existingReview = ErrorReviewEntity.builder()
-                .id(107)
+                .id(errorId107)
                 .status(ReviewStatus.UNREVIEWED)
                 .comment("Existing comment to preserve")
                 .checkedBy("original_reviewer")
@@ -313,7 +313,7 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
 
             // when
             Optional<ErrorReviewEntity> result = blockParsingErrorReviewService.upsert(
-                107,
+                errorId107,
                 ReviewStatus.REVIEWED_AFFECTS_US,
                 null, // null comment should preserve existing
                 "new_reviewer"
@@ -326,7 +326,7 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
             assertEquals(ReviewStatus.REVIEWED_AFFECTS_US, result.get().getStatus());
 
             // Verify comment is preserved in database
-            Optional<ErrorReviewEntity> persistedEntity = errorReviewRepository.findById(107);
+            Optional<ErrorReviewEntity> persistedEntity = errorReviewRepository.findById(errorId107);
             assertTrue(persistedEntity.isPresent());
             assertEquals("Existing comment to preserve", persistedEntity.get().getComment());
         }
@@ -336,18 +336,18 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
         void shouldHandleFullWorkflowFromCreationToMultipleUpdates() {
             // given
             ErrorEntity errorEntity = new ErrorEntity(
-                108,
+                null,
                 123463L,
                 "PARSE_ERROR",
                 "Workflow error",
                 "Workflow details",
                 LocalDateTime.now()
             );
-            errorRepository.save(errorEntity);
+            int errorId108 = errorRepository.save(errorEntity).getId();
 
             // when - first review (create)
             Optional<ErrorReviewEntity> firstResult = blockParsingErrorReviewService.upsert(
-                108,
+                errorId108,
                 ReviewStatus.UNREVIEWED,
                 "Initial review",
                 "reviewer1"
@@ -355,7 +355,7 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
 
             // when - second review (update)
             Optional<ErrorReviewEntity> secondResult = blockParsingErrorReviewService.upsert(
-                108,
+                errorId108,
                 ReviewStatus.REVIEWED_AFFECTS_US,
                 "Updated to affects us",
                 "reviewer2"
@@ -363,7 +363,7 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
 
             // when - third review (final update)
             Optional<ErrorReviewEntity> thirdResult = blockParsingErrorReviewService.upsert(
-                108,
+                errorId108,
                 ReviewStatus.REVIEWED_DOES_NOT_AFFECT_US,
                 "Final decision: does not affect us",
                 "reviewer3"
@@ -380,7 +380,7 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
             assertEquals("reviewer3", thirdResult.get().getCheckedBy());
 
             // Verify database state
-            Optional<ErrorReviewEntity> finalEntity = errorReviewRepository.findById(108);
+            Optional<ErrorReviewEntity> finalEntity = errorReviewRepository.findById(errorId108);
             assertTrue(finalEntity.isPresent());
             assertEquals(ReviewStatus.REVIEWED_DOES_NOT_AFFECT_US, finalEntity.get().getStatus());
             assertEquals("Final decision: does not affect us", finalEntity.get().getComment());
@@ -397,19 +397,19 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
         void shouldHandleTransactionRollbackOnError() {
             // given
             ErrorEntity errorEntity = new ErrorEntity(
-                109,
+                null,
                 123464L,
                 "PARSE_ERROR",
                 "Transaction test error",
                 "Transaction details",
                 LocalDateTime.now()
             );
-            errorRepository.save(errorEntity);
+            int errorId109 = errorRepository.save(errorEntity).getId();
 
             // when & then
             assertDoesNotThrow(() -> {
                 blockParsingErrorReviewService.upsert(
-                    109,
+                    errorId109,
                     ReviewStatus.REVIEWED_AFFECTS_US,
                     "Valid transaction",
                     "reviewer"
@@ -417,7 +417,7 @@ class BlockParsingErrorReviewServiceIntTest extends IntegrationTest {
             });
 
             // Verify the valid transaction was committed
-            Optional<ErrorReviewEntity> entity = errorReviewRepository.findById(109);
+            Optional<ErrorReviewEntity> entity = errorReviewRepository.findById(errorId109);
             assertTrue(entity.isPresent());
             assertEquals(ReviewStatus.REVIEWED_AFFECTS_US, entity.get().getStatus());
         }
