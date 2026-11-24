@@ -531,6 +531,10 @@
              configuration: the AOT profiles below. -->
         <profile>
             <id>native</id>
+            <properties>
+                <!-- -O3 (Oracle GraalVM); -O2 needs less compiler memory: -Dnative.optimization=-O2 -->
+                <native.optimization>-O3</native.optimization>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -572,7 +576,7 @@
                             <buildArgs>
                                 <!-- Oracle GraalVM options, as in cf-adahandle-resolver (ADR 0008) -->
                                 <buildArg>-march=compatibility</buildArg>
-                                <buildArg>-O3</buildArg>
+                                <buildArg>${native.optimization}</buildArg>
                                 <buildArg>--gc=G1</buildArg>
                                 <buildArg>--initialize-at-run-time=sun.net.dns.ResolverConfigurationImpl</buildArg>
                                 <buildArg>-H:+ReportExceptionStackTraces</buildArg>
