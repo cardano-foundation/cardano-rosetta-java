@@ -13,15 +13,14 @@ import org.junit.jupiter.api.Test;
 import org.cardanofoundation.rosetta.api.IntegrationTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * The api uses yaci-store (assets-ext) only as a library: its JPA entities and repositories.
- * No yaci-store indexer, sync job, processor or other bean may run in the api. This guards that:
- * <ul>
- *   <li>the only yaci-store beans in the context are the assets-ext repositories, and</li>
- *   <li>the yaci-store sync engine (yaci-store-core) is not even on the classpath.</li>
- * </ul>
+ * The api uses yaci-store only as a library: a few JPA entities (registered in YaciStoreEntitiesConfig) and the
+ * assets-ext repositories. No yaci-store indexer, sync job, processor or other bean may run in the api. This guards
+ * that the only yaci-store beans in the context are the assets-ext repositories.
+ * <p>
+ * yaci-store-core (which holds the sync engine) is on the classpath for its {@code error} entity. Nothing in it runs:
+ * the jar has no auto-configuration and none of its packages is component-scanned, which this test checks.
  */
 class YaciStoreLibraryIsolationIntTest extends IntegrationTest {
 
@@ -44,11 +43,5 @@ class YaciStoreLibraryIsolationIntTest extends IntegrationTest {
         ASSETS_EXT + "cip26.storage.impl.repository.Cip26MetadataRepository",
         ASSETS_EXT + "cip26.storage.impl.repository.Cip26SyncStateRepository",
         ASSETS_EXT + "cip68.storage.impl.repository.Cip68MetadataRepository");
-  }
-
-  @Test
-  void yaciStoreSyncEngineIsNotOnTheClasspath() {
-    assertThatThrownBy(() -> Class.forName(YACI_STORE_PACKAGE + "core.service.StartService"))
-        .isInstanceOf(ClassNotFoundException.class);
   }
 }

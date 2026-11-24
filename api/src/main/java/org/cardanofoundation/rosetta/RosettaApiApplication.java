@@ -27,11 +27,8 @@ import org.openapitools.jackson.nullable.JsonNullableModule;
     "org.cardanofoundation.rosetta.api.error.model.entity",
     "org.cardanofoundation.rosetta.api.block.model.entity",
     "org.cardanofoundation.rosetta.api.construction.model.entity",
-    "org.cardanofoundation.rosetta.api.network.model.entity",
-    // yaci-store assets-ext entities (cip26_metadata, cip68_metadata), used as a library: only the
-    // entity and repository packages are scanned, no yaci-store service, job or migration runs in the api
-    "com.bloxbean.cardano.yaci.store.extensions.assetstore.cip26.storage.impl.model",
-    "com.bloxbean.cardano.yaci.store.extensions.assetstore.cip68.storage.impl.model"})
+    "org.cardanofoundation.rosetta.api.network.model.entity"})
+// yaci-store entities used by the api are registered one by one in YaciStoreEntitiesConfig
 @EnableJpaRepositories(basePackages = {
     "org.cardanofoundation.rosetta",
     "com.bloxbean.cardano.yaci.store.extensions.assetstore.cip26.storage.impl.repository",

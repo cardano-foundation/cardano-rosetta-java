@@ -1,15 +1,15 @@
 package org.cardanofoundation.rosetta.api.block.model.repository;
 
-import org.cardanofoundation.rosetta.api.block.model.entity.DrepVoteDelegationEntity;
-import org.cardanofoundation.rosetta.api.block.model.entity.DrepVoteDelegationId;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.model.DelegationVoteEntity;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.model.DelegationVoteId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface DrepVoteDelegationRepository extends JpaRepository<DrepVoteDelegationEntity, DrepVoteDelegationId> {
+public interface DrepVoteDelegationRepository extends JpaRepository<DelegationVoteEntity, DelegationVoteId> {
 
-  List<DrepVoteDelegationEntity> findByTxHashIn(List<String> txHashes);
+  List<DelegationVoteEntity> findByTxHashIn(List<String> txHashes);
 
 }
