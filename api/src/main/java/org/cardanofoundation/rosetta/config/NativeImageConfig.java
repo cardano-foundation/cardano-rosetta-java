@@ -2,8 +2,13 @@ package org.cardanofoundation.rosetta.config;
 
 import javax.annotation.Nullable;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.List;
 
+import org.jooq.DataType;
+import org.jooq.impl.SQLDataType;
+import org.jooq.util.postgres.PostgresDataType;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
@@ -68,6 +73,25 @@ public class NativeImageConfig {
       HYPERSISTENCE_JSON_TYPES.forEach(type -> hints.reflection().registerType(TypeReference.of(type),
           MemberCategory.INVOKE_DECLARED_CONSTRUCTORS, MemberCategory.INVOKE_PUBLIC_METHODS,
           MemberCategory.DECLARED_FIELDS));
+      // jOOQ's static initialization (SQLDataType, PostgresDataType) creates the array data type of every built-in
+      // type, e.g. Decfloat[]. In a native image an array class the analysis didn't see isn't in the image and
+      // Class.arrayType() returns null, which fails DefaultDataType.<clinit> with a NullPointerException.
+      registerJooqArrayTypes(hints, SQLDataType.class);
+      registerJooqArrayTypes(hints, PostgresDataType.class);
+    }
+
+    private static void registerJooqArrayTypes(RuntimeHints hints, Class<?> dataTypes) {
+      for (Field field : dataTypes.getFields()) {
+        if (!Modifier.isStatic(field.getModifiers()) || !DataType.class.isAssignableFrom(field.getType())) {
+          continue;
+        }
+        try {
+          Class<?> type = ((DataType<?>) field.get(null)).getType();
+          hints.reflection().registerType(type.arrayType());
+        } catch (IllegalAccessException e) {
+          throw new IllegalStateException("Cannot read jOOQ data type " + field, e);
+        }
+      }
     }
   }
 }
