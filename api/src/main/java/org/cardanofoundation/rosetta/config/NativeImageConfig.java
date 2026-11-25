@@ -2,6 +2,7 @@ package org.cardanofoundation.rosetta.config;
 
 import javax.annotation.Nullable;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.List;
@@ -13,6 +14,10 @@ import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.TypeReference;
+import org.springframework.aot.hint.BindingReflectionHintsRegistrar;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.util.ClassUtils;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportRuntimeHints;
 
@@ -78,6 +83,25 @@ public class NativeImageConfig {
       // Class.arrayType() returns null, which fails DefaultDataType.<clinit> with a NullPointerException.
       registerJooqArrayTypes(hints, SQLDataType.class);
       registerJooqArrayTypes(hints, PostgresDataType.class);
+      // Jackson maps Rosetta's model classes outside the REST controllers too (topology and peer snapshot files,
+      // JsonType columns), which AOT doesn't see; the tracing agent recorded them without constructors and fields.
+      // Register every class in Rosetta's model packages like AOT registers controller types.
+      registerRosettaModelClasses(hints, classLoader);
+    }
+
+    private static void registerRosettaModelClasses(RuntimeHints hints, @Nullable ClassLoader classLoader) {
+      PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver(classLoader);
+      BindingReflectionHintsRegistrar binding = new BindingReflectionHintsRegistrar();
+      try {
+        for (Resource resource : resolver.getResources("classpath*:org/cardanofoundation/rosetta/**/model/**/*.class")) {
+          String path = resource.getURL().toString();
+          String className = path.substring(path.lastIndexOf("org/cardanofoundation/rosetta/"), path.length() - 6)
+              .replace('/', '.');
+          binding.registerReflectionHints(hints.reflection(), ClassUtils.forName(className, classLoader));
+        }
+      } catch (IOException | ClassNotFoundException e) {
+        throw new IllegalStateException("Cannot register Rosetta model classes for reflection", e);
+      }
     }
 
     private static void registerJooqArrayTypes(RuntimeHints hints, Class<?> dataTypes) {
