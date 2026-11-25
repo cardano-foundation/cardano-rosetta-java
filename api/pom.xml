@@ -535,6 +535,18 @@
                 <!-- -O3 (Oracle GraalVM); -O2 needs less compiler memory: -Dnative.optimization=-O2 -->
                 <native.optimization>-O3</native.optimization>
             </properties>
+            <!-- Undertow (via xnio) brings wildfly-common 1.5.4, whose GraalVM substitution for GraalDirectives no
+                 longer exists in GraalVM 25 and fails the build. 2.0.1 ships no substitutions; every wildfly-common
+                 class xnio 3.8.16 and undertow-core 2.3.24 use is still in it. Native image only; the JVM keeps 1.5.4. -->
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.wildfly.common</groupId>
+                        <artifactId>wildfly-common</artifactId>
+                        <version>2.0.1</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
             <build>
                 <plugins>
                     <plugin>
