@@ -11,10 +11,11 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import com.bloxbean.cardano.yaci.core.config.YaciConfig;
 
 import org.cardanofoundation.rosetta.yaciindexer.config.ConfigurationH2;
+import org.cardanofoundation.rosetta.yaciindexer.config.NativeImageConfig;
 
 @SpringBootApplication
 @EnableScheduling
-@Import(ConfigurationH2.class)
+@Import({ConfigurationH2.class, NativeImageConfig.class})
 @EntityScan({
     "org.cardanofoundation.rosetta.yaciindexer.stores.txsize.model"
 })

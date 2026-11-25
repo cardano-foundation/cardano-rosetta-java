@@ -526,6 +526,92 @@
                 </dependency>
             </dependencies>
         </profile>
+        <!-- EXPERIMENT (exp/graalvm-native): GraalVM native image, built with Oracle GraalVM 25 (Dockerfile.native).
+             Spring AOT fixes @Profile/@Conditional bean decisions at build time, so the image is built for one
+             configuration: the AOT profiles below. -->
+        <profile>
+            <id>native</id>
+            <properties>
+                <!-- -O3 (Oracle GraalVM); -O2 needs less compiler memory: -Dnative.optimization=-O2 -->
+                <native.optimization>-O3</native.optimization>
+            </properties>
+            <!-- Undertow (via xnio) brings wildfly-common 1.5.4, whose GraalVM substitution for GraalDirectives no
+                 longer exists in GraalVM 25 and fails the build. 2.0.1 ships no substitutions; every wildfly-common
+                 class xnio 3.8.16 and undertow-core 2.3.24 use is still in it. Native image only; the JVM keeps 1.5.4. -->
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.wildfly.common</groupId>
+                        <artifactId>wildfly-common</artifactId>
+                        <version>2.0.1</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <version>${version.spring-boot}</version>
+                        <!-- keep the plain jar as the module artifact: native-image needs its classes, not the
+                             repackaged executable jar (classes under BOOT-INF/) -->
+                        <configuration>
+                            <classifier>exec</classifier>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>process-aot</id>
+                                <goals>
+                                    <goal>process-aot</goal>
+                                </goals>
+                                <configuration>
+                                    <jvmArguments>--enable-preview</jvmArguments>
+                                    <!-- the AOT-generated sources reference classes that use preview features -->
+                                    <compilerArguments>--release 25 --enable-preview</compilerArguments>
+                                    <profiles>
+                                        <profile>online</profile>
+                                    </profiles>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>0.10.6</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <imageName>rosetta-api</imageName>
+                            <metadataRepository>
+                                <enabled>true</enabled>
+                            </metadataRepository>
+                            <buildArgs>
+                                <!-- Oracle GraalVM options, as in cf-adahandle-resolver (ADR 0008) -->
+                                <buildArg>-march=compatibility</buildArg>
+                                <buildArg>${native.optimization}</buildArg>
+                                <buildArg>--gc=G1</buildArg>
+                                <buildArg>--initialize-at-run-time=sun.net.dns.ResolverConfigurationImpl</buildArg>
+                                <buildArg>-H:+ReportExceptionStackTraces</buildArg>
+                                <buildArg>--enable-preview</buildArg>
+                                <!-- as in yaci-indexer: no ByteBuddy bytecode provider, Hibernate falls back to "none" -->
+                                <buildArg>-H:+UnlockExperimentalVMOptions</buildArg>
+                                <buildArg>-H:ServiceLoaderFeatureExcludeServiceProviders=org.hibernate.bytecode.internal.bytebuddy.BytecodeProviderImpl</buildArg>
+                                <buildArg>-H:-UnlockExperimentalVMOptions</buildArg>
+                            </buildArgs>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
 </project>

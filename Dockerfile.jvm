@@ -1,0 +1,51 @@
+# EXPERIMENT (exp/graalvm-native): the JVM image of the api or yaci-indexer, built from the same source as
+# Dockerfile.native, for the JVM vs native comparison. Same JDK (Temurin) and Maven build as <module>/Dockerfile.
+#
+#   docker build -f Dockerfile.jvm --build-arg MODULE=yaci-indexer -t yaci-indexer:jvm-exp .
+FROM ubuntu:26.04 AS build-common
+ARG MODULE
+WORKDIR /build
+
+# Harden apt against transient Ubuntu-mirror hiccups (mirror sync in progress,
+# flaky DNS, stale CDN edges). Retry a few times, bump the read timeout, and
+# disable HTTP caching so a stale index doesn't get re-served.
+RUN printf 'Acquire::Retries "5";\nAcquire::http::Timeout "30";\nAcquire::https::Timeout "30";\nAcquire::http::No-Cache "true";\n' \
+        > /etc/apt/apt.conf.d/99-retries
+
+RUN apt update --fix-missing \
+    && apt install -y --no-install-recommends maven curl \
+    && apt clean
+
+# Download and setup JDK 25 LTS (Eclipse Temurin, GPLv2 + Classpath Exception).
+# 25.0.5.1+2 fixes CVE-2026-114938 (Base64 decoder intrinsic):
+# https://adoptium.net/news/2026/11/temurin-november-2026-cspu-java4shell
+# It builds on 25.0.5+8, whose Mozilla NSS 3.131.1 trust store removes the roots that signed
+# the compromised eMudhra intermediates: https://adoptium.net/news/2026/10/temurin-october-2026-emudhra/
+# Checksum from https://api.adoptium.net/v3/assets/release_name/eclipse/jdk-25.0.5.1%2B2
+ARG TEMURIN_VERSION=25.0.5.1
+ARG TEMURIN_BUILD=2
+ARG TEMURIN_SHA256=760f91b22c3efc9bd1b64ff950598231be82928cc807e30691a0e7a2995a62c0
+RUN mkdir -p /opt/java \
+    && curl -fsSL https://github.com/adoptium/temurin25-binaries/releases/download/jdk-${TEMURIN_VERSION}%2B${TEMURIN_BUILD}/OpenJDK25U-jdk_x64_linux_hotspot_${TEMURIN_VERSION}_${TEMURIN_BUILD}.tar.gz -o /opt/jdk.tar.gz \
+    && echo "${TEMURIN_SHA256}  /opt/jdk.tar.gz" | sha256sum -c - \
+    && tar -xzf /opt/jdk.tar.gz -C /opt/java \
+    && rm /opt/jdk.tar.gz
+
+# Set JAVA_HOME and update PATH
+ENV JAVA_HOME=/opt/java/jdk-${TEMURIN_VERSION}+${TEMURIN_BUILD}
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+COPY ./pom.xml /build/pom.xml
+COPY ./api /build/api
+COPY ./yaci-indexer /build/yaci-indexer
+COPY ./test-data-generator /build/test-data-generator
+
+RUN --mount=type=cache,target=/root/.m2 mvn -U clean package -DskipTests -Dmaven.gitcommitid.skip=true -pl "${MODULE}" -am
+RUN java --version
+
+WORKDIR /app
+RUN cp /build/${MODULE}/target/*.jar /app/app.jar
+RUN rm -rf /build
+
+ENTRYPOINT ["java", "--enable-preview", "-jar", "/app/app.jar"]
+

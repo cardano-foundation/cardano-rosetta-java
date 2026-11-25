@@ -1,0 +1,49 @@
+# EXPERIMENT (exp/graalvm-native): GraalVM native image of the api or yaci-indexer.
+#
+#   docker build -f Dockerfile.native --build-arg MODULE=api          --build-arg IMAGE=rosetta-api  -t rosetta-api:native .
+#   docker build -f Dockerfile.native --build-arg MODULE=yaci-indexer --build-arg IMAGE=yaci-indexer -t yaci-indexer:native .
+#
+# Built with Oracle GraalVM (G1, -O3), like cf-adahandle-resolver (ADR 0008), yaci-store's native releases and
+# cf-token-metadata-registry. Oracle GraalVM is licensed under the GraalVM Free Terms and Conditions (GFTC); the image
+# ships Oracle's LICENSE.txt and NOTICE.txt in /licenses/graalvm, as the GFTC requires. Pinned so an upgrade is a
+# reviewed change.
+#
+# Spring AOT fixes @Profile/@Conditional bean decisions at build time: see the "native" profile in <module>/pom.xml for
+# the configuration each image is built for.
+FROM container-registry.oracle.com/graalvm/native-image:25i5-25.0.5.0.3-ol9 AS build
+
+ARG MAVEN_VERSION=3.9.11
+RUN microdnf install -y findutils curl tar gzip && microdnf clean all \
+    && curl -fsSL "https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz" \
+       | tar -xz -C /opt \
+    && ln -s "/opt/apache-maven-${MAVEN_VERSION}/bin/mvn" /usr/local/bin/mvn
+
+ARG MODULE
+ARG IMAGE
+WORKDIR /build
+COPY ./pom.xml /build/pom.xml
+COPY ./api /build/api
+COPY ./yaci-indexer /build/yaci-indexer
+COPY ./test-data-generator /build/test-data-generator
+# The native-image compiler needs a lot of memory for a Spring application (the indexer needs more than 10 GB of heap
+# with the traced metadata); cap heap and threads so the build fits next to other containers.
+ARG NATIVE_XMX=13g
+ARG NATIVE_THREADS=6
+ENV NATIVE_IMAGE_OPTIONS="-J-Xmx${NATIVE_XMX} --parallelism=${NATIVE_THREADS}"
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn -B -Pnative -DskipTests -Dmaven.gitcommitid.skip=true -pl "${MODULE}" -am package \
+    && mkdir -p /out /licenses/graalvm \
+    && cp "/build/${MODULE}/target/${IMAGE}" /out/app \
+    && cp "$JAVA_HOME/LICENSE.txt" /licenses/graalvm/LICENSE.txt \
+    && cp "$JAVA_HOME/NOTICE.txt" /licenses/graalvm/NOTICE.txt
+
+FROM ubuntu:26.04 AS runtime
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends zlib1g ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
+LABEL org.opencontainers.image.licenses="Apache-2.0 AND LicenseRef-GraalVM-Free-Terms-and-Conditions"
+WORKDIR /app
+COPY --from=build /licenses /licenses
+COPY LICENSE /licenses/LICENSE
+COPY --from=build /out/app /app/app
+ENTRYPOINT ["/app/app"]

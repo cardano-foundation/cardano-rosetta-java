@@ -37,6 +37,12 @@
     </repositories>
 
     <dependencies>
+        <!-- EXPERIMENT (exp/graalvm-native): NativeImageConfig implements Flyway's ResourceProvider (version from the
+             Spring Boot BOM; already on the runtime classpath through yaci-store) -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
@@ -216,6 +222,85 @@
                     <artifactId>h2</artifactId>
                 </dependency>
             </dependencies>
+        </profile>
+        <!-- EXPERIMENT (exp/graalvm-native): GraalVM native image, built with Oracle GraalVM 25 (Dockerfile.native).
+             Spring AOT fixes @Profile/@Conditional bean decisions at build time, so the image is built for one
+             configuration: the AOT profiles below. -->
+        <profile>
+            <id>native</id>
+            <properties>
+                <!-- -O3 (Oracle GraalVM); -O2 needs less compiler memory: -Dnative.optimization=-O2 -->
+                <native.optimization>-O3</native.optimization>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-maven-plugin</artifactId>
+                        <version>${version.spring-boot}</version>
+                        <!-- keep the plain jar as the module artifact: native-image needs its classes, not the
+                             repackaged executable jar (classes under BOOT-INF/) -->
+                        <configuration>
+                            <classifier>exec</classifier>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>process-aot</id>
+                                <goals>
+                                    <goal>process-aot</goal>
+                                </goals>
+                                <configuration>
+                                    <!-- n2c-socket beans exist only when a socket path is set; AOT decides that at build
+                                         time, the real path is read at runtime -->
+                                    <systemPropertyVariables>
+                                        <CARDANO_NODE_SOCKET_PATH>/node-ipc/node.socket</CARDANO_NODE_SOCKET_PATH>
+                                    </systemPropertyVariables>
+                                    <profiles>
+                                        <profile>postgres</profile>
+                                        <profile>n2c-socket</profile>
+                                    </profiles>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>0.10.6</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <imageName>yaci-indexer</imageName>
+                            <metadataRepository>
+                                <enabled>true</enabled>
+                            </metadataRepository>
+                            <buildArgs>
+                                <!-- Oracle GraalVM options, as in cf-adahandle-resolver (ADR 0008) -->
+                                <buildArg>-march=compatibility</buildArg>
+                                <buildArg>${native.optimization}</buildArg>
+                                <buildArg>--gc=G1</buildArg>
+                                <buildArg>--initialize-at-run-time=sun.net.dns.ResolverConfigurationImpl</buildArg>
+                                <buildArg>-H:+ReportExceptionStackTraces</buildArg>
+                                <!-- Hibernate picks its bytecode provider through ServiceLoader and uses the no-op "none"
+                                     provider when there is none. ByteBuddy's generates classes at runtime, which a
+                                     native image can't do, so it is left out of the image. -->
+                                <buildArg>-H:+UnlockExperimentalVMOptions</buildArg>
+                                <buildArg>-H:ServiceLoaderFeatureExcludeServiceProviders=org.hibernate.bytecode.internal.bytebuddy.BytecodeProviderImpl</buildArg>
+                                <buildArg>-H:-UnlockExperimentalVMOptions</buildArg>
+
+                            </buildArgs>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>compile-no-fork</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>
