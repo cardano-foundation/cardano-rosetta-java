@@ -16,7 +16,6 @@ import org.flywaydb.core.api.Location;
 import org.flywaydb.core.api.ResourceProvider;
 import org.flywaydb.core.api.resource.LoadableResource;
 import org.flywaydb.core.internal.resource.classpath.ClassPathResource;
-import org.jooq.DSLContext;
 import org.springframework.aot.hint.RuntimeHints;
 import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.TypeReference;
@@ -28,30 +27,67 @@ import org.springframework.core.NativeDetector;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
-import com.bloxbean.cardano.yaci.store.common.config.StoreProperties;
-import com.bloxbean.cardano.yaci.store.core.storage.impl.CursorRepository;
-import com.bloxbean.cardano.yaci.store.core.storage.impl.CursorStorageImpl;
-import com.bloxbean.cardano.yaci.store.utxo.storage.impl.AddressStorageImpl;
 import com.bloxbean.cardano.yaci.store.blocks.storage.impl.BlockCborStorageImpl;
 import com.bloxbean.cardano.yaci.store.blocks.storage.impl.BlockStorageImpl;
 import com.bloxbean.cardano.yaci.store.blocks.storage.impl.mapper.BlockMapper;
 import com.bloxbean.cardano.yaci.store.blocks.storage.impl.repository.BlockCborRepository;
 import com.bloxbean.cardano.yaci.store.blocks.storage.impl.repository.BlockRepository;
+import com.bloxbean.cardano.yaci.store.common.config.StoreProperties;
+import com.bloxbean.cardano.yaci.store.core.storage.impl.CursorRepository;
+import com.bloxbean.cardano.yaci.store.core.storage.impl.CursorStorageImpl;
 import com.bloxbean.cardano.yaci.store.epoch.storage.impl.EpochParamStorageImpl;
 import com.bloxbean.cardano.yaci.store.epoch.storage.impl.mapper.ProtocolParamsMapper;
 import com.bloxbean.cardano.yaci.store.epoch.storage.impl.repository.CostModelRepository;
 import com.bloxbean.cardano.yaci.store.epoch.storage.impl.repository.EpochParamRepository;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.CommitteeDeRegistrationStorageImpl;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.CommitteeMemberStorageImpl;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.CommitteeRegistrationStorageImpl;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.DRepRegistrationStorageImpl;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.DRepStorageImpl;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.DelegationVoteStorageImpl;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.GovActionProposalStorageImpl;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.VotingProcedureStorageImpl;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.mapper.CommitteeDeRegistrationMapper;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.mapper.CommitteeMemberMapper;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.mapper.CommitteeRegistrationMapper;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.mapper.DRepMapper;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.mapper.DRepRegistrationMapper;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.mapper.DelegationVoteMapper;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.mapper.GovActionProposalMapper;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.mapper.VotingProcedureMapper;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.repository.CommitteeDeRegistrationRepository;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.repository.CommitteeMemberRepository;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.repository.CommitteeRegistrationRepository;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.repository.DRepRegistrationRepository;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.repository.DRepRepository;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.repository.DelegationVoteRepository;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.repository.GovActionProposalRepository;
+import com.bloxbean.cardano.yaci.store.governance.storage.impl.repository.VotingProcedureRepository;
+import com.bloxbean.cardano.yaci.store.staking.storage.impl.PoolCertificateStorageImpl;
+import com.bloxbean.cardano.yaci.store.staking.storage.impl.PoolStorageImpl;
+import com.bloxbean.cardano.yaci.store.staking.storage.impl.StakeCertificateStorageImpl;
+import com.bloxbean.cardano.yaci.store.staking.storage.impl.mapper.PoolMapper;
+import com.bloxbean.cardano.yaci.store.staking.storage.impl.mapper.StakingMapper;
+import com.bloxbean.cardano.yaci.store.staking.storage.impl.repository.DelegationRepository;
+import com.bloxbean.cardano.yaci.store.staking.storage.impl.repository.PoolRegistrationRepository;
+import com.bloxbean.cardano.yaci.store.staking.storage.impl.repository.PoolRetirementRepository;
+import com.bloxbean.cardano.yaci.store.staking.storage.impl.repository.PoolStatusRepository;
+import com.bloxbean.cardano.yaci.store.staking.storage.impl.repository.StakeRegistrationRepository;
 import com.bloxbean.cardano.yaci.store.transaction.storage.impl.TransactionCborStorageImpl;
 import com.bloxbean.cardano.yaci.store.transaction.storage.impl.TransactionStorageImpl;
 import com.bloxbean.cardano.yaci.store.transaction.storage.impl.TransactionWitnessStorageImpl;
+import com.bloxbean.cardano.yaci.store.transaction.storage.impl.WithdrawalStorageImpl;
 import com.bloxbean.cardano.yaci.store.transaction.storage.impl.mapper.TxnMapper;
 import com.bloxbean.cardano.yaci.store.transaction.storage.impl.repository.TxnCborRepository;
 import com.bloxbean.cardano.yaci.store.transaction.storage.impl.repository.TxnEntityRepository;
 import com.bloxbean.cardano.yaci.store.transaction.storage.impl.repository.TxnWitnessRepository;
+import com.bloxbean.cardano.yaci.store.transaction.storage.impl.repository.WithdrawalRepository;
+import com.bloxbean.cardano.yaci.store.utxo.storage.impl.AddressStorageImpl;
 import com.bloxbean.cardano.yaci.store.utxo.storage.impl.UtxoCache;
 import com.bloxbean.cardano.yaci.store.utxo.storage.impl.UtxoStorageImpl;
 import com.bloxbean.cardano.yaci.store.utxo.storage.impl.repository.TxInputRepository;
 import com.bloxbean.cardano.yaci.store.utxo.storage.impl.repository.UtxoRepository;
+import org.jooq.DSLContext;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
@@ -81,28 +117,17 @@ public class NativeImageConfig {
   }
 
   /*
-   * yaci-store declares these @Transactional beans by their interface type (CursorStorage, AddressStorage), so AOT
-   * can't pregenerate the CGLIB proxy of the implementation class and a native image can't generate it at runtime.
-   * Declaring the implementation type here (yaci-store's definitions are @ConditionalOnMissingBean) lets AOT generate
-   * the proxies. Same beans on the JVM.
+   * yaci-store declares its storage beans by interface type (BlockStorage, UtxoStorage, ...). Their implementations
+   * are proxied, for @Transactional and for yaci-store's @Plugin aspect, so AOT can't pregenerate the CGLIB proxy of
+   * the implementation class and a native image can't generate it at runtime ("CGLIB runtime enhancement not
+   * supported on native image"). Declaring the implementation type here (yaci-store's definitions are
+   * @ConditionalOnMissingBean) lets AOT generate the proxies. Same beans and constructor arguments as yaci-store's
+   * definitions, generated from yaci-store's configurations (2.0.8 snapshot) for the modules Rosetta's indexer uses.
    */
-  @Bean
-  public CursorStorageImpl cursorStorage(CursorRepository cursorRepository) {
-    return new CursorStorageImpl(cursorRepository);
-  }
 
   @Bean
   public AddressStorageImpl addressStorage(DSLContext dslContext, StoreProperties storeProperties) {
     return new AddressStorageImpl(dslContext, storeProperties);
-  }
-
-  // The other @Transactional storage beans of the yaci-store modules Rosetta's indexer uses (blocks, transaction,
-  // epoch, utxo), found by scanning yaci-store's configurations for interface-typed beans with a @Transactional
-  // implementation. Same constructor arguments as yaci-store's definitions.
-
-  @Bean
-  public BlockStorageImpl blockStorage(BlockRepository blockRepository, BlockMapper blockMapper) {
-    return new BlockStorageImpl(blockRepository, blockMapper);
   }
 
   @Bean
@@ -111,15 +136,68 @@ public class NativeImageConfig {
   }
 
   @Bean
-  public EpochParamStorageImpl epochParamStorage(EpochParamRepository epochParamRepository,
-      CostModelRepository costModelRepository, ProtocolParamsMapper protocolParamsMapper) {
+  public BlockStorageImpl blockStorage(BlockRepository blockRepository, BlockMapper blockMapper) {
+    return new BlockStorageImpl(blockRepository, blockMapper);
+  }
+
+  @Bean
+  public CommitteeDeRegistrationStorageImpl committeeDeRegistrationStorage(CommitteeDeRegistrationRepository committeeDeRegistrationRepository, CommitteeDeRegistrationMapper committeeDeRegistrationMapper) {
+    return new CommitteeDeRegistrationStorageImpl(committeeDeRegistrationRepository, committeeDeRegistrationMapper);
+  }
+
+  @Bean
+  public CommitteeMemberStorageImpl committeeMemberStorage(CommitteeMemberRepository committeeMemberRepository, CommitteeMemberMapper committeeMemberMapper, DSLContext dslContext) {
+    return new CommitteeMemberStorageImpl(committeeMemberRepository, committeeMemberMapper, dslContext);
+  }
+
+  @Bean
+  public CommitteeRegistrationStorageImpl committeeRegistrationStorage(CommitteeRegistrationRepository committeeRegistrationRepository, CommitteeRegistrationMapper committeeRegistrationMapper) {
+    return new CommitteeRegistrationStorageImpl(committeeRegistrationRepository, committeeRegistrationMapper);
+  }
+
+  @Bean
+  public CursorStorageImpl cursorStorage(CursorRepository cursorRepository) {
+    return new CursorStorageImpl(cursorRepository);
+  }
+
+  @Bean
+  public DRepStorageImpl dRepStorage(DRepRepository dRepRepository, DRepMapper dRepMapper, DSLContext dslContext) {
+    return new DRepStorageImpl(dRepRepository, dRepMapper, dslContext);
+  }
+
+  @Bean
+  public DelegationVoteStorageImpl delegationVoteStorage(DelegationVoteRepository delegationVoteRepository, DelegationVoteMapper delegationVoteMapper) {
+    return new DelegationVoteStorageImpl(delegationVoteRepository, delegationVoteMapper);
+  }
+
+  @Bean
+  public DRepRegistrationStorageImpl drepRegistrationStorage(DRepRegistrationRepository drepRegistrationRepository, DRepRegistrationMapper drepRegistrationMapper) {
+    return new DRepRegistrationStorageImpl(drepRegistrationRepository, drepRegistrationMapper);
+  }
+
+  @Bean
+  public EpochParamStorageImpl epochParamStorage(EpochParamRepository epochParamRepository, CostModelRepository costModelRepository, ProtocolParamsMapper protocolParamsMapper) {
     return new EpochParamStorageImpl(epochParamRepository, costModelRepository, protocolParamsMapper);
   }
 
   @Bean
-  public TransactionStorageImpl transactionStorage(TxnEntityRepository txnEntityRepository, TxnMapper txnMapper,
-      DSLContext dslContext) {
-    return new TransactionStorageImpl(txnEntityRepository, txnMapper, dslContext);
+  public GovActionProposalStorageImpl governanceActionStorage(GovActionProposalRepository govActionProposalRepository, GovActionProposalMapper govActionProposalMapper) {
+    return new GovActionProposalStorageImpl(govActionProposalRepository, govActionProposalMapper);
+  }
+
+  @Bean
+  public PoolCertificateStorageImpl poolCertificateStorage(PoolRegistrationRepository registrationRepository, PoolRetirementRepository retirementRepository, PoolMapper poolMapper) {
+    return new PoolCertificateStorageImpl(registrationRepository, retirementRepository, poolMapper);
+  }
+
+  @Bean
+  public PoolStorageImpl poolStorage(PoolStatusRepository depositRepository, PoolMapper poolMapper) {
+    return new PoolStorageImpl(depositRepository, poolMapper);
+  }
+
+  @Bean
+  public StakeCertificateStorageImpl stakingStorage(StakeRegistrationRepository registrationRepository, DelegationRepository delegationRepository, StakingMapper stakingMapper) {
+    return new StakeCertificateStorageImpl(registrationRepository, delegationRepository, stakingMapper);
   }
 
   @Bean
@@ -128,15 +206,28 @@ public class NativeImageConfig {
   }
 
   @Bean
-  public TransactionWitnessStorageImpl transactionWitnessStorage(TxnWitnessRepository txnWitnessRepository,
-      TxnMapper txnMapper, DSLContext dslContext) {
+  public TransactionStorageImpl transactionStorage(TxnEntityRepository txnEntityRepository, TxnMapper txnMapper, DSLContext dslContext) {
+    return new TransactionStorageImpl(txnEntityRepository, txnMapper, dslContext);
+  }
+
+  @Bean
+  public TransactionWitnessStorageImpl transactionWitnessStorage(TxnWitnessRepository txnWitnessRepository, TxnMapper txnMapper, DSLContext dslContext) {
     return new TransactionWitnessStorageImpl(txnWitnessRepository, txnMapper, dslContext);
   }
 
   @Bean
-  public UtxoStorageImpl utxoStorage(UtxoRepository utxoRepository, TxInputRepository spentOutputRepository,
-      DSLContext dslContext, UtxoCache utxoCache, PlatformTransactionManager transactionManager) {
+  public UtxoStorageImpl utxoStorage(UtxoRepository utxoRepository, TxInputRepository spentOutputRepository, DSLContext dslContext, UtxoCache utxoCache, PlatformTransactionManager transactionManager) {
     return new UtxoStorageImpl(utxoRepository, spentOutputRepository, dslContext, utxoCache, transactionManager);
+  }
+
+  @Bean
+  public VotingProcedureStorageImpl votingProposalStorage(VotingProcedureRepository votingProcedureRepository, VotingProcedureMapper votingProcedureMapper) {
+    return new VotingProcedureStorageImpl(votingProcedureRepository, votingProcedureMapper);
+  }
+
+  @Bean
+  public WithdrawalStorageImpl withdrawalStorage(WithdrawalRepository withdrawalRepository, TxnMapper mapper) {
+    return new WithdrawalStorageImpl(withdrawalRepository, mapper);
   }
 
   static class AllJarsResourceProvider implements ResourceProvider {
